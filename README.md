@@ -7,7 +7,7 @@
 - Shipped artifact: the Python package `dbt-forge`
 - Current release target: `0.2.0` alpha
 - Supported Python: `3.11`, `3.12`, `3.13`
-- Primary commands: `dbt-forge init`, `dbt-forge add mart`, `dbt-forge add source`, `dbt-forge add snapshot`, `dbt-forge add seed`, `dbt-forge add exposure`, `dbt-forge add macro`
+- Primary commands: `dbt-forge init`, `dbt-forge doctor`, and `dbt-forge add` (mart, source, snapshot, seed, exposure, macro, pre-commit, ci, model, test, package)
 - Publish path: GitHub Actions publishes the package to PyPI from `v*` tags
 - Website role: docs and marketing for the CLI; it is not a separately versioned release
   artifact
@@ -29,6 +29,60 @@ Or with `uv`:
 
 ```bash
 uv tool install dbt-forge
+```
+
+## Usage
+
+### Scaffold a new dbt project
+
+```bash
+# Interactive — choose adapter, marts, packages, CI, and optional features
+dbt-forge init
+
+# Non-interactive — use opinionated defaults
+dbt-forge init my_project --defaults
+
+# Preview what would be generated without writing files
+dbt-forge init my_project --defaults --dry-run
+```
+
+### Add components to an existing project
+
+Run these from inside a dbt project (any directory containing `dbt_project.yml`):
+
+```bash
+# Scaffold structural components
+dbt-forge add mart finance
+dbt-forge add source salesforce
+dbt-forge add snapshot orders
+dbt-forge add seed dim_country
+dbt-forge add exposure weekly_revenue
+dbt-forge add macro cents_to_dollars
+
+# Interactive generators
+dbt-forge add model users          # prompts for layer, materialization, columns
+dbt-forge add test stg_orders      # data test or unit test
+dbt-forge add package dbt-utils    # add from curated registry of 20 packages
+
+# Tooling and CI
+dbt-forge add ci github            # generate CI pipeline config
+dbt-forge add pre-commit           # pre-commit hooks + editorconfig
+```
+
+### Check project health
+
+```bash
+# Run all 10 checks (naming, test coverage, schema docs, etc.)
+dbt-forge doctor
+
+# Auto-generate missing schema YAML stubs
+dbt-forge doctor --fix
+
+# CI mode — exits with code 1 on failures
+dbt-forge doctor --ci
+
+# Run a single check
+dbt-forge doctor --check test-coverage
 ```
 
 ## CLI development

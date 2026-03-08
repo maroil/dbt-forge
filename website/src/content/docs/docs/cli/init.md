@@ -64,6 +64,9 @@ Without `--defaults`, `init` currently asks for:
 - example seed
 - example exposure
 - example macro
+- pre-commit hooks config
+- environment config (generate_schema_name macro + .env.example)
+- team owner for CODEOWNERS
 
 ## Generated output
 
@@ -72,7 +75,11 @@ The command creates a dbt project directory with:
 - `dbt_project.yml`
 - `profiles/profiles.yml`
 - `models/`, `tests/`, `macros/`, `selectors.yml`
-- optional `.sqlfluff`
+- optional `.sqlfluff` and `.sqlfluffignore`
+- optional `.pre-commit-config.yaml` and `.editorconfig`
+- optional `.env.example` (adapter-specific env vars)
+- optional `macros/generate_schema_name.sql` (dev/prod schema routing)
+- optional `CODEOWNERS` (mart-based ownership mapping)
 - optional CI files
 - optional example staging, marts, and tests
 - optional `snapshots/example_snapshot.sql`

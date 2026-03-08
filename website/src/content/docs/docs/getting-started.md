@@ -3,8 +3,8 @@ title: Getting started
 description: Install dbt-forge, scaffold a dbt project, and run the first local dbt commands.
 ---
 
-`dbt-forge` is a Python CLI for scaffolding a dbt project with a consistent starting
-structure. This guide covers the current `0.1.x` alpha line of the CLI.
+`dbt-forge` is a Python CLI for scaffolding dbt projects, extending them with new
+components, and validating project health. This guide covers the current `0.2.x` alpha.
 
 ## Supported Python
 
@@ -72,7 +72,7 @@ If you skip starter packages during `init`, `dbt deps` is not required.
 
 ## Extend an existing project
 
-Inside an existing dbt project, use the `add` subcommands to scaffold new sections
+Inside an existing dbt project, use the `add` subcommands to scaffold new components
 without overwriting files that already exist:
 
 ```bash
@@ -83,6 +83,30 @@ dbt-forge add seed dim_country
 dbt-forge add exposure weekly_revenue
 dbt-forge add macro cents_to_dollars
 ```
+
+Generate models, tests, and CI config interactively:
+
+```bash
+dbt-forge add model users           # interactive model generator
+dbt-forge add test stg_orders       # data test or unit test
+dbt-forge add ci github             # CI pipeline config
+dbt-forge add pre-commit            # pre-commit hooks + editorconfig
+dbt-forge add package dbt-utils     # add a dbt package
+```
+
+## Check project health
+
+Run `doctor` from inside a dbt project to validate best practices:
+
+```bash
+dbt-forge doctor                    # run all 10 checks
+dbt-forge doctor --fix              # auto-generate missing schema stubs
+dbt-forge doctor --ci               # non-interactive, exit 1 on failures
+dbt-forge doctor --check test-coverage  # run a single check
+```
+
+The doctor checks naming conventions, schema/test coverage, hardcoded references,
+pinned package versions, source freshness, orphaned YAML entries, and more.
 
 ## Default selections
 

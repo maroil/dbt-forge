@@ -9,8 +9,12 @@ The project is currently in its `0.2.x` alpha phase.
 - `src/`-packaged Python CLI built on Typer and Rich
 - Interactive or default-driven project generation
 - Adapter templates for BigQuery, Snowflake, PostgreSQL, DuckDB, Databricks, Redshift, Trino, and Spark
-- `add mart`, `add source`, `add snapshot`, `add seed`, `add exposure`, and `add macro` commands for extending an existing dbt project
-- Optional starter dbt packages, SQLFluff config, and CI templates
+- 11 `add` subcommands for extending an existing dbt project: mart, source, snapshot, seed, exposure, macro, pre-commit, ci, model, test, package
+- `doctor` command with 10 project health checks, `--fix` auto-repair, and `--ci` mode
+- Optional pre-commit hooks, SQLFluff config, `.editorconfig`, and CI templates
+- Environment config scaffolding: `generate_schema_name` macro and adapter-specific `.env.example`
+- `CODEOWNERS` file generation with mart-based ownership mapping
+- Curated package registry with 20 dbt packages and known-good version ranges
 - Generated `.env` support so local dbt commands resolve `profiles/` consistently
 
 ## Install
@@ -46,6 +50,20 @@ dbt-forge add snapshot orders
 dbt-forge add seed dim_country
 dbt-forge add exposure weekly_revenue
 dbt-forge add macro cents_to_dollars
+dbt-forge add pre-commit
+dbt-forge add ci github
+dbt-forge add model users
+dbt-forge add test stg_orders
+dbt-forge add package dbt-utils
+```
+
+Run health checks on an existing project:
+
+```bash
+dbt-forge doctor
+dbt-forge doctor --fix
+dbt-forge doctor --ci
+dbt-forge doctor --check naming-conventions
 ```
 
 ## Supported Python

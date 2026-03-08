@@ -1,0 +1,11 @@
+unit_tests:
+  - name: {{ test_name }}
+    description: "Unit test for {{ model_name }}"
+    model: {{ model_name }}
+    given:
+      - input: ref('{{ model_name }}')
+        rows:
+          - { id: 1 }
+    expect:
+      rows:
+        - { id: 1 }

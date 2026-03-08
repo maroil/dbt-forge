@@ -1,0 +1,31 @@
+# dbt project CODEOWNERS
+# Each line maps a path pattern to one or more owners.
+# Owners are auto-requested for PR reviews.
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+* {{ team_owner }}
+
+# Staging layer — raw source transformations
+models/staging/ {{ team_owner }}
+
+# Intermediate layer — shared business logic
+models/intermediate/ {{ team_owner }}
+
+# Mart layers — domain-specific
+{% for mart in marts %}
+models/marts/{{ mart }}/ {{ team_owner }}
+models/intermediate/{{ mart }}/ {{ team_owner }}
+{% endfor %}
+
+# Tests
+tests/ {{ team_owner }}
+
+# Macros — shared SQL functions
+macros/ {{ team_owner }}
+
+# CI/CD and infrastructure
+.github/ {{ team_owner }}
+profiles/ {{ team_owner }}
+dbt_project.yml {{ team_owner }}
+packages.yml {{ team_owner }}

@@ -1,0 +1,8 @@
+-- Data test: {{ test_name }}
+-- Returns rows that violate the assertion (test fails if any rows returned).
+
+SELECT *
+FROM {{ '{{' }} ref('{{ model_name }}') {{ '}}' }}
+WHERE
+    -- TODO: replace with your assertion logic
+    1 = 0

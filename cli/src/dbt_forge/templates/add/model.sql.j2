@@ -1,0 +1,43 @@
+{% if materialization == "incremental" %}
+{{ '{{' }}
+    config(
+        materialized='incremental',
+        unique_key='id'
+    )
+{{ '}}' }}
+
+{% endif %}
+{% if layer == "staging" and source_name %}
+SELECT
+{% for col in columns %}
+    {{ col.name }}{{ "," if not loop.last }}
+{% endfor %}
+{% if not columns %}
+    *
+{% endif %}
+FROM {{ '{{' }} source('{{ source_name }}', '{{ entity }}') {{ '}}' }}
+{% if materialization == "incremental" %}
+
+{% raw %}
+{% if is_incremental() %}
+WHERE updated_at > (SELECT MAX(updated_at) FROM {{ this }})
+{% endif %}
+{% endraw %}
+{% endif %}
+{% else %}
+SELECT
+{% for col in columns %}
+    {{ col.name }}{{ "," if not loop.last }}
+{% endfor %}
+{% if not columns %}
+    1 AS id
+{% endif %}
+{% if materialization == "incremental" %}
+
+{% raw %}
+{% if is_incremental() %}
+WHERE updated_at > (SELECT MAX(updated_at) FROM {{ this }})
+{% endif %}
+{% endraw %}
+{% endif %}
+{% endif %}

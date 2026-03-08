@@ -10,19 +10,19 @@ const features = [
   {
     eyebrow: 'Why it exists',
     title: 'Stop rebuilding the same dbt project setup.',
-    body: 'Use one command to scaffold folders, profiles, packages, and optional setup files that teams often add by hand.',
+    body: 'Use one command to scaffold folders, profiles, packages, pre-commit hooks, CI pipelines, and environment config that teams often add by hand.',
     icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>`
   },
   {
     eyebrow: 'What it generates',
     title: 'Start with a structure that matches dbt work.',
-    body: 'The scaffold includes staging, intermediate, marts, tests, macros, and adapter-aware profile files for the warehouse you selected.',
+    body: 'The scaffold includes staging, intermediate, marts, tests, macros, adapter-aware profiles, and optional tooling like SQLFluff, pre-commit, and CI pipelines.',
     icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>`
   },
   {
     eyebrow: 'How it grows',
-    title: 'Extend an existing dbt project without overwriting files.',
-    body: 'Use `dbt-forge add mart` and `dbt-forge add source` when the project expands into new domains or source systems.',
+    title: 'Add models, tests, packages, and CI config as the project evolves.',
+    body: 'Use 11 `add` subcommands to scaffold new components. Run `doctor` to validate best practices across the project.',
     icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`
   },
 ];
@@ -43,8 +43,8 @@ const workflow = [
   {
     step: '03',
     label: 'Grow',
-    command: 'dbt-forge add mart finance',
-    body: 'Scaffold a new mart later.',
+    command: 'dbt-forge add model users',
+    body: 'Add models, tests, and packages.',
   },
 ];
 ---

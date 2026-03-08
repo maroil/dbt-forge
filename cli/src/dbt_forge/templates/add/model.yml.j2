@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: {{ model_name }}
+    description: "{{ description }}"
+    config:
+      materialized: {{ materialization }}
+{% if columns %}
+    columns:
+{% for col in columns %}
+      - name: {{ col.name }}
+        description: "{{ col.description }}"
+{% if col.tests %}
+        data_tests:
+{% for test in col.tests %}
+          - {{ test }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
