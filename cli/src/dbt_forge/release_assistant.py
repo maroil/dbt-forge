@@ -406,12 +406,16 @@ def verify_release(
     with tempfile.TemporaryDirectory(prefix="dbt-forge-release-") as tmpdir:
         dist_dir = Path(tmpdir) / "dist"
         build_result = runner(
-            ["uv", "build", "--clear", "--out-dir", str(dist_dir)],
+            ["uv", "build", "--clear", "--no-create-gitignore", "--out-dir", str(dist_dir)],
             cwd=repo_root / CLI_ROOT.relative_to(REPO_ROOT),
         )
         results.append(CheckResult("PASS", "cli build", _command_summary(build_result.stdout)))
 
-        artifacts = sorted(str(path) for path in dist_dir.iterdir())
+        artifacts = sorted(
+            str(path)
+            for path in dist_dir.iterdir()
+            if path.is_file() and (path.suffix == ".whl" or path.name.endswith(".tar.gz"))
+        )
         if not artifacts:
             raise ReleaseAssistantError(
                 "No artifacts were built into the temporary dist directory."

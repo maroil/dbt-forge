@@ -256,10 +256,17 @@ def test_verify_release_uses_temp_dist_and_target_wheel(
             return CompletedProcess(args, 0, "All checks passed!\n", "")
         if cwd == repo_root / "cli" and args == ["uv", "run", "pytest"]:
             return CompletedProcess(args, 0, "113 passed in 2.27s\n", "")
-        if cwd == repo_root / "cli" and args[:4] == ["uv", "build", "--clear", "--out-dir"]:
-            dist_dir = Path(args[4])
+        if cwd == repo_root / "cli" and args[:5] == [
+            "uv",
+            "build",
+            "--clear",
+            "--no-create-gitignore",
+            "--out-dir",
+        ]:
+            dist_dir = Path(args[5])
             dist_dir.mkdir(parents=True, exist_ok=True)
             (dist_dir / "dbt_forge-0.2.0-py3-none-any.whl").write_text("wheel", encoding="utf-8")
+            (dist_dir / "dbt_forge-0.2.0.tar.gz").write_text("sdist", encoding="utf-8")
             return CompletedProcess(args, 0, "Successfully built wheel\n", "")
         if cwd == repo_root / "cli" and args[:3] == ["uvx", "twine", "check"]:
             return CompletedProcess(args, 0, "PASSED\n", "")
