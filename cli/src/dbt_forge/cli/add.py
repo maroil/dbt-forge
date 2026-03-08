@@ -26,17 +26,17 @@ class AddHelpGroup(typer.core.TyperGroup):
         _console.print()
         _console.print("[bold cyan]Examples:[/bold cyan]")
         _console.print()
-        _console.print("  [green]$[/green] dbt-forge add source salesforce       Staging layer with source YAML")
-        _console.print("  [green]$[/green] dbt-forge add mart finance             Mart + intermediate models")
-        _console.print("  [green]$[/green] dbt-forge add snapshot orders          SCD type-2 snapshot")
-        _console.print("  [green]$[/green] dbt-forge add seed country_codes       CSV + schema YAML")
-        _console.print("  [green]$[/green] dbt-forge add macro cents_to_dollars   Reusable SQL macro")
-        _console.print("  [green]$[/green] dbt-forge add exposure weekly_report   Exposure definition")
-        _console.print("  [green]$[/green] dbt-forge add pre-commit               Pre-commit + editorconfig")
-        _console.print("  [green]$[/green] dbt-forge add ci                       CI pipeline config")
-        _console.print("  [green]$[/green] dbt-forge add model users              Interactive model generator")
-        _console.print("  [green]$[/green] dbt-forge add test orders              Test generator")
-        _console.print("  [green]$[/green] dbt-forge add package dbt-utils        Smart package installer")
+        _console.print("  [green]$[/green] dbt-forge add source salesforce     Source YAML")
+        _console.print("  [green]$[/green] dbt-forge add mart finance           Mart models")
+        _console.print("  [green]$[/green] dbt-forge add snapshot orders        SCD type-2")
+        _console.print("  [green]$[/green] dbt-forge add seed country_codes     CSV + schema")
+        _console.print("  [green]$[/green] dbt-forge add macro cents_to_dollars SQL macro")
+        _console.print("  [green]$[/green] dbt-forge add exposure weekly_report Exposure def")
+        _console.print("  [green]$[/green] dbt-forge add pre-commit             Pre-commit")
+        _console.print("  [green]$[/green] dbt-forge add ci                     CI pipeline")
+        _console.print("  [green]$[/green] dbt-forge add model users            Model gen")
+        _console.print("  [green]$[/green] dbt-forge add test orders            Test gen")
+        _console.print("  [green]$[/green] dbt-forge add package dbt-utils      Package add")
         _console.print()
         _console.print("[dim]Run from inside a dbt project (must contain dbt_project.yml).[/dim]")
         _console.print()
@@ -422,7 +422,10 @@ def add_ci(
     if provider and provider.lower() in provider_map:
         selected = [provider_map[provider.lower()]]
     elif provider:
-        console.print(f"[red]Error:[/red] Unknown provider '{provider}'. Use: github, gitlab, bitbucket")
+        console.print(
+            f"[red]Error:[/red] Unknown provider '{provider}'."
+            " Use: github, gitlab, bitbucket"
+        )
         sys.exit(1)
     else:
         # Interactive prompt
@@ -650,7 +653,7 @@ def add_test(
 ) -> None:
     """Scaffold a test for an existing dbt model."""
     project_root = _find_project_root()
-    project_name = _read_project_name(project_root)
+    _read_project_name(project_root)
 
     test_type = questionary.select(
         "Test type:",
@@ -819,7 +822,10 @@ def add_package(
             return
 
     if name not in PACKAGE_REGISTRY:
-        console.print(f"[red]Error:[/red] Unknown package '{name}'. Use --list to see available packages.")
+        console.print(
+            f"[red]Error:[/red] Unknown package '{name}'."
+            " Use --list to see available packages."
+        )
         console.print("[dim]For custom packages, add them manually to packages.yml.[/dim]")
         sys.exit(1)
 
@@ -851,7 +857,10 @@ def add_package(
     packages_path.write_text(yaml.dump(data, default_flow_style=False, sort_keys=False))
 
     console.print()
-    console.print(f"  [green]\u2714[/green]  Added [bold]{name}[/bold] ({pkg_info['hub']}) to packages.yml")
+    console.print(
+        f"  [green]\u2714[/green]  Added [bold]{name}[/bold]"
+        f" ({pkg_info['hub']}) to packages.yml"
+    )
     console.print()
     console.print("  [dim]Run [bold]dbt deps[/bold] to install.[/dim]")
     console.print()

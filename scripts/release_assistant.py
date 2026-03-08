@@ -11,7 +11,7 @@ CLI_SRC = REPO_ROOT / "cli" / "src"
 if str(CLI_SRC) not in sys.path:
     sys.path.insert(0, str(CLI_SRC))
 
-from dbt_forge.release_assistant import main
+from dbt_forge.release_assistant import main  # noqa: E402
 
 
 if __name__ == "__main__":

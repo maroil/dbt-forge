@@ -111,6 +111,7 @@ class TestAddPreCommitCommand:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["pre-commit"])
@@ -138,6 +139,7 @@ class TestAddCi:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["ci", "github"])
@@ -160,6 +162,7 @@ class TestAddCi:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["ci", "gitlab"])
@@ -179,6 +182,7 @@ class TestAddCi:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["ci", "bitbucket"])
@@ -200,6 +204,7 @@ class TestAddCi:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["ci", "github"])
@@ -219,6 +224,7 @@ class TestAddCi:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["ci", "jenkins"])

@@ -150,7 +150,10 @@ def check_naming_conventions(root: Path) -> CheckResult:
         return CheckResult(
             name="naming-conventions",
             passed=False,
-            message=f"{len(violations)} model(s) violate naming conventions:\n" + "\n".join(violations[:5]),
+            message=(
+                f"{len(violations)} model(s) violate naming conventions:\n"
+                + "\n".join(violations[:5])
+            ),
             fix_hint="Rename models to follow stg_/int_ prefix conventions.",
         )
     return CheckResult(

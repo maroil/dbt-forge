@@ -100,6 +100,7 @@ class TestAddTest:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 # Mock questionary to return "data"
@@ -123,6 +124,7 @@ class TestAddTest:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 # Mock questionary to return "unit"
@@ -153,6 +155,7 @@ class TestAddPackage:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["package", "dbt-codegen"])
@@ -171,6 +174,7 @@ class TestAddPackage:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 runner.invoke(add_app, ["package", "dbt-codegen"])
@@ -187,6 +191,7 @@ class TestAddPackage:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["package", "nonexistent-package"])
@@ -201,6 +206,7 @@ class TestAddPackage:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["package", "--list"])

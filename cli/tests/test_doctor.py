@@ -231,6 +231,7 @@ class TestDoctorCli:
             try:
                 os.chdir(root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.main import app
                 runner = CliRunner()
                 result = runner.invoke(app, ["doctor"])
@@ -246,6 +247,7 @@ class TestDoctorCli:
             try:
                 os.chdir(root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.main import app
                 runner = CliRunner()
                 result = runner.invoke(app, ["doctor", "--check", "gitignore"])
@@ -264,6 +266,7 @@ class TestDoctorCli:
             try:
                 os.chdir(root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.main import app
                 runner = CliRunner()
                 result = runner.invoke(app, ["doctor", "--fix"])
