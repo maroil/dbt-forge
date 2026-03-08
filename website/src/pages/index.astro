@@ -2,45 +2,59 @@
 import '../styles/site.css';
 
 const repoUrl = 'https://github.com/maroil/dbt-forge';
-const changelogUrl = `${repoUrl}/blob/main/CHANGELOG.md`;
 const issuesUrl = `${repoUrl}/issues`;
-const pypiUrl = 'https://pypi.org/project/dbt-forge/';
-
-const features = [
-  {
-    title: 'Opinionated from the first command',
-    body: 'Start with a consistent dbt project layout, package setup, profiles, and warehouse-aware defaults instead of blank folders.',
-  },
-  {
-    title: 'Interactive when you want it, scriptable when you do not',
-    body: 'Use prompts for discovery, or lock in defaults with one command for repeatable internal project bootstraps.',
-  },
-  {
-    title: 'Post-init scaffolding stays close to the repo',
-    body: 'Add marts and staging sources later without rethinking the shape of the project every time a new domain arrives.',
-  },
-];
 
 const adapters = ['BigQuery', 'Snowflake', 'PostgreSQL', 'DuckDB', 'Databricks', 'Redshift', 'Trino', 'Spark'];
 
-const docs = [
+const features = [
   {
-    href: '/docs/getting-started/',
-    kicker: 'Quickstart',
-    title: 'Install and scaffold a project in minutes',
-    body: 'Get the CLI running with pip or uv, then generate a ready-to-edit project with sensible defaults.',
+    eyebrow: 'Scaffold',
+    title: 'Start from a repo that already makes sense.',
+    body: 'Profiles, folders, and starter structure are generated for you.',
   },
   {
-    href: '/docs/cli/init/',
-    kicker: 'CLI',
-    title: 'See every init flag that matters',
-    body: 'Understand interactive prompts, defaults mode, output directories, and dry-run previews before generating files.',
+    eyebrow: 'Standardize',
+    title: 'Keep conventions stable from day one.',
+    body: 'Use prompts when exploring or defaults when teams need repeatable output.',
   },
   {
-    href: '/docs/cli/add/',
-    kicker: 'CLI',
-    title: 'Extend an existing dbt project safely',
-    body: 'Learn how add mart and add source behave, where they write files, and how they avoid overwriting existing work.',
+    eyebrow: 'Extend',
+    title: 'Grow the project without drift.',
+    body: 'Add marts and sources later without reworking the repo shape.',
+  },
+];
+
+const terminalSteps = [
+  '$ dbt-forge init analytics_core --defaults',
+  '? Which adapter should your project use? snowflake',
+  '? Include starter marts and staging structure? yes',
+  'Created analytics_core with adapter-aware profiles and starter folders.',
+];
+
+const heroHighlights = [
+  { value: '08', label: 'supported adapters' },
+  { value: '01', label: 'clean baseline' },
+  { value: '00', label: 'hosted services' },
+];
+
+const workflow = [
+  {
+    step: '01',
+    label: 'Install',
+    command: 'uv tool install dbt-forge',
+    body: 'Install once.',
+  },
+  {
+    step: '02',
+    label: 'Initialize',
+    command: 'dbt-forge init analytics_core --defaults',
+    body: 'Generate the baseline.',
+  },
+  {
+    step: '03',
+    label: 'Grow',
+    command: 'dbt-forge add mart finance',
+    body: 'Extend without drift.',
   },
 ];
 ---
@@ -50,192 +64,129 @@ const docs = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>dbt-forge | Production-ready dbt scaffolding</title>
+    <title>dbt-forge | Dark-first dbt scaffolding</title>
     <meta
       name="description"
-      content="dbt-forge is a Python CLI for scaffolding production-ready dbt projects with opinionated defaults, adapter profiles, and starter structure."
+      content="dbt-forge is a Python CLI for scaffolding production-ready dbt projects with opinionated defaults, warehouse-aware templates, and a clean team standard from day one."
     />
   </head>
   <body class="forge-home">
     <div class="forge-shell">
-      <div class="forge-frame">
-        <header class="forge-topbar">
+      <div class="forge-glow forge-glow-left" aria-hidden="true"></div>
+      <div class="forge-glow forge-glow-right" aria-hidden="true"></div>
+      <div class="forge-lines" aria-hidden="true"></div>
+
+      <header class="forge-topbar">
+        <div class="forge-topbar-inner">
           <a class="forge-brand" href="/">
-            <span class="forge-mark">df</span>
+            <span class="forge-brand-mark">df</span>
             <span class="forge-brand-copy">
               <strong>dbt-forge</strong>
-              <span>CLI + docs for production-ready dbt scaffolding</span>
+              <span>Opinionated scaffolding for analytics engineering teams.</span>
             </span>
           </a>
 
           <nav class="forge-nav" aria-label="Primary">
             <a href="/docs/">Docs</a>
+            <a href="/docs/getting-started/">Quickstart</a>
+            <a href="/docs/cli/init/">CLI</a>
             <a href={repoUrl}>GitHub</a>
-            <a href="/changelog/">Changelog</a>
-            <a href={issuesUrl}>Issues</a>
           </nav>
-        </header>
 
-        <main class="forge-layout">
-          <section class="forge-hero">
+          <div class="forge-topbar-actions">
+            <a class="forge-topbar-pill" href={issuesUrl}>Issues</a>
+            <a class="forge-topbar-button" href="/docs/getting-started/">Get started</a>
+          </div>
+        </div>
+      </header>
+
+      <main class="forge-main">
+        <section class="forge-hero-shell">
+          <div class="forge-hero">
             <div class="forge-hero-copy">
-              <span class="forge-chip">Open source · Python CLI · Vercel docs</span>
-              <h1>Forge the boring parts of dbt once. Then ship.</h1>
-              <p>
-                <code>dbt-forge</code> gives analytics teams an opinionated starting point for dbt:
-                adapters, profiles, marts, examples, and project structure that already make sense
-                before the first model is written.
+              <span class="forge-eyebrow">Python CLI · open source · dark-first docs</span>
+              <h1>
+                <span class="forge-hero-line">Start with a dbt repo</span>
+                <span class="forge-hero-line forge-hero-line-accent">that already feels</span>
+                <span class="forge-hero-line forge-hero-line-accent-secondary">like team standard.</span>
+              </h1>
+              <p class="forge-hero-body">
+                <code>dbt-forge</code> scaffolds dbt projects with sensible defaults, adapter-aware
+                profiles, and a structure teams can keep.
               </p>
 
               <div class="forge-cta-row">
-                <a class="forge-button forge-button-primary" href="/docs/getting-started/">Read the docs</a>
-                <a class="forge-button forge-button-secondary" href={repoUrl}>View on GitHub</a>
-                <a class="forge-button forge-button-secondary" href={pypiUrl}>Open PyPI</a>
+                <a class="forge-button forge-button-primary" href="/docs/getting-started/">
+                  Documentation
+                </a>
+                <a class="forge-button forge-button-secondary" href={repoUrl}>GitHub</a>
               </div>
 
-              <div class="forge-mini-stats" aria-label="Highlights">
-                <div class="forge-mini-stat">
-                  <strong>8</strong>
-                  <span>warehouse adapters</span>
-                </div>
-                <div class="forge-mini-stat">
-                  <strong>3</strong>
-                  <span>core CLI surfaces</span>
-                </div>
-                <div class="forge-mini-stat">
-                  <strong>0</strong>
-                  <span>runtime backend services</span>
-                </div>
+              <div class="forge-command-bar" aria-label="CLI command">
+                <code>dbt-forge init analytics_core --defaults</code>
+                <span>CLI</span>
               </div>
             </div>
 
-            <aside class="forge-panel" aria-label="CLI preview">
-              <div class="forge-panel-top">
-                <span class="forge-kicker">Terminal preview</span>
-                <div class="forge-ledger" aria-hidden="true">
+            <div class="forge-hero-aside">
+              <div class="forge-terminal-preview" aria-label="Terminal preview">
+                <div class="forge-terminal-preview-bar">
                   <span></span>
                   <span></span>
                   <span></span>
                 </div>
+                <div class="forge-terminal-preview-body">
+                  {terminalSteps.map((line) => <code>{line}</code>)}
+                </div>
               </div>
 
-              <div class="forge-command-list">
-                <div class="forge-command">
-                  <code>uv tool install dbt-forge</code>
-                  <p>Install the CLI globally with uv.</p>
-                </div>
-                <div class="forge-command">
-                  <code>dbt-forge init analytics_core --defaults</code>
-                  <p>Generate a project with opinionated defaults and a consistent layout.</p>
-                </div>
-                <div class="forge-command">
-                  <code>dbt-forge add mart finance</code>
-                  <p>Extend an existing project with new marts without manual boilerplate.</p>
-                </div>
-                <div class="forge-command">
-                  <code>dbt-forge add source salesforce</code>
-                  <p>Scaffold staging files and source YAML close to where dbt expects them.</p>
-                </div>
+              <div class="forge-hero-highlights">
+                {heroHighlights.map((item) => (
+                  <article class="forge-hero-highlight">
+                    <strong>{item.value}</strong>
+                    <span>{item.label}</span>
+                  </article>
+                ))}
               </div>
-            </aside>
-          </section>
-
-          <section class="forge-section">
-            <div class="forge-section-header">
-              <div>
-                <h2>What the CLI does well</h2>
-              </div>
-              <p>
-                This is not a general-purpose framework generator. It is a narrow tool for teams
-                that want a sensible dbt baseline fast and prefer consistency over endless setup
-                choices.
-              </p>
             </div>
+          </div>
 
-            <div class="forge-grid forge-grid-3">
-              {features.map((feature) => (
-                <article class="forge-card">
-                  <h3>{feature.title}</h3>
-                  <p>{feature.body}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section class="forge-section">
-            <div class="forge-section-header">
-              <div>
-                <h2>Adapters in scope</h2>
-              </div>
-              <p>
-                The current generator covers the warehouses already modeled in the CLI prompt layer
-                and template set.
-              </p>
-            </div>
-
-            <div class="forge-belt">
+          <div class="forge-proof-row" aria-label="Supported adapters">
+            <span>Supported adapters</span>
+            <div class="forge-proof-list">
               {adapters.map((adapter) => <span>{adapter}</span>)}
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section class="forge-section">
-            <div class="forge-section-header">
-              <div>
-                <h2>Docs that map to the real commands</h2>
-              </div>
-              <p>
-                The docs stay close to the current CLI surface: installation, quickstart,
-                <code>init</code>, <code>add mart</code>, <code>add source</code>, and repository
-                development.
-              </p>
-            </div>
+        <section class="forge-feature-grid">
+          {features.map((feature) => (
+            <article class="forge-feature-card">
+              <span>{feature.eyebrow}</span>
+              <h2>{feature.title}</h2>
+              <p>{feature.body}</p>
+            </article>
+          ))}
+        </section>
 
-            <div class="forge-grid forge-grid-3">
-              {docs.map((doc) => (
-                <a class="forge-doc-card" href={doc.href}>
-                  <span>{doc.kicker}</span>
-                  <h3>{doc.title}</h3>
-                  <p>{doc.body}</p>
-                </a>
-              ))}
-            </div>
-          </section>
+        <section class="forge-band">
+          <div class="forge-band-copy">
+            <span class="forge-section-kicker">Three steps</span>
+            <h2>Install it, scaffold once, and keep moving.</h2>
+          </div>
 
-          <section class="forge-section">
-            <div class="forge-section-header">
-              <div>
-                <h2>Repository links</h2>
-              </div>
-              <p>
-                Everything public stays in one repo: source code, issues, changelog, and the docs
-                site deployed on Vercel.
-              </p>
-            </div>
-
-            <div class="forge-grid forge-grid-2">
-              <a class="forge-doc-card" href={repoUrl}>
-                <span>Source</span>
-                <h3>Browse the GitHub repo</h3>
-                <p>Inspect the Python package in <code>cli/</code> and the Astro docs site in <code>website/</code>.</p>
-              </a>
-              <a class="forge-doc-card" href={changelogUrl}>
-                <span>Releases</span>
-                <h3>Read the changelog</h3>
-                <p>Track package releases and changes before tagging the next PyPI build.</p>
-              </a>
-            </div>
-          </section>
-        </main>
-
-        <footer class="forge-footer">
-          <p>
-            <code>dbt-forge</code> is maintained as an open-source project. Start with the
-            <a class="forge-inline-link" href="/docs/getting-started/">getting started guide</a>,
-            then move into the CLI reference as you adopt it.
-          </p>
-          <span class="forge-footer-note">Hosted on Vercel · Docs in Astro + Starlight</span>
-        </footer>
-      </div>
+          <div class="forge-band-grid">
+            {workflow.map((item) => (
+              <article class="forge-command-card">
+                <span class="forge-command-step">{item.step}</span>
+                <strong>{item.label}</strong>
+                <code>{item.command}</code>
+                <p>{item.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      </main>
     </div>
   </body>
 </html>
