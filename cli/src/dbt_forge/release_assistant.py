@@ -24,6 +24,9 @@ CLI_README_FILE = CLI_ROOT / "README.md"
 RELEASING_FILE = REPO_ROOT / "RELEASING.md"
 CONTRIBUTING_FILE = REPO_ROOT / "CONTRIBUTING.md"
 WEBSITE_DEVELOPMENT_FILE = WEBSITE_ROOT / "src" / "content" / "docs" / "docs" / "development.md"
+WEBSITE_GETTING_STARTED_FILE = (
+    WEBSITE_ROOT / "src" / "content" / "docs" / "docs" / "getting-started.md"
+)
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 UNRELEASED_STUB = "### Added\n\n- Nothing yet."
 RELEASE_NOTES_INTRO = (
@@ -100,13 +103,10 @@ def update_version_file(content: str, version: str) -> str:
 
 
 def update_root_readme(content: str, version: str) -> str:
-    """Update the release target in the repository README."""
-    return _replace_once(
-        content,
-        r"^- Current release target: `[^`]+` alpha$",
-        f"- Current release target: `{version}` alpha",
-        file_label="README.md",
-    )
+    """Refresh release assistant examples in the repository README when present."""
+    if "python3 scripts/release_assistant.py prepare" not in content:
+        return content
+    return update_release_command_examples(content, version, file_label="README.md")
 
 
 def update_cli_readme(content: str, version: str) -> str:
@@ -118,6 +118,16 @@ def update_cli_readme(content: str, version: str) -> str:
         file_label="cli/README.md",
     )
     return update_release_command_examples(content, version, file_label="cli/README.md")
+
+
+def update_website_getting_started(content: str, version: str) -> str:
+    """Update the website quickstart alpha track to match the release series."""
+    return _replace_once(
+        content,
+        r"This guide covers the current `\d+\.\d+\.x` alpha\.",
+        f"This guide covers the current `{version.rsplit('.', 1)[0]}.x` alpha.",
+        file_label="website/src/content/docs/docs/getting-started.md",
+    )
 
 
 def update_release_command_examples(content: str, version: str, *, file_label: str) -> str:
@@ -250,13 +260,6 @@ def extract_version_from_version_file(content: str) -> str:
     return match.group(1)
 
 
-def extract_root_readme_target(content: str) -> str:
-    match = re.search(r"^- Current release target: `([^`]+)` alpha$", content, flags=re.MULTILINE)
-    if not match:
-        raise ReleaseAssistantError("Could not parse current release target from README.md.")
-    return match.group(1)
-
-
 def extract_releasing_target(content: str) -> str:
     match = re.search(
         r"This project is preparing the Python CLI package release `dbt-forge` version `([^`]+)`\.",
@@ -265,6 +268,18 @@ def extract_releasing_target(content: str) -> str:
     if not match:
         raise ReleaseAssistantError("Could not parse release target from RELEASING.md.")
     return match.group(1)
+
+
+def extract_website_getting_started_track(content: str) -> str:
+    match = re.search(
+        r"This guide covers the current `(\d+\.\d+)\.x` alpha\.",
+        content,
+    )
+    if not match:
+        raise ReleaseAssistantError(
+            "Could not parse alpha track from website/src/content/docs/docs/getting-started.md."
+        )
+    return f"{match.group(1)}.0"
 
 
 def prepare_release(
@@ -279,9 +294,7 @@ def prepare_release(
     changed: list[Path] = []
     updates = {
         VERSION_FILE.relative_to(REPO_ROOT): lambda text: update_version_file(text, version),
-        README_FILE.relative_to(REPO_ROOT): lambda text: update_release_command_examples(
-            update_root_readme(text, version), version, file_label="README.md"
-        ),
+        README_FILE.relative_to(REPO_ROOT): lambda text: update_root_readme(text, version),
         CLI_README_FILE.relative_to(REPO_ROOT): lambda text: update_cli_readme(text, version),
         CONTRIBUTING_FILE.relative_to(REPO_ROOT): lambda text: update_release_command_examples(
             text, version, file_label="CONTRIBUTING.md"
@@ -293,6 +306,9 @@ def prepare_release(
             lambda text: update_release_command_examples(
                 text, version, file_label="website/src/content/docs/docs/development.md"
             )
+        ),
+        WEBSITE_GETTING_STARTED_FILE.relative_to(REPO_ROOT): (
+            lambda text: update_website_getting_started(text, version)
         ),
         CHANGELOG_FILE.relative_to(REPO_ROOT): lambda text: promote_unreleased_section(
             text, version, release_date
@@ -375,11 +391,11 @@ def verify_release(
         "package version": extract_version_from_version_file(
             read_text(repo_root / VERSION_FILE.relative_to(REPO_ROOT))
         ),
-        "README release target": extract_root_readme_target(
-            read_text(repo_root / README_FILE.relative_to(REPO_ROOT))
-        ),
         "RELEASING target": extract_releasing_target(
             read_text(repo_root / RELEASING_FILE.relative_to(REPO_ROOT))
+        ),
+        "website quickstart track": extract_website_getting_started_track(
+            read_text(repo_root / WEBSITE_GETTING_STARTED_FILE.relative_to(REPO_ROOT))
         ),
     }
     mismatches = [f"{name}={value}" for name, value in version_checks.items() if value != version]

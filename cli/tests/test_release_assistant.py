@@ -27,8 +27,6 @@ def _repo_fixture(tmp_path: Path) -> Path:
             [
                 "# dbt-forge",
                 "",
-                "- Current release target: `0.1.1` alpha",
-                "",
                 "```bash",
                 "python3 scripts/release_assistant.py prepare 0.1.1",
                 "python3 scripts/release_assistant.py verify 0.1.1",
@@ -115,6 +113,15 @@ def _repo_fixture(tmp_path: Path) -> Path:
             ]
         ),
     )
+    _write(
+        tmp_path / "website" / "src" / "content" / "docs" / "docs" / "getting-started.md",
+        "\n".join(
+            [
+                "This guide covers the current `0.1.x` alpha.",
+                "",
+            ]
+        ),
+    )
     return tmp_path
 
 
@@ -147,6 +154,22 @@ def test_get_changelog_section_returns_release_notes() -> None:
     assert notes == "### Added\n\n- Added release automation."
 
 
+def test_update_root_readme_is_noop_without_release_commands() -> None:
+    content = "# dbt-forge\n\nNo release commands here.\n"
+
+    updated = release_assistant.update_root_readme(content, "0.2.0")
+
+    assert updated == content
+
+
+def test_update_website_getting_started_updates_alpha_track() -> None:
+    content = "This guide covers the current `0.1.x` alpha.\n"
+
+    updated = release_assistant.update_website_getting_started(content, "0.2.3")
+
+    assert "This guide covers the current `0.2.x` alpha." in updated
+
+
 def test_prepare_release_updates_all_release_files(tmp_path: Path) -> None:
     repo_root = _repo_fixture(tmp_path)
 
@@ -159,6 +182,9 @@ def test_prepare_release_updates_all_release_files(tmp_path: Path) -> None:
     assert "## [0.2.0] - 2026-03-09" in (repo_root / "CHANGELOG.md").read_text()
     assert "python3 scripts/release_assistant.py publish 0.2.0 --confirm" in (
         repo_root / "RELEASING.md"
+    ).read_text()
+    assert "This guide covers the current `0.2.x` alpha." in (
+        repo_root / "website" / "src" / "content" / "docs" / "docs" / "getting-started.md"
     ).read_text()
 
 

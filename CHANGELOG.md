@@ -8,6 +8,12 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ### Added
 
+- Nothing yet.
+
+## [0.3.1] - 2026-03-08
+
+### Added
+
 - End-to-end integration tests with DuckDB — 32 tests covering the full dbt lifecycle (init, build, add commands, doctor, status, update) against a real database.
 - Integration test CI job in GitHub Actions (`integration-test` with DuckDB).
 - `pytest-timeout` dev dependency for integration test timeouts.
