@@ -153,6 +153,7 @@ class TestSchemaTestTemplate:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 with patch("dbt_forge.cli.add.questionary") as mock_q:
@@ -199,6 +200,7 @@ class TestPackageConfig:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["package", "elementary"])
@@ -216,11 +218,12 @@ class TestPackageConfig:
     def test_no_config_package_doesnt_touch_project(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = _scaffold(tmpdir)
-            original = (project_root / "dbt_project.yml").read_text()
+            (project_root / "dbt_project.yml").read_text()  # ensure file exists
             old_cwd = os.getcwd()
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["package", "dbt-codegen"])
@@ -278,6 +281,7 @@ class TestStatus:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.main import app
                 runner = CliRunner()
                 result = runner.invoke(app, ["status"])
@@ -324,6 +328,7 @@ class TestManifest:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.main import app
                 runner = CliRunner()
                 result = runner.invoke(app, ["update", "--dry-run"])
@@ -343,6 +348,7 @@ class TestManifest:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.main import app
                 runner = CliRunner()
                 result = runner.invoke(app, ["update", "--dry-run"])
@@ -359,6 +365,7 @@ class TestManifest:
             try:
                 os.chdir(project_root)
                 from typer.testing import CliRunner
+
                 from dbt_forge.main import app
                 runner = CliRunner()
                 result = runner.invoke(app, ["update", "--dry-run"])
@@ -439,6 +446,7 @@ class TestPresets:
                 "locked": ["adapter"],
             }))
             from typer.testing import CliRunner
+
             from dbt_forge.main import app
             runner = CliRunner()
             result = runner.invoke(app, ["preset", "validate", str(preset_path)])
@@ -453,6 +461,7 @@ class TestPresets:
                 "defaults": {"nonexistent": True},
             }))
             from typer.testing import CliRunner
+
             from dbt_forge.main import app
             runner = CliRunner()
             result = runner.invoke(app, ["preset", "validate", str(preset_path)])
