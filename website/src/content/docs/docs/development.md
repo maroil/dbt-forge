@@ -10,6 +10,14 @@ dbt-forge/
 ├── cli/
 │   ├── pyproject.toml
 │   ├── src/dbt_forge/
+│   │   ├── main.py              # init, doctor, status, update, preset commands
+│   │   ├── cli/                 # add, doctor, status, update command modules
+│   │   ├── scanner.py           # shared project scanning utilities
+│   │   ├── manifest.py          # .dbt-forge.yml manifest for update tracking
+│   │   ├── presets.py           # preset loading, validation, and application
+│   │   ├── prompts/             # interactive prompts and ProjectConfig
+│   │   ├── generator/           # file generation and Jinja2 rendering
+│   │   └── templates/           # all .j2 templates
 │   └── tests/
 └── website/
     ├── astro.config.mjs

@@ -483,6 +483,26 @@ def add_ci(
 # add model
 # ---------------------------------------------------------------------------
 
+def _scan_sources(project_root: Path) -> list[str]:
+    """Scan models directory for source YAML files and extract source names."""
+    models_dir = project_root / "models"
+    if not models_dir.exists():
+        return []
+    source_names: set[str] = set()
+    for pattern in ("**/*sources*.yml", "**/*sources*.yaml"):
+        for path in models_dir.glob(pattern):
+            try:
+                data = yaml.safe_load(path.read_text())
+            except yaml.YAMLError:
+                continue
+            if not data or "sources" not in data:
+                continue
+            for source in data["sources"]:
+                if isinstance(source, dict) and "name" in source:
+                    source_names.add(source["name"])
+    return sorted(source_names)
+
+
 LAYER_CHOICES = ["staging", "intermediate", "marts"]
 MATERIALIZATION_CHOICES = ["view", "table", "incremental", "ephemeral"]
 LAYER_DEFAULT_MAT = {
@@ -527,14 +547,36 @@ def add_model(
     source_name = ""
     entity = name
     if layer == "staging":
-        source_name = questionary.text(
-            "Source name (e.g. 'stripe'):",
-            default="",
-            style=_style(),
-        ).ask()
-        if source_name is None:
-            console.print("\n[dim]Aborted.[/dim]")
-            return
+        sources = _scan_sources(project_root)
+        if sources:
+            choices = [questionary.Choice(s, value=s) for s in sources]
+            choices.append(questionary.Choice("Other (enter manually)", value="__other__"))
+            source_name = questionary.select(
+                "Source name:",
+                choices=choices,
+                style=_style(),
+            ).ask()
+            if source_name is None:
+                console.print("\n[dim]Aborted.[/dim]")
+                return
+            if source_name == "__other__":
+                source_name = questionary.text(
+                    "Source name (e.g. 'stripe'):",
+                    default="",
+                    style=_style(),
+                ).ask()
+                if source_name is None:
+                    console.print("\n[dim]Aborted.[/dim]")
+                    return
+        else:
+            source_name = questionary.text(
+                "Source name (e.g. 'stripe'):",
+                default="",
+                style=_style(),
+            ).ask()
+            if source_name is None:
+                console.print("\n[dim]Aborted.[/dim]")
+                return
 
     # Description
     description = questionary.text(
@@ -647,6 +689,28 @@ def add_model(
 # add test
 # ---------------------------------------------------------------------------
 
+def _find_model_columns(project_root: Path, model_name: str) -> list[str]:
+    """Scan YAML files for a model entry and return its column names."""
+    models_dir = project_root / "models"
+    if not models_dir.exists():
+        return []
+    for path in list(models_dir.rglob("*.yml")) + list(models_dir.rglob("*.yaml")):
+        try:
+            data = yaml.safe_load(path.read_text())
+        except yaml.YAMLError:
+            continue
+        if not data or "models" not in data:
+            continue
+        for model in data["models"]:
+            if isinstance(model, dict) and model.get("name") == model_name:
+                return [
+                    col["name"]
+                    for col in model.get("columns", [])
+                    if isinstance(col, dict) and "name" in col
+                ]
+    return []
+
+
 @add_app.command("test")
 def add_test(
     model_name: str = typer.Argument(..., help="Name of the model to test (e.g. 'stg_orders')."),
@@ -660,6 +724,7 @@ def add_test(
         choices=[
             questionary.Choice("Data test (custom SQL assertion)", value="data"),
             questionary.Choice("Unit test (dbt 1.8+ mock-based)", value="unit"),
+            questionary.Choice("Schema test (column-level in .yml)", value="schema"),
         ],
         style=_style(),
     ).ask()
@@ -680,13 +745,94 @@ def add_test(
             project_root / f"tests/{test_name}.sql",
             render_template(f"{TEMPLATES_BASE}/test_data.sql.j2", ctx),
         )
-    else:
+    elif test_type == "unit":
         test_name = f"test_{model_name}"
         ctx = {"test_name": test_name, "model_name": model_name}
         _write(
             project_root / f"tests/unit/{test_name}.yml",
             render_template(f"{TEMPLATES_BASE}/test_unit.yml.j2", ctx),
         )
+    else:
+        # Schema test
+        existing_cols = _find_model_columns(project_root, model_name)
+        if existing_cols:
+            selected_cols = questionary.checkbox(
+                "Select columns to add tests for:",
+                choices=[questionary.Choice(c, value=c) for c in existing_cols],
+                style=_style(),
+                validate=lambda v: True if v else "Select at least one column.",
+            ).ask()
+            if selected_cols is None:
+                console.print("\n[dim]Aborted.[/dim]")
+                return
+        else:
+            col_input = questionary.text(
+                "Column names (comma-separated):",
+                style=_style(),
+            ).ask()
+            if col_input is None:
+                console.print("\n[dim]Aborted.[/dim]")
+                return
+            selected_cols = [c.strip() for c in col_input.split(",") if c.strip()]
+            if not selected_cols:
+                console.print("[red]Error:[/red] No columns provided.")
+                return
+
+        schema_test_types = ["unique", "not_null", "accepted_values", "relationships"]
+        columns_data: list[dict] = []
+        for col in selected_cols:
+            col_tests = questionary.checkbox(
+                f"Tests for '{col}':",
+                choices=[questionary.Choice(t, value=t) for t in schema_test_types],
+                style=_style(),
+            ).ask()
+            if col_tests is None:
+                console.print("\n[dim]Aborted.[/dim]")
+                return
+
+            resolved_tests: list = []
+            for t in col_tests:
+                if t == "accepted_values":
+                    vals = questionary.text(
+                        f"Accepted values for '{col}' (comma-separated):",
+                        style=_style(),
+                    ).ask()
+                    if vals is None:
+                        console.print("\n[dim]Aborted.[/dim]")
+                        return
+                    values = [v.strip() for v in vals.split(",") if v.strip()]
+                    resolved_tests.append({
+                        "accepted_values": {"values": values}
+                    })
+                elif t == "relationships":
+                    ref_model = questionary.text(
+                        f"Relationships ref model for '{col}':",
+                        style=_style(),
+                    ).ask()
+                    if ref_model is None:
+                        console.print("\n[dim]Aborted.[/dim]")
+                        return
+                    ref_field = questionary.text(
+                        f"Relationships field for '{col}':",
+                        default="id",
+                        style=_style(),
+                    ).ask()
+                    if ref_field is None:
+                        console.print("\n[dim]Aborted.[/dim]")
+                        return
+                    resolved_tests.append({
+                        "relationships": {"to": f"ref('{ref_model}')", "field": ref_field}
+                    })
+                else:
+                    resolved_tests.append(t)
+            columns_data.append({"name": col, "tests": resolved_tests})
+
+        ctx = {"model_name": model_name, "columns": columns_data}
+        _write(
+            project_root / f"models/_{model_name}__tests.yml",
+            render_template(f"{TEMPLATES_BASE}/test_schema.yml.j2", ctx),
+        )
+        test_name = f"_{model_name}__tests.yml"
 
     console.print()
     console.print(
@@ -717,6 +863,7 @@ PACKAGE_REGISTRY: dict[str, dict] = {
     "elementary": {
         "hub": "elementary-data/elementary",
         "version": '[">=0.16.0", "<0.17.0"]',
+        "config": {"vars": {"elementary": {"edr_cli_run": "true"}}},
     },
     "dbt-audit-helper": {
         "hub": "dbt-labs/audit_helper",
@@ -725,6 +872,10 @@ PACKAGE_REGISTRY: dict[str, dict] = {
     "dbt-project-evaluator": {
         "hub": "dbt-labs/dbt_project_evaluator",
         "version": '[">=0.11.0", "<0.12.0"]',
+        "config": {"vars": {"dbt_project_evaluator": {
+            "documentation_coverage_target": 100,
+            "test_coverage_target": 100,
+        }}},
     },
     "dbt-meta-testing": {
         "hub": "tnightengale/dbt_meta_testing",
@@ -861,6 +1012,34 @@ def add_package(
         f"  [green]\u2714[/green]  Added [bold]{name}[/bold]"
         f" ({pkg_info['hub']}) to packages.yml"
     )
+
+    # Apply package config (vars) to dbt_project.yml if needed
+    if pkg_info.get("config"):
+        dbt_project_path = project_root / "dbt_project.yml"
+        if dbt_project_path.exists():
+            try:
+                project_data = yaml.safe_load(dbt_project_path.read_text()) or {}
+                pkg_vars = pkg_info["config"].get("vars", {})
+                if pkg_vars:
+                    existing_vars = project_data.get("vars") or {}
+                    existing_vars.update(pkg_vars)
+                    project_data["vars"] = existing_vars
+                    dbt_project_path.write_text(
+                        yaml.dump(project_data, default_flow_style=False, sort_keys=False)
+                    )
+                    console.print(
+                        f"  [green]\u2714[/green]  Added vars for [bold]{name}[/bold]"
+                        " to dbt_project.yml"
+                    )
+            except yaml.YAMLError:
+                console.print(
+                    "  [yellow]warn[/yellow]  Could not parse dbt_project.yml to add config"
+                )
+        else:
+            console.print(
+                "  [yellow]warn[/yellow]  No dbt_project.yml found — skipping config"
+            )
+
     console.print()
     console.print("  [dim]Run [bold]dbt deps[/bold] to install.[/dim]")
     console.print()

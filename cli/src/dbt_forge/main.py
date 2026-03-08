@@ -9,6 +9,8 @@ from rich.text import Text
 from dbt_forge.cli.add import add_app
 from dbt_forge.cli.doctor import run_doctor
 from dbt_forge.cli.init import init_command
+from dbt_forge.cli.status import run_status
+from dbt_forge.cli.update import run_update
 
 HELP_TEXT = """\
 Scaffold production-ready dbt projects with opinionated defaults.
@@ -50,6 +52,13 @@ class HelpGroup(typer.core.TyperGroup):
         console.print("  [green]$[/green] dbt-forge doctor                     Health checks")
         console.print("  [green]$[/green] dbt-forge doctor [bold]--fix[/bold]             Auto-fix")
         console.print("  [green]$[/green] dbt-forge doctor [bold]--ci[/bold]               CI mode")
+        console.print("  [green]$[/green] dbt-forge status                     Stats dashboard")
+        console.print()
+        console.print("[bold cyan]Maintenance:[/bold cyan]")
+        console.print()
+        console.print("  [green]$[/green] dbt-forge update                     Re-apply templates")
+        console.print("  [green]$[/green] dbt-forge update [bold]--dry-run[/bold]   Preview diffs")
+        console.print("  [green]$[/green] dbt-forge preset validate preset.yml Validate preset")
         console.print()
         console.print("[dim]Docs: https://dbt-forge.com[/dim]")
         console.print()
@@ -114,6 +123,12 @@ def init(
         "--dry-run",
         help="Preview files that would be generated without writing anything.",
     ),
+    preset: str = typer.Option(
+        None,
+        "--preset",
+        "-p",
+        help="Path or URL to a preset YAML file.",
+    ),
 ) -> None:
     """Scaffold a new production-ready dbt project.
 
@@ -122,11 +137,26 @@ def init(
     like unit tests, MetricFlow, snapshots, seeds, and macros.
     """
     _print_banner()
+
+    preset_config = None
+    if preset:
+        from dbt_forge.presets import load_preset, validate_preset
+        preset_config = load_preset(preset)
+        errors = validate_preset(preset_config)
+        if errors:
+            console.print("[red]Preset validation errors:[/red]")
+            for err in errors:
+                console.print(f"  - {err}")
+            raise typer.Exit(1)
+        console.print(f"  Using preset: [bold cyan]{preset_config.name or preset}[/bold cyan]")
+        console.print()
+
     init_command(
         project_name=project_name,
         use_defaults=defaults,
         output_dir=output_dir,
         dry_run=dry_run,
+        preset=preset_config,
     )
 
 
@@ -156,6 +186,59 @@ def doctor(
     stubs, or --ci for CI pipeline integration.
     """
     run_doctor(check_name=check, fix=fix, ci=ci)
+
+
+@app.command()
+def status() -> None:
+    """Show a dashboard of project stats (models, tests, docs, packages)."""
+    run_status()
+
+
+@app.command()
+def update(
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Preview changes without writing anything.",
+    ),
+) -> None:
+    """Re-apply dbt-forge templates and show diffs for changed files."""
+    run_update(dry_run=dry_run)
+
+
+preset_app = typer.Typer(
+    name="preset",
+    help="Manage dbt-forge presets.",
+    no_args_is_help=True,
+)
+app.add_typer(preset_app, name="preset")
+
+
+@preset_app.command("validate")
+def preset_validate(
+    path: str = typer.Argument(..., help="Path or URL to a preset YAML file."),
+) -> None:
+    """Validate a preset file."""
+    from dbt_forge.presets import load_preset, validate_preset
+    try:
+        preset_config = load_preset(path)
+    except Exception as e:
+        console.print(f"[red]Error loading preset:[/red] {e}")
+        raise typer.Exit(1)
+
+    errors = validate_preset(preset_config)
+    if errors:
+        console.print("[red]Validation errors:[/red]")
+        for err in errors:
+            console.print(f"  - {err}")
+        raise typer.Exit(1)
+    else:
+        label = preset_config.name or path
+        console.print(f"[green]✔[/green]  Preset [bold]{label}[/bold] is valid.")
+        if preset_config.description:
+            console.print(f"  {preset_config.description}")
+        console.print(f"  Defaults: {', '.join(preset_config.defaults.keys())}")
+        console.print(f"  Locked: {', '.join(preset_config.locked) or '(none)'}")
 
 
 def _print_banner() -> None:

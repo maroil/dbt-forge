@@ -22,7 +22,7 @@ const features = [
   {
     eyebrow: 'How it grows',
     title: 'Add models, tests, packages, and CI config as the project evolves.',
-    body: 'Use 11 `add` subcommands to scaffold new components. Run `doctor` to validate best practices across the project.',
+    body: 'Use 11 `add` subcommands to scaffold new components. Run `doctor` to validate best practices. Run `status` for a project overview. Run `update` to re-apply templates after upgrading.',
     icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`
   },
 ];
@@ -46,6 +46,12 @@ const workflow = [
     command: 'dbt-forge add model users',
     body: 'Add models, tests, and packages.',
   },
+  {
+    step: '04',
+    label: 'Maintain',
+    command: 'dbt-forge doctor && dbt-forge status',
+    body: 'Validate best practices and review project stats.',
+  },
 ];
 ---
 
@@ -57,7 +63,7 @@ const workflow = [
     <title>dbt-forge | Scaffold dbt projects with a consistent starting structure</title>
     <meta
       name="description"
-      content="dbt-forge is a Python CLI for scaffolding dbt projects with a consistent starting structure, adapter-aware profiles, and optional setup files for common team workflows."
+      content="dbt-forge is a Python CLI for scaffolding dbt projects with a consistent starting structure, adapter-aware profiles, health checks, template updates, and team presets."
     />
   </head>
   <body class="forge-home">

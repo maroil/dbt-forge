@@ -11,6 +11,12 @@ import yaml
 from rich.console import Console
 from rich.table import Table
 
+from dbt_forge.scanner import find_project_root as _scanner_find_project_root
+from dbt_forge.scanner import find_sql_models as _find_sql_models
+from dbt_forge.scanner import find_yml_files as _find_yml_files
+from dbt_forge.scanner import parse_yml_models as _parse_yml_models
+from dbt_forge.scanner import parse_yml_tests as _parse_yml_tests
+
 console = Console()
 
 
@@ -41,91 +47,7 @@ class DoctorReport:
 
 def find_project_root() -> Path:
     """Walk up from cwd to find dbt_project.yml."""
-    current = Path.cwd()
-    for directory in [current, *current.parents]:
-        if (directory / "dbt_project.yml").exists():
-            return directory
-    console.print(
-        "[red]Error:[/red] No [bold]dbt_project.yml[/bold] found.\n"
-        "Run [cyan]dbt-forge doctor[/cyan] from inside a dbt project."
-    )
-    sys.exit(1)
-
-
-def _find_sql_models(root: Path) -> list[Path]:
-    """Find all SQL model files under models/."""
-    models_dir = root / "models"
-    if not models_dir.exists():
-        return []
-    return sorted(models_dir.rglob("*.sql"))
-
-
-def _find_yml_files(root: Path) -> list[Path]:
-    """Find all YAML files under models/."""
-    models_dir = root / "models"
-    if not models_dir.exists():
-        return []
-    return sorted(list(models_dir.rglob("*.yml")) + list(models_dir.rglob("*.yaml")))
-
-
-def _parse_yml_models(root: Path) -> dict[str, Path]:
-    """Parse all model names from YAML files across the project. Returns {model_name: yml_path}."""
-    models: dict[str, Path] = {}
-    models_dir = root / "models"
-    if not models_dir.exists():
-        return models
-    for path in list(models_dir.rglob("*.yml")) + list(models_dir.rglob("*.yaml")):
-        try:
-            data = yaml.safe_load(path.read_text())
-        except yaml.YAMLError:
-            continue
-        if not data or "models" not in data:
-            continue
-        for model in data["models"]:
-            if isinstance(model, dict) and "name" in model:
-                models[model["name"]] = path
-    return models
-
-
-def _parse_yml_tests(root: Path) -> set[str]:
-    """Find all model names that have at least one test defined."""
-    tested: set[str] = set()
-    yml_files = list((root / "models").rglob("*.yml")) if (root / "models").exists() else []
-    yml_files += list((root / "tests").rglob("*.yml")) if (root / "tests").exists() else []
-
-    for path in yml_files:
-        try:
-            data = yaml.safe_load(path.read_text())
-        except yaml.YAMLError:
-            continue
-        if not data:
-            continue
-
-        # Schema tests in models section
-        for model in data.get("models", []):
-            if not isinstance(model, dict):
-                continue
-            model_name = model.get("name", "")
-            # Check column-level tests
-            for col in model.get("columns", []):
-                if isinstance(col, dict) and (col.get("tests") or col.get("data_tests")):
-                    tested.add(model_name)
-                    break
-
-        # Unit tests
-        for unit_test in data.get("unit_tests", []):
-            if isinstance(unit_test, dict) and "model" in unit_test:
-                tested.add(unit_test["model"])
-
-    # Data tests (SQL files in tests/)
-    tests_dir = root / "tests"
-    if tests_dir.exists():
-        for sql_file in tests_dir.rglob("*.sql"):
-            content = sql_file.read_text()
-            refs = re.findall(r"ref\(['\"](\w+)['\"]\)", content)
-            tested.update(refs)
-
-    return tested
+    return _scanner_find_project_root()
 
 
 # ---------------------------------------------------------------------------

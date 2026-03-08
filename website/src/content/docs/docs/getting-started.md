@@ -24,6 +24,12 @@ pip install dbt-forge
 uv tool install dbt-forge
 ```
 
+After installing, verify the installation:
+
+```bash
+dbt-forge --help
+```
+
 ## Initialize a dbt project
 
 Run the interactive flow when you want to choose the adapter, starter marts, packages,
@@ -45,21 +51,57 @@ Preview the scaffold without writing files:
 dbt-forge init my_dbt_project --defaults --dry-run
 ```
 
+Use a preset to enforce team standards:
+
+```bash
+dbt-forge init my_dbt_project --preset company-standard.yml
+```
+
+See [`init`](/docs/cli/init/) for the full command reference and [`preset`](/docs/cli/preset/)
+for the preset file format.
+
+## Default selections
+
+When you use `--defaults`, the CLI selects:
+
+| Setting | Default value |
+|---------|---------------|
+| Adapter | BigQuery |
+| Marts | finance, marketing |
+| Packages | dbt-utils, dbt-expectations |
+| Example models | yes |
+| SQLFluff config | yes |
+| CI provider | GitHub Actions |
+
+The following are **disabled** by default and must be enabled interactively or via a preset:
+
+- Unit tests, MetricFlow examples, snapshots, seeds, exposures, macros
+- Pre-commit hooks, environment config (`.env.example` + `generate_schema_name`)
+- CODEOWNERS file
+
+Treat the defaults as a starting point. Review the generated models, packages, and CI
+files before committing them to a team project.
+
 ## Inspect the generated project
 
 The exact output depends on the options you choose. A typical scaffold includes:
 
-- `dbt_project.yml`
-- `profiles/profiles.yml`
+- `dbt_project.yml` — project configuration
+- `pyproject.toml` — Python dependencies (dbt adapter)
+- `profiles/profiles.yml` — adapter-aware connection profile
+- `packages.yml` — dbt packages with pinned version ranges
 - `models/staging/`, `models/intermediate/`, and `models/marts/`
 - `tests/`, `macros/`, and `selectors.yml`
-- optional files such as `.sqlfluff` and CI configuration
+- `.dbt-forge.yml` — manifest for template updates (used by `dbt-forge update`)
+- optional files: `.sqlfluff`, CI config, `.pre-commit-config.yaml`, `.env.example`, `CODEOWNERS`
 
-Use [Project structure](/docs/project-structure/) for a fuller breakdown of the generated layout.
+Use [Project structure](/docs/project-structure/) for a complete breakdown of every generated file.
 
 ## Run the next commands
 
-After the scaffold is written, move into the new dbt project and run the local setup commands:
+After the scaffold is written, move into the new dbt project and run the local setup
+commands. The generated `.env` file sets `DBT_PROFILES_DIR=./profiles` so dbt can
+find the generated `profiles/profiles.yml`:
 
 ```bash
 cd my_dbt_project
@@ -88,11 +130,13 @@ Generate models, tests, and CI config interactively:
 
 ```bash
 dbt-forge add model users           # interactive model generator
-dbt-forge add test stg_orders       # data test or unit test
+dbt-forge add test stg_orders       # data test, unit test, or schema test
 dbt-forge add ci github             # CI pipeline config
 dbt-forge add pre-commit            # pre-commit hooks + editorconfig
 dbt-forge add package dbt-utils     # add a dbt package
 ```
+
+See [`add`](/docs/cli/add/) for the full command reference.
 
 ## Check project health
 
@@ -107,17 +151,29 @@ dbt-forge doctor --check test-coverage  # run a single check
 
 The doctor checks naming conventions, schema/test coverage, hardcoded references,
 pinned package versions, source freshness, orphaned YAML entries, and more.
+See [`doctor`](/docs/cli/doctor/) for details on each check.
 
-## Default selections
+## View project stats
 
-When you use `--defaults`, the CLI currently selects:
+Run `status` for a dashboard overview:
 
-- `BigQuery` as the adapter
-- `finance` and `marketing` as starter marts
-- `dbt-utils` and `dbt-expectations` as starter packages
-- example models and tests enabled
-- SQLFluff enabled
-- GitHub Actions enabled
+```bash
+dbt-forge status
+```
 
-Treat those defaults as a starting point. Review the generated models, packages, and CI
-files before committing them to a team project.
+Shows model counts by layer (staging, intermediate, marts), test and documentation
+coverage percentages, source counts with freshness status, and installed packages.
+See [`status`](/docs/cli/status/) for output details.
+
+## Update templates
+
+After upgrading dbt-forge, use `update` to re-apply templates and pick up improvements:
+
+```bash
+dbt-forge update --dry-run              # preview what would change
+dbt-forge update                        # interactively accept/skip each change
+```
+
+The command reads the `.dbt-forge.yml` manifest created during `init`, re-renders
+templates with the current version, and shows a diff for each changed file.
+See [`update`](/docs/cli/update/) for the full workflow.

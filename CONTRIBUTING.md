@@ -5,6 +5,20 @@
 - `cli/` contains the Python package, tests, and release metadata.
 - `website/` contains the Astro + Starlight site and public docs.
 
+### Key modules in `cli/src/dbt_forge/`
+
+- `main.py` — Typer app with top-level commands: `init`, `doctor`, `status`, `update`, `preset`
+- `cli/add.py` — all `add` subcommands (mart, source, model, test, package, etc.)
+- `cli/doctor.py` — project health checks
+- `cli/status.py` — project stats dashboard
+- `cli/update.py` — template update lifecycle
+- `scanner.py` — shared project scanning utilities (models, sources, packages)
+- `manifest.py` — `.dbt-forge.yml` manifest for update tracking
+- `presets.py` — preset loading, validation, and application
+- `prompts/questions.py` — interactive prompts and `ProjectConfig` dataclass
+- `generator/project.py` — file generation orchestrator
+- `generator/renderer.py` — Jinja2 template rendering
+
 ## CLI development setup
 
 ```bash

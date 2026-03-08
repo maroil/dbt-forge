@@ -11,6 +11,12 @@ The project is currently in its `0.2.x` alpha phase.
 - Adapter templates for BigQuery, Snowflake, PostgreSQL, DuckDB, Databricks, Redshift, Trino, and Spark
 - 11 `add` subcommands for extending an existing dbt project: mart, source, snapshot, seed, exposure, macro, pre-commit, ci, model, test, package
 - `doctor` command with 10 project health checks, `--fix` auto-repair, and `--ci` mode
+- `status` command — Rich terminal dashboard showing model counts by layer, test/doc coverage, sources, and packages
+- `update` command — re-apply dbt-forge templates with unified diffs and per-file accept/skip
+- Custom presets via `--preset` flag — YAML files with defaults and locked fields for team standardization
+- `add model` auto-detects existing sources from YAML files for staging layer selection
+- `add test` supports schema tests (column-level in `.yml`) in addition to data and unit tests
+- `add package` generates package-specific `vars` in `dbt_project.yml` (e.g., elementary, dbt-project-evaluator)
 - Optional pre-commit hooks, SQLFluff config, `.editorconfig`, and CI templates
 - Environment config scaffolding: `generate_schema_name` macro and adapter-specific `.env.example`
 - `CODEOWNERS` file generation with mart-based ownership mapping
@@ -64,6 +70,21 @@ dbt-forge doctor
 dbt-forge doctor --fix
 dbt-forge doctor --ci
 dbt-forge doctor --check naming-conventions
+```
+
+View project stats and update templates:
+
+```bash
+dbt-forge status
+dbt-forge update --dry-run
+dbt-forge update
+```
+
+Manage presets:
+
+```bash
+dbt-forge preset validate company-standard.yml
+dbt-forge init my_project --preset company-standard.yml
 ```
 
 ## Supported Python

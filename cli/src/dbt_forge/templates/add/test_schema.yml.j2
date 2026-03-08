@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: {{ model_name }}
+    columns:
+{% for col in columns %}
+      - name: {{ col.name }}
+        data_tests:
+{% for test in col.tests %}
+{% if test is mapping %}
+{% for test_name, test_config in test.items() %}
+          - {{ test_name }}:
+{% for key, value in test_config.items() %}
+              {{ key }}: {{ value }}
+{% endfor %}
+{% endfor %}
+{% else %}
+          - {{ test }}
+{% endif %}
+{% endfor %}
+{% endfor %}
