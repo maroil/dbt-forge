@@ -1,14 +1,23 @@
 ---
 title: add
-description: Reference for the dbt-forge add subcommands.
+description: Command reference for adding marts and sources to an existing dbt project.
 ---
 
-## Synopsis
+`dbt-forge add` extends an existing dbt project. Use it when the starting structure is
+already in place and you want to scaffold a new mart or source without creating files by hand.
+
+## Commands
 
 ```bash
 dbt-forge add mart NAME
 dbt-forge add source NAME
 ```
+
+## What it does
+
+- `add mart` scaffolds a new mart directory with starter SQL and YAML files.
+- `add source` scaffolds a new staging directory with source YAML and a starter model.
+- Both commands leave existing files in place.
 
 ## Project detection
 
@@ -44,6 +53,13 @@ This scaffolds:
 
 The command does not overwrite files that already exist.
 
+## Behavior and limits
+
+- Commands must run inside an existing dbt project.
+- Existing files are not overwritten.
+- The generated SQL and YAML are starter files and should be adapted to the real warehouse, source schema, and naming rules used by the project.
+
 ## Recommended workflow
 
-Use `init` to create the baseline project, then add new marts and sources as the repo grows. The generated SQL and YAML are stubs, so plan to adapt them to your real warehouse and naming conventions.
+Use `init` to scaffold the starting structure, then use `add` commands as the dbt
+project grows into new domains and source systems.

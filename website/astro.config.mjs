@@ -8,8 +8,8 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'dbt-forge',
-			description: 'Scaffold production-ready dbt projects with opinionated defaults.',
-			tagline: 'Opinionated dbt scaffolding for analytics teams.',
+			description: 'Python CLI for scaffolding dbt projects with a consistent starting structure.',
+			tagline: 'Scaffold a dbt project with a consistent starting structure.',
 			favicon: '/favicon.svg',
 			editLink: {
 				baseUrl: 'https://github.com/maroil/dbt-forge/edit/main/website/src/content/docs/',

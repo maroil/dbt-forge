@@ -1,11 +1,12 @@
 ---
 title: Project structure
-description: Understand the generated layout of a dbt-forge project.
+description: Understand the directories and files created by a dbt-forge scaffold.
 ---
 
-## Generated layout
+`dbt-forge` scaffolds a dbt project with a narrow starting structure. The exact files
+depend on the options selected during `init`, but the default layout looks like this:
 
-The exact output depends on your answers, but a default scaffold looks like this:
+## Generated layout
 
 ```text
 my_dbt_project/
@@ -26,37 +27,42 @@ my_dbt_project/
 └── tests/
 ```
 
-## What matters
+## Key paths
 
 ### `profiles/profiles.yml`
 
-Adapter-specific profile scaffold based on the warehouse selected during `init`.
+Adapter-aware profile scaffold based on the warehouse selected during `init`.
 
 ### `models/staging/`
 
-Source YAML and starter staging models. With examples enabled, this includes a sample `example_source`.
+Source YAML files and starter staging models. With examples enabled, this includes a
+sample source and staging model.
 
 ### `models/intermediate/`
 
-Intermediate models grouped by mart or domain.
+Intermediate models grouped by domain or mart.
 
 ### `models/marts/`
 
-Mart-specific SQL and YAML files, namespaced by the mart you selected.
+Mart-specific SQL and YAML files, namespaced by the mart you selected during `init` or
+added later with `dbt-forge add mart`.
 
 ### `tests/`
 
-Data tests and optional dbt unit tests when that option is enabled.
+Data tests and optional dbt unit test examples when that option is enabled.
 
 ### `.env`
 
 Generated so local dbt commands can resolve `DBT_PROFILES_DIR` consistently.
 
-## Why the structure is opinionated
+## Structure rules
 
-`dbt-forge` optimizes for a fast, repeatable baseline. The generated project is intentionally narrow:
+The generated dbt project follows a few fixed rules:
 
 - marts are grouped by domain
-- model names are prefixed to avoid collisions
-- source files live close to staging models
-- optional CI and linting come from templates instead of custom setup
+- model names are prefixed to reduce naming collisions
+- source files live next to the related staging models
+- optional CI and linting files come from templates instead of manual setup
+
+The goal is not to cover every possible dbt layout. The scaffold gives you a consistent
+starting structure that you can adapt after the project is created.

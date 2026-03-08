@@ -1,9 +1,9 @@
 ---
 title: dbt-forge docs
-description: Overview of the dbt-forge CLI and the core guides for using it.
+description: Install dbt-forge, scaffold a dbt project, and use the core CLI guides.
 template: splash
 hero:
-  tagline: Scaffold production-ready dbt projects with opinionated defaults.
+  tagline: Python CLI for scaffolding dbt projects with a consistent starting structure.
   actions:
     - text: Getting started
       link: /docs/getting-started/
@@ -16,19 +16,33 @@ hero:
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## What is here
+`dbt-forge` is a Python CLI that scaffolds a new dbt project and can later add marts
+and sources to an existing one.
+
+Use `init` when you want folders, profiles, starter models, and optional setup files
+created for you. Use `add` when you want to extend a dbt project without rebuilding
+its starting structure.
+
+## Start here
 
 <CardGrid stagger>
   <Card title="Getting started" icon="rocket">
-    Install the CLI, scaffold your first project, and see the command shape in one place.
+    Install the CLI, scaffold a dbt project, inspect the generated structure, and run the next commands.
   </Card>
   <Card title="CLI reference" icon="seti:terminal">
-    Read the current `init`, `add mart`, and `add source` command behavior without guessing.
+    Use the `init` and `add` reference pages when you need command syntax, flags, generated files, and limits.
   </Card>
   <Card title="Project structure" icon="seti:folder">
-    Understand the generated directories, starter files, and where to extend them.
+    See the directories and files created by the scaffold and what each part of the dbt project is for.
   </Card>
   <Card title="Development" icon="pencil">
     Work on the Python CLI in `cli/` and the public website in `website/`.
   </Card>
 </CardGrid>
+
+## How to use these docs
+
+- Start with [Getting started](/docs/getting-started/) for the quickest path from install to a working dbt project.
+- Use [init](/docs/cli/init/) when you are creating a new dbt project.
+- Use [add](/docs/cli/add/) when you are extending an existing dbt project with a new mart or source.
+- Use [Project structure](/docs/project-structure/) when you need to understand the generated layout before editing it.

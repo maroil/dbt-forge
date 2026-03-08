@@ -2,6 +2,8 @@
 
 Public site and docs for `dbt-forge`, built with Astro and Starlight.
 
+Copy and content guidelines live in [`EDITORIAL_GUIDE.md`](./EDITORIAL_GUIDE.md).
+
 ## Commands
 
 ```bash

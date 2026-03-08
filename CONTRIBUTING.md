@@ -32,6 +32,11 @@ pnpm dev
 pnpm build
 ```
 
+## Website copy
+
+- Use [`website/EDITORIAL_GUIDE.md`](website/EDITORIAL_GUIDE.md) as the source of truth for homepage and docs copy.
+- Keep public descriptions literal and tied to real commands, files, or generated output.
+
 ## Commit messages
 
 - Use Conventional Commits for every commit.

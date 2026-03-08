@@ -1,9 +1,10 @@
 ---
 title: Getting started
-description: Install dbt-forge and scaffold a new dbt project with the current CLI.
+description: Install dbt-forge, scaffold a dbt project, and run the first local dbt commands.
 ---
 
-This site documents the `0.1.x` alpha line of the `dbt-forge` CLI.
+`dbt-forge` is a Python CLI for scaffolding a dbt project with a consistent starting
+structure. This guide covers the current `0.1.x` alpha line of the CLI.
 
 ## Supported Python
 
@@ -13,7 +14,7 @@ This site documents the `0.1.x` alpha line of the `dbt-forge` CLI.
 
 ## Install
 
-You can install `dbt-forge` with either `pip` or `uv`.
+Install `dbt-forge` with either `pip` or `uv`.
 
 ```bash
 pip install dbt-forge
@@ -23,50 +24,42 @@ pip install dbt-forge
 uv tool install dbt-forge
 ```
 
-## Create a project
+## Initialize a dbt project
 
-Run the interactive flow:
+Run the interactive flow when you want to choose the adapter, starter marts, packages,
+and optional setup files:
 
 ```bash
 dbt-forge init
 ```
 
-Or generate a project with defaults:
+Use defaults when you want a repeatable starting structure without prompts:
 
 ```bash
 dbt-forge init my_dbt_project --defaults
 ```
 
-Preview the output without writing files:
+Preview the scaffold without writing files:
 
 ```bash
 dbt-forge init my_dbt_project --defaults --dry-run
 ```
 
-## Extend an existing project
+## Inspect the generated project
 
-Inside a dbt project, use the `add` subcommands to scaffold new sections without
-overwriting files that already exist:
+The exact output depends on the options you choose. A typical scaffold includes:
 
-```bash
-dbt-forge add mart finance
-dbt-forge add source salesforce
-```
+- `dbt_project.yml`
+- `profiles/profiles.yml`
+- `models/staging/`, `models/intermediate/`, and `models/marts/`
+- `tests/`, `macros/`, and `selectors.yml`
+- optional files such as `.sqlfluff` and CI configuration
 
-## Current defaults
+Use [Project structure](/docs/project-structure/) for a fuller breakdown of the generated layout.
 
-When you use `--defaults`, the CLI currently chooses:
+## Run the next commands
 
-- `BigQuery` as the adapter
-- `finance` and `marketing` as starter marts
-- `dbt-utils` and `dbt-expectations` as starter packages
-- example models and tests enabled
-- SQLFluff enabled
-- GitHub Actions enabled
-
-## After generation
-
-Inside the generated dbt project, the CLI prints the next commands to run. The standard path is:
+After the scaffold is written, move into the new dbt project and run the local setup commands:
 
 ```bash
 cd my_dbt_project
@@ -75,8 +68,28 @@ uv run --env-file .env dbt deps
 uv run --env-file .env dbt debug
 ```
 
-## Release scope
+If you skip starter packages during `init`, `dbt deps` is not required.
 
-- The package is published to PyPI from GitHub Actions on `v*` tags.
-- The website is the CLI documentation and marketing site; it is not a separately versioned
-  release artifact.
+## Extend an existing project
+
+Inside an existing dbt project, use the `add` subcommands to scaffold new sections
+without overwriting files that already exist:
+
+```bash
+dbt-forge add mart finance
+dbt-forge add source salesforce
+```
+
+## Default selections
+
+When you use `--defaults`, the CLI currently selects:
+
+- `BigQuery` as the adapter
+- `finance` and `marketing` as starter marts
+- `dbt-utils` and `dbt-expectations` as starter packages
+- example models and tests enabled
+- SQLFluff enabled
+- GitHub Actions enabled
+
+Treat those defaults as a starting point. Review the generated models, packages, and CI
+files before committing them to a team project.

@@ -1,13 +1,24 @@
 ---
 title: init
-description: Reference for the dbt-forge init command.
+description: Command reference for scaffolding a new dbt project with dbt-forge.
 ---
 
-## Synopsis
+`dbt-forge init` scaffolds a new dbt project. Use it when you want a consistent
+starting structure instead of building folders and setup files by hand.
+
+## Command
 
 ```bash
 dbt-forge init [PROJECT_NAME] [--defaults] [--output PATH] [--dry-run]
 ```
+
+## What it does
+
+The command:
+
+- collects configuration through interactive prompts or `--defaults`
+- scaffolds a dbt project directory with core files and optional setup files
+- prints the next local commands to run after the scaffold is written
 
 ## Arguments
 
@@ -18,7 +29,7 @@ Optional project name for the generated dbt project.
 - When omitted in interactive mode, the CLI prompts for it.
 - Names are slugified to lowercase with underscores.
 
-## Options
+## Important options
 
 ### `--defaults`, `-d`
 
@@ -61,7 +72,7 @@ The command creates a dbt project directory with:
 - optional CI files
 - optional example staging, marts, and tests
 
-## Notes
+## Behavior and limits
 
 - `--dry-run` still resolves the full config and project path, but it does not write files.
 - The command always prints a banner and next-step hints for the generated project.
