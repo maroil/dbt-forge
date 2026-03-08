@@ -35,6 +35,7 @@ def test_module_help_lists_init_command() -> None:
     assert "Scaffold production-ready dbt projects with opinionated defaults." in out
     assert "init" in out
     assert "add" in out
+    assert "Docs: https://dbt-forge.marou.one" in out
 
 
 def test_init_dry_run_flag_in_help() -> None:

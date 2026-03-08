@@ -6,14 +6,14 @@ models:
     columns:
       - name: order_id
         description: "Primary key."
-        tests:
+        data_tests:
           - unique
           - not_null
       - name: customer_id
-        tests:
+        data_tests:
           - not_null
       - name: status
-        tests:
+        data_tests:
           - not_null
       - name: amount_usd
         description: "Order total in USD."
@@ -22,5 +22,5 @@ models:
       - name: order_month
         description: "Truncated to month for aggregation."
       - name: created_at
-        tests:
+        data_tests:
           - not_null

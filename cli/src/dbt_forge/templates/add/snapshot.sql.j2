@@ -9,6 +9,7 @@
     )
 {{ '}}' }}
 
-select * from {{ '{{' }} source('{{ project_name }}', '{{ name }}') {{ '}}' }}
+-- Update the source reference below to match your actual source
+select * from {{ '{{' }} source('your_source', '{{ name }}') {{ '}}' }}
 
 {{ '{%' }} endsnapshot {{ '%}' }}

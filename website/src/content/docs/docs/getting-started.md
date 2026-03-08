@@ -4,7 +4,7 @@ description: Install dbt-forge, scaffold a dbt project, and run the first local 
 ---
 
 `dbt-forge` is a Python CLI for scaffolding dbt projects, extending them with new
-components, and validating project health. This guide covers the current `0.2.x` alpha.
+components, and validating project health. This guide covers the current `0.3.x` alpha.
 
 ## Supported Python
 

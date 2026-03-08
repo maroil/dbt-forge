@@ -60,7 +60,7 @@ class HelpGroup(typer.core.TyperGroup):
         console.print("  [green]$[/green] dbt-forge update [bold]--dry-run[/bold]   Preview diffs")
         console.print("  [green]$[/green] dbt-forge preset validate preset.yml Validate preset")
         console.print()
-        console.print("[dim]Docs: https://dbt-forge.com[/dim]")
+        console.print("[dim]Docs: https://dbt-forge.marou.one[/dim]")
         console.print()
 
 

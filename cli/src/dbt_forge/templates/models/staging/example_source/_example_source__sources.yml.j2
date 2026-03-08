@@ -17,16 +17,16 @@ sources:
         columns:
           - name: id
             description: "Primary key."
-            tests:
+            data_tests:
               - unique
               - not_null
           - name: customer_id
             description: "Foreign key to customers."
-            tests:
+            data_tests:
               - not_null
           - name: status
             description: "Order status."
-            tests:
+            data_tests:
               - accepted_values:
                   values: ['placed', 'shipped', 'completed', 'cancelled']
           - name: amount
