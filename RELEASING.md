@@ -1,7 +1,7 @@
 # Releasing `dbt-forge`
 
-This project ships its first public alpha release as the Python CLI package `dbt-forge`
-version `0.1.0`.
+This project ships its current public alpha release candidate as the Python CLI package
+`dbt-forge` version `0.1.1`.
 
 ## Scope
 
@@ -19,7 +19,7 @@ Verified on March 8, 2026 from the local environment:
 - Repository visibility: public
 - Default branch: `main`
 - GitHub environments present: `pypi`, `testpypi`
-- Current package version in source: `0.1.0`
+- Current package version in source: `0.1.1`
 - PyPI JSON endpoint for `dbt-forge` currently returns `404`:
   `https://pypi.org/pypi/dbt-forge/json`
   Inference: the package name was not yet published on PyPI at verification time.
@@ -89,6 +89,6 @@ Only runtime or intentional release-environment findings should block the packag
 3. Run the manual `Release` workflow with `workflow_dispatch` to publish to TestPyPI.
 4. Verify the TestPyPI artifact by installing it or by re-testing the built wheel and
    checking `dbt-forge --version` and `dbt-forge --help`.
-5. Create and push tag `v0.1.0`.
+5. Create and push tag `v0.1.1`.
 6. Let GitHub Actions publish to PyPI from the tag.
-7. Create the GitHub Release using the `0.1.0` changelog entry.
+7. Create the GitHub Release using the `0.1.1` changelog entry.

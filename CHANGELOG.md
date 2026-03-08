@@ -8,7 +8,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 - No unreleased changes yet.
 
-## [0.1.0] - 2026-03-08
+## [0.1.1] - 2026-03-08
 
 - First public alpha release of the `dbt-forge` CLI on PyPI.
 - Added `dbt-forge init` to scaffold opinionated dbt projects with adapter-aware profiles,

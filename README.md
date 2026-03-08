@@ -5,7 +5,7 @@
 ## Public Release Scope
 
 - Shipped artifact: the Python package `dbt-forge`
-- Current release target: `0.1.0` alpha
+- Current release target: `0.1.1` alpha
 - Supported Python: `3.11`, `3.12`, `3.13`
 - Primary commands: `dbt-forge init`, `dbt-forge add mart`, `dbt-forge add source`
 - Publish path: GitHub Actions publishes the package to PyPI from `v*` tags
