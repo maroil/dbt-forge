@@ -1,0 +1,23 @@
+version: 2
+
+sources:
+  - name: {{ source_name }}
+    description: "Raw data from {{ source_name }}"
+    config:
+      freshness:
+        warn_after:
+          count: 24
+          period: hour
+        error_after:
+          count: 48
+          period: hour
+    loaded_at_field: _loaded_at
+    tables:
+      - name: {{ source_name }}_records
+        description: "Main records table for {{ source_name }}"
+        columns:
+          - name: id
+            description: "Primary key"
+            data_tests:
+              - unique
+              - not_null

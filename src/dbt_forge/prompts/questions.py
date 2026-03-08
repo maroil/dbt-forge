@@ -4,14 +4,23 @@ from __future__ import annotations
 
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import questionary
 from rich.console import Console
 
 console = Console()
 
-ADAPTERS = ["BigQuery", "Snowflake", "PostgreSQL", "DuckDB", "Databricks"]
+ADAPTERS = [
+    "BigQuery",
+    "Snowflake",
+    "PostgreSQL",
+    "DuckDB",
+    "Databricks",
+    "Redshift",
+    "Trino",
+    "Spark",
+]
 
 MARTS = ["finance", "marketing", "operations", "product", "engineering"]
 
@@ -31,6 +40,17 @@ PACKAGE_CHOICES = [
     for name, desc in PACKAGES
 ]
 
+CI_PROVIDERS = ["GitHub Actions", "GitLab CI", "Bitbucket Pipelines"]
+
+CI_PROVIDER_CHOICES = [
+    questionary.Choice(
+        title=provider,
+        value=provider,
+        checked=(provider == "GitHub Actions"),
+    )
+    for provider in CI_PROVIDERS
+]
+
 
 @dataclass
 class ProjectConfig:
@@ -40,12 +60,14 @@ class ProjectConfig:
     packages: list[str]
     add_examples: bool
     add_sqlfluff: bool
-    add_github_actions: bool
+    ci_providers: list[str] = field(default_factory=list)
+    add_unit_tests: bool = False
+    add_metricflow: bool = False
     output_dir: str = "."
 
     @property
     def adapter_key(self) -> str:
-        return self.adapter.lower().replace(" ", "_")
+        return self.adapter.lower().replace(" ", "_").replace("/", "_")
 
     @property
     def dbt_adapter_package(self) -> str:
@@ -55,8 +77,23 @@ class ProjectConfig:
             "PostgreSQL": "dbt-postgres",
             "DuckDB": "dbt-duckdb",
             "Databricks": "dbt-databricks",
+            "Redshift": "dbt-redshift",
+            "Trino": "dbt-trino",
+            "Spark": "dbt-spark",
         }
         return mapping.get(self.adapter, "dbt-core")
+
+    @property
+    def add_github_actions(self) -> bool:
+        return "GitHub Actions" in self.ci_providers
+
+    @property
+    def add_gitlab_ci(self) -> bool:
+        return "GitLab CI" in self.ci_providers
+
+    @property
+    def add_bitbucket_pipelines(self) -> bool:
+        return "Bitbucket Pipelines" in self.ci_providers
 
 
 def _slugify(name: str) -> str:
@@ -94,7 +131,9 @@ def gather_config(
             packages=["dbt-utils", "dbt-expectations"],
             add_examples=True,
             add_sqlfluff=True,
-            add_github_actions=True,
+            ci_providers=["GitHub Actions"],
+            add_unit_tests=False,
+            add_metricflow=False,
             output_dir=output_dir,
         )
 
@@ -160,12 +199,33 @@ def gather_config(
     if add_sqlfluff is None:
         _abort()
 
-    add_github_actions = questionary.confirm(
-        "Add GitHub Actions CI?",
-        default=True,
+    # --- CI providers (multi-select) ---
+    ci_providers = questionary.checkbox(
+        "Add CI/CD config? (space to select, none = skip)",
+        choices=CI_PROVIDER_CHOICES,
         style=_style(),
     ).ask()
-    if add_github_actions is None:
+    if ci_providers is None:
+        _abort()
+
+    # --- dbt unit tests (dbt 1.8+) ---
+    add_unit_tests = False
+    if add_examples:
+        add_unit_tests = questionary.confirm(
+            "Add dbt unit test examples? (dbt 1.8+)",
+            default=False,
+            style=_style(),
+        ).ask()
+        if add_unit_tests is None:
+            _abort()
+
+    # --- MetricFlow / Semantic Layer (dbt 1.6+) ---
+    add_metricflow = questionary.confirm(
+        "Add MetricFlow semantic model examples? (dbt 1.6+)",
+        default=False,
+        style=_style(),
+    ).ask()
+    if add_metricflow is None:
         _abort()
 
     return ProjectConfig(
@@ -175,7 +235,9 @@ def gather_config(
         packages=packages,
         add_examples=add_examples,
         add_sqlfluff=add_sqlfluff,
-        add_github_actions=add_github_actions,
+        ci_providers=ci_providers,
+        add_unit_tests=add_unit_tests,
+        add_metricflow=add_metricflow,
         output_dir=output_dir,
     )
 

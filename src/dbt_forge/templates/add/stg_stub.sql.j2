@@ -1,0 +1,12 @@
+with source as (
+    select * from {{ '{{' }} source('{{ source_name }}', '{{ source_name }}_records') {{ '}}' }}
+),
+
+renamed as (
+    select
+        id as record_id
+        -- Add column renames/casts here
+    from source
+)
+
+select * from renamed

@@ -12,24 +12,39 @@ from dbt_forge.prompts.questions import ProjectConfig
 def generate_project(
     config: ProjectConfig,
     progress_cb: Callable[[str], None] | None = None,
+    dry_run: bool = False,
 ) -> list[Path]:
-    """Generate all project files. Returns list of written paths."""
+    """Generate all project files. Returns list of written (or would-be-written) paths.
+
+    When *dry_run* is True no files are created; the returned list still contains
+    all paths that *would* have been written so callers can display a preview tree.
+    """
     base = Path(config.output_dir) / config.project_name
-    base.mkdir(parents=True, exist_ok=True)
+
+    if not dry_run:
+        base.mkdir(parents=True, exist_ok=True)
 
     ctx = _build_context(config)
     written: list[Path] = []
 
     def write(rel_path: str, content: str) -> None:
         dest = base / rel_path
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(content)
+        if not dry_run:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text(content)
         written.append(dest)
         if progress_cb:
             progress_cb(rel_path)
 
     def render(template: str) -> str:
+        if dry_run:
+            return ""
         return render_template(template, ctx)
+
+    def render_ctx(template: str, extra_ctx: dict) -> str:
+        if dry_run:
+            return ""
+        return render_template(template, extra_ctx)
 
     # Core project files
     write("pyproject.toml", render("pyproject.toml.j2"))
@@ -38,6 +53,7 @@ def generate_project(
     write("packages.yml", render("packages.yml.j2"))
     write(".gitignore", render(".gitignore.j2"))
     write("README.md", render("README.md.j2"))
+    write("selectors.yml", render("selectors.yml.j2"))
 
     # Profile
     adapter_key = config.adapter_key
@@ -50,9 +66,13 @@ def generate_project(
     if config.add_sqlfluff:
         write(".sqlfluff", render(".sqlfluff.j2"))
 
-    # GitHub Actions CI
+    # CI providers
     if config.add_github_actions:
         write(".github/workflows/dbt_ci.yml", render(".github/workflows/dbt_ci.yml.j2"))
+    if config.add_gitlab_ci:
+        write(".gitlab-ci.yml", render(".gitlab-ci.yml.j2"))
+    if config.add_bitbucket_pipelines:
+        write("bitbucket-pipelines.yml", render("bitbucket-pipelines.yml.j2"))
 
     # Empty scaffold directories with README placeholders
     for dirname in ("seeds", "snapshots", "analyses"):
@@ -79,24 +99,38 @@ def generate_project(
             render("tests/assert_positive_total_amount.sql.j2"),
         )
 
+        # Unit tests (dbt 1.8+)
+        if config.add_unit_tests:
+            write(
+                "tests/unit/test_stg_example.yml",
+                render("tests/unit/test_stg_example.yml.j2"),
+            )
+
     for mart in config.marts:
         mart_ctx = {**ctx, "mart": mart}
         if config.add_examples:
             write(
                 f"models/intermediate/{mart}/int_{mart}__orders_enriched.sql",
-                render_template("models/intermediate/int_example.sql.j2", mart_ctx),
+                render_ctx("models/intermediate/int_example.sql.j2", mart_ctx),
             )
             write(
                 f"models/marts/{mart}/__{mart}__models.yml",
-                render_template("models/marts/__mart__models.yml.j2", mart_ctx),
+                render_ctx("models/marts/__mart__models.yml.j2", mart_ctx),
             )
             write(
                 f"models/marts/{mart}/{mart}_orders.sql",
-                render_template("models/marts/orders.sql.j2", mart_ctx),
+                render_ctx("models/marts/orders.sql.j2", mart_ctx),
             )
         else:
             write(f"models/intermediate/{mart}/.gitkeep", "")
             write(f"models/marts/{mart}/.gitkeep", "")
+
+    # MetricFlow / Semantic Layer (dbt 1.6+)
+    if config.add_metricflow:
+        write(
+            "models/marts/semantic_models/sem_orders.yml",
+            render("models/marts/semantic_models/sem_orders.yml.j2"),
+        )
 
     return written
 
@@ -111,5 +145,10 @@ def _build_context(config: ProjectConfig) -> dict:
         "packages": config.packages,
         "add_examples": config.add_examples,
         "add_sqlfluff": config.add_sqlfluff,
+        "ci_providers": config.ci_providers,
         "add_github_actions": config.add_github_actions,
+        "add_gitlab_ci": config.add_gitlab_ci,
+        "add_bitbucket_pipelines": config.add_bitbucket_pipelines,
+        "add_unit_tests": config.add_unit_tests,
+        "add_metricflow": config.add_metricflow,
     }

@@ -1,0 +1,15 @@
+with orders as (
+    select * from {{ '{{' }} ref('stg_example_source__orders') {{ '}}' }}
+),
+
+final as (
+    select
+        order_id,
+        amount,
+        status,
+        created_at as order_date
+        -- Add {{ mart }}-specific enrichment columns here
+    from orders
+)
+
+select * from final

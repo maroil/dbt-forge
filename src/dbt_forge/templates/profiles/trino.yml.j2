@@ -1,0 +1,23 @@
+{{ project_name }}:
+  target: dev
+  outputs:
+    dev:
+      type: trino
+      method: ldap
+      host: "{{ '{{' }} env_var('DBT_HOST') {{ '}}' }}"
+      port: 443
+      user: "{{ '{{' }} env_var('DBT_USER') {{ '}}' }}"
+      password: "{{ '{{' }} env_var('DBT_PASSWORD') {{ '}}' }}"
+      database: analytics
+      schema: {{ project_name }}_dev
+      threads: 4
+    prod:
+      type: trino
+      method: ldap
+      host: "{{ '{{' }} env_var('DBT_HOST') {{ '}}' }}"
+      port: 443
+      user: "{{ '{{' }} env_var('DBT_USER') {{ '}}' }}"
+      password: "{{ '{{' }} env_var('DBT_PASSWORD') {{ '}}' }}"
+      database: analytics
+      schema: {{ project_name }}_prod
+      threads: 8

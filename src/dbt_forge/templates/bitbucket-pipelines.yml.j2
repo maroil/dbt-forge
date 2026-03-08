@@ -1,0 +1,33 @@
+image: python:3.11-slim
+
+definitions:
+  caches:
+    uv: ~/.cache/uv
+  steps:
+    - step: &install-and-build
+        name: Install & Build
+        caches:
+          - uv
+        script:
+          - pip install uv --quiet
+          - uv sync --quiet
+          - uv run --env-file .env dbt deps --quiet
+{% if adapter == "DuckDB" %}
+          - uv run --env-file .env dbt debug
+          - uv run --env-file .env dbt build
+{% else %}
+          - >
+            echo "Configure DBT_HOST, DBT_USER, DBT_PASSWORD as Bitbucket Repository Variables,
+            then replace this step with: uv run --env-file .env dbt build"
+          - uv run --env-file .env dbt compile
+{% endif %}
+
+pipelines:
+  default:
+    - step: *install-and-build
+  pull-requests:
+    '**':
+      - step: *install-and-build
+  branches:
+    main:
+      - step: *install-and-build

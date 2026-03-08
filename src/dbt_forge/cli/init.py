@@ -7,6 +7,7 @@ from pathlib import Path
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.tree import Tree
 
 from dbt_forge.generator.project import generate_project
 from dbt_forge.prompts.questions import ProjectConfig, gather_config
@@ -18,6 +19,7 @@ def init_command(
     project_name: str | None,
     use_defaults: bool,
     output_dir: str,
+    dry_run: bool = False,
 ) -> None:
     config = gather_config(
         project_name=project_name,
@@ -26,6 +28,10 @@ def init_command(
     )
 
     console.print()
+
+    if dry_run:
+        _run_dry(config, output_dir)
+        return
 
     written: list[Path] = []
 
@@ -50,6 +56,43 @@ def init_command(
     console.print()
 
     _print_next_steps(config)
+
+
+def _run_dry(config: ProjectConfig, output_dir: str) -> None:
+    """Show a Rich tree of files that would be written without writing anything."""
+    paths = generate_project(config, dry_run=True)
+
+    base = Path(output_dir) / config.project_name
+    tree = Tree(
+        f"[bold cyan]{base}/[/bold cyan]",
+        guide_style="dim",
+    )
+
+    # Build a dict of directories → subtrees for nested display
+    dir_nodes: dict[Path, Tree] = {}
+
+    def get_node(directory: Path) -> Tree:
+        if directory == base:
+            return tree
+        parent = get_node(directory.parent)
+        if directory not in dir_nodes:
+            dir_nodes[directory] = parent.add(
+                f"[bold blue]{directory.name}/[/bold blue]"
+            )
+        return dir_nodes[directory]
+
+    for path in sorted(paths):
+        rel = path.relative_to(base)
+        parent_node = get_node(base / rel.parent) if rel.parent != Path(".") else tree
+        parent_node.add(f"[green]{path.name}[/green]")
+
+    console.print(tree)
+    console.print()
+    console.print(
+        f"  [yellow]dry-run[/yellow]  {len(paths)} files would be written to "
+        f"[bold]{base}/[/bold] — nothing was created."
+    )
+    console.print()
 
 
 def _print_next_steps(config: ProjectConfig) -> None:

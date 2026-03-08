@@ -4,6 +4,7 @@ import typer
 from rich.console import Console
 from rich.text import Text
 
+from dbt_forge.cli.add import add_app
 from dbt_forge.cli.init import init_command
 
 app = typer.Typer(
@@ -12,6 +13,8 @@ app = typer.Typer(
     add_completion=False,
     no_args_is_help=True,
 )
+
+app.add_typer(add_app, name="add")
 
 console = Console()
 
@@ -56,10 +59,20 @@ def init(
         "-o",
         help="Directory where the project will be created.",
     ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Preview files that would be generated without writing anything.",
+    ),
 ) -> None:
     """Scaffold a new production-ready dbt project."""
     _print_banner()
-    init_command(project_name=project_name, use_defaults=defaults, output_dir=output_dir)
+    init_command(
+        project_name=project_name,
+        use_defaults=defaults,
+        output_dir=output_dir,
+        dry_run=dry_run,
+    )
 
 
 def _print_banner() -> None:

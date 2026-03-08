@@ -1,0 +1,48 @@
+selectors:
+  # Run all models tagged with a mart name
+{% for mart in marts %}
+  - name: {{ mart }}_mart
+    description: "All models in the {{ mart }} mart"
+    definition:
+      method: tag
+      value: {{ mart }}
+
+{% endfor %}
+  # Run only staging models (raw → cleaned)
+  - name: staging_only
+    description: "All staging models"
+    definition:
+      method: path
+      value: models/staging
+
+  # Run staging + everything downstream
+  - name: staging_and_downstream
+    description: "Staging models and all downstream dependencies"
+    definition:
+      union:
+        - method: path
+          value: models/staging
+        - method: path
+          value: models/staging
+          children: true
+
+  # Run only materialized tables (skip views)
+  - name: tables_only
+    description: "Models materialized as tables"
+    definition:
+      method: config.materialized
+      value: table
+
+  # Run models that failed freshness checks
+  - name: source_freshness
+    description: "Models with source freshness requirements"
+    definition:
+      method: source_status
+      value: fresher
+
+  # Run mart models only
+  - name: marts_only
+    description: "All mart-layer models"
+    definition:
+      method: path
+      value: models/marts

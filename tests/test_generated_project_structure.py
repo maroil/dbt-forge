@@ -17,7 +17,10 @@ import yaml
 from dbt_forge.generator.project import generate_project
 from dbt_forge.prompts.questions import ProjectConfig
 
-ALL_ADAPTERS = ["BigQuery", "Snowflake", "PostgreSQL", "DuckDB", "Databricks"]
+ALL_ADAPTERS = [
+    "BigQuery", "Snowflake", "PostgreSQL", "DuckDB", "Databricks",
+    "Redshift", "Trino", "Spark",
+]
 ALL_MARTS = ["finance", "marketing", "operations", "product", "engineering"]
 
 
@@ -29,17 +32,10 @@ def _config(**kwargs) -> ProjectConfig:
         packages=["dbt-utils", "dbt-expectations"],
         add_examples=True,
         add_sqlfluff=True,
-        add_github_actions=True,
+        ci_providers=["GitHub Actions"],
     )
     defaults.update(kwargs)
     return ProjectConfig(**defaults)
-
-
-def _generate(config: ProjectConfig) -> Path:
-    """Generate project and return the base path."""
-    tmpdir = tempfile.mkdtemp()
-    generate_project(config, output_dir=tmpdir if hasattr(config, '_tmpdir') else config.output_dir)
-    return Path(config.output_dir) / config.project_name
 
 
 # ---------------------------------------------------------------------------
@@ -109,7 +105,13 @@ def _assert_no_duplicate_model_names(base: Path) -> None:
 class TestYamlValidity:
     def test_all_yaml_files_are_valid(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            config = _config(output_dir=tmpdir, marts=ALL_MARTS)
+            config = _config(
+                output_dir=tmpdir,
+                marts=ALL_MARTS,
+                ci_providers=["GitHub Actions", "GitLab CI", "Bitbucket Pipelines"],
+                add_unit_tests=True,
+                add_metricflow=True,
+            )
             generate_project(config)
             base = Path(tmpdir) / "test_project"
             yaml_files = list(base.rglob("*.yml")) + list(base.rglob("*.yaml"))
@@ -156,6 +158,28 @@ class TestYamlValidity:
             generate_project(config)
             base = Path(tmpdir) / "test_project"
             _assert_yaml_model_names_match_sql(base)
+
+    def test_selectors_yml_is_valid_yaml(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir)
+            generate_project(config)
+            data = yaml.safe_load(
+                (Path(tmpdir) / "test_project" / "selectors.yml").read_text()
+            )
+            assert "selectors" in data
+            assert isinstance(data["selectors"], list)
+            assert len(data["selectors"]) > 0
+
+    def test_unit_test_yml_is_valid(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, add_unit_tests=True)
+            generate_project(config)
+            unit_test = (
+                Path(tmpdir) / "test_project" / "tests" / "unit" / "test_stg_example.yml"
+            )
+            data = yaml.safe_load(unit_test.read_text())
+            assert "unit_tests" in data
+            assert len(data["unit_tests"]) > 0
 
 
 def _assert_yaml_model_names_match_sql(base: Path) -> None:
@@ -242,6 +266,45 @@ class TestAdapterProfiles:
             outputs = data["test_project"]["outputs"]
             assert "dev" in outputs, f"{adapter} profile missing 'dev' target"
             assert "prod" in outputs, f"{adapter} profile missing 'prod' target"
+
+
+# ---------------------------------------------------------------------------
+# CI providers
+# ---------------------------------------------------------------------------
+
+class TestCIProviders:
+    def test_github_actions_is_valid_yaml(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, ci_providers=["GitHub Actions"])
+            generate_project(config)
+            ci = Path(tmpdir) / "test_project" / ".github" / "workflows" / "dbt_ci.yml"
+            data = yaml.safe_load(ci.read_text())
+            assert "jobs" in data
+
+    def test_gitlab_ci_is_valid_yaml(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, ci_providers=["GitLab CI"])
+            generate_project(config)
+            ci = Path(tmpdir) / "test_project" / ".gitlab-ci.yml"
+            data = yaml.safe_load(ci.read_text())
+            assert "stages" in data
+
+    def test_bitbucket_pipelines_is_valid_yaml(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, ci_providers=["Bitbucket Pipelines"])
+            generate_project(config)
+            ci = Path(tmpdir) / "test_project" / "bitbucket-pipelines.yml"
+            data = yaml.safe_load(ci.read_text())
+            assert "pipelines" in data
+
+    def test_no_ci_providers_creates_no_ci_files(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, ci_providers=[])
+            generate_project(config)
+            base = Path(tmpdir) / "test_project"
+            assert not (base / ".github").exists()
+            assert not (base / ".gitlab-ci.yml").exists()
+            assert not (base / "bitbucket-pipelines.yml").exists()
 
 
 # ---------------------------------------------------------------------------

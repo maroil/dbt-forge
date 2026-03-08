@@ -13,10 +13,21 @@
 ## Project structure
 
 ```
-models/
-├── staging/        # raw → cleaned views (1:1 with sources)
-├── intermediate/   # business logic, joins, enrichment
-└── marts/          # final tables exposed to BI tools
+{{ project_name }}/
+├── models/
+│   ├── staging/        # raw → cleaned views (1:1 with sources)
+│   ├── intermediate/   # business logic, joins, enrichment
+│   └── marts/          # final tables exposed to BI tools
+{% for mart in marts %}
+│       └── {{ mart }}/
+{% endfor %}
+├── tests/              # singular data tests
+├── macros/             # reusable SQL macros
+├── seeds/              # static CSV data
+├── snapshots/          # SCD Type 2 snapshots
+├── analyses/           # ad-hoc analysis queries
+├── profiles/           # warehouse connection profiles (not committed)
+└── .env                # local env vars (not committed)
 ```
 
 ## Getting started
@@ -27,10 +38,10 @@ A `.env` file is pre-configured so dbt always finds the local `profiles/` direct
 ```bash
 # Create the virtualenv and install dbt (once)
 uv sync
-
+{% if packages %}
 # Install dbt packages (once)
 uv run --env-file .env dbt deps
-
+{% endif %}
 # Verify your warehouse connection
 uv run --env-file .env dbt debug
 
@@ -40,19 +51,129 @@ uv run --env-file .env dbt run
 # Run tests
 uv run --env-file .env dbt test
 
-# Build (run + test)
+# Build (run + test) — preferred for CI
+uv run --env-file .env dbt build
+
+# Run a specific model and its dependencies
+uv run --env-file .env dbt run --select +my_model
+
+# Run a specific mart
+uv run --env-file .env dbt run --select tag:{{ marts[0] }}
+
+# Check source freshness
+uv run --env-file .env dbt source freshness
+```
+
+## Warehouse setup — {{ adapter }}
+
+{% if adapter == "BigQuery" %}
+Authentication uses Application Default Credentials (ADC). Set up once:
+
+```bash
+# Local development
+gcloud auth application-default login
+
+# Or use a service account key
+export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account.json"
+```
+
+Add to your `.env`:
+```
+DBT_PROFILES_DIR=./profiles
+GOOGLE_CLOUD_PROJECT=your-gcp-project
+```
+{% elif adapter == "Snowflake" %}
+Configure credentials in your `.env` file:
+
+```bash
+DBT_PROFILES_DIR=./profiles
+DBT_PASSWORD=your_snowflake_password
+```
+
+Update `profiles/profiles.yml` with your account, user, role, warehouse, and database.
+{% elif adapter == "PostgreSQL" %}
+Configure credentials in your `.env` file:
+
+```bash
+DBT_PROFILES_DIR=./profiles
+DBT_HOST=localhost
+DBT_USER=your_user
+DBT_PASSWORD=your_password
+```
+
+Update `profiles/profiles.yml` with your host, port, and database name.
+{% elif adapter == "DuckDB" %}
+No credentials needed — DuckDB runs locally.
+
+```bash
+# The profile is pre-configured to create local .duckdb files
+# Just run:
 uv run --env-file .env dbt build
 ```
+{% elif adapter == "Databricks" %}
+Configure credentials in your `.env` file:
+
+```bash
+DBT_PROFILES_DIR=./profiles
+DBT_HTTP_PATH=/sql/1.0/warehouses/your-warehouse-id
+DBT_TOKEN=your_databricks_token
+```
+
+Update `profiles/profiles.yml` with your host and catalog.
+{% elif adapter == "Redshift" %}
+Configure credentials in your `.env` file:
+
+```bash
+DBT_PROFILES_DIR=./profiles
+DBT_HOST=your-cluster.us-east-1.redshift.amazonaws.com
+DBT_USER=your_user
+DBT_PASSWORD=your_password
+```
+{% elif adapter == "Trino" %}
+Configure credentials in your `.env` file:
+
+```bash
+DBT_PROFILES_DIR=./profiles
+DBT_HOST=your-trino-coordinator.example.com
+DBT_USER=your_user
+DBT_PASSWORD=your_password
+```
+{% elif adapter == "Spark" %}
+Configure credentials in your `.env` file:
+
+```bash
+DBT_PROFILES_DIR=./profiles
+DBT_HOST=your-spark-master.example.com
+DBT_USER=your_user
+```
+{% endif %}
+
+## Common dbt commands
+
+| Command | Description |
+|---------|-------------|
+| `dbt debug` | Verify warehouse connection |
+| `dbt deps` | Install packages from `packages.yml` |
+| `dbt run` | Run all models |
+| `dbt test` | Run all tests |
+| `dbt build` | Run + test (preferred) |
+| `dbt run --select +model_name` | Run a model with upstream deps |
+| `dbt run --select model_name+` | Run a model with downstream deps |
+| `dbt run --select tag:{{ marts[0] }}` | Run models by tag |
+| `dbt source freshness` | Check source data freshness |
+| `dbt docs generate && dbt docs serve` | Build and serve documentation |
 
 ## Conventions
 
-- **Staging models** are prefixed `stg_<source>__<entity>.sql`
-- **Intermediate models** are prefixed `int_<entity>__<verb>.sql`
-- **Mart models** are prefixed with the mart name to avoid cross-mart dbt name collisions
+- **Staging models** are prefixed `stg_<source>__<entity>.sql` — one per source table
+- **Intermediate models** are prefixed `int_<entity>__<verb>.sql` — business logic layer
+- **Mart models** are prefixed with the mart name (e.g., `{{ marts[0] }}_orders.sql`) to avoid dbt naming collisions
 - YAML docs live alongside their models (`_models.yml`, `_sources.yml`)
+- Secrets never go in `profiles/profiles.yml` — use `env_var()` calls and `.env` instead
 
 ## Resources
 
 - [dbt docs](https://docs.getdbt.com)
 - [dbt best practices](https://docs.getdbt.com/guides/best-practices)
 - [dbt-utils](https://hub.getdbt.com/dbt-labs/dbt_utils/latest/)
+- [dbt-forge](https://github.com/maroil/dbt-forge)

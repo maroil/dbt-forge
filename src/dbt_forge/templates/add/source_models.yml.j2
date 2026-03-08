@@ -1,0 +1,13 @@
+version: 2
+
+models:
+  - name: stg_{{ source_name }}__records
+    description: "Staged records from {{ source_name }}"
+    config:
+      materialized: view
+    columns:
+      - name: record_id
+        description: "Primary key"
+        data_tests:
+          - unique
+          - not_null
