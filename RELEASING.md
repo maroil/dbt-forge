@@ -1,7 +1,21 @@
 # Releasing `dbt-forge`
 
-This project ships its current public alpha release candidate as the Python CLI package
-`dbt-forge` version `0.1.1`.
+This project is preparing the Python CLI package release `dbt-forge` version `0.2.0`.
+
+## Release assistant
+
+Run these commands from the repository root:
+
+```bash
+python3 scripts/release_assistant.py prepare 0.2.0
+python3 scripts/release_assistant.py verify 0.2.0
+python3 scripts/release_assistant.py publish 0.2.0 --confirm
+```
+
+`prepare` stages the version and changelog updates. `verify` is the release gate and fails on a
+dirty worktree, a branch other than `main`, or a `main` branch that is not aligned with
+`origin/main`. `publish` reruns `verify`, dispatches the TestPyPI workflow, waits for manual
+confirmation, then creates and pushes the release tag and GitHub Release.
 
 ## Scope
 
@@ -13,16 +27,13 @@ This project ships its current public alpha release candidate as the Python CLI 
 
 ## Verified prerequisites
 
-Verified on March 8, 2026 from the local environment:
+Verified on 2026-03-08 from the local environment:
 
 - GitHub repo: [`maroil/dbt-forge`](https://github.com/maroil/dbt-forge)
 - Repository visibility: public
 - Default branch: `main`
 - GitHub environments present: `pypi`, `testpypi`
-- Current package version in source: `0.1.1`
-- PyPI JSON endpoint for `dbt-forge` currently returns `404`:
-  `https://pypi.org/pypi/dbt-forge/json`
-  Inference: the package name was not yet published on PyPI at verification time.
+- Current package version in source: `0.2.0`
 
 ## Manual prerequisites
 
@@ -32,41 +43,27 @@ These cannot be fully verified from the repo alone and must be confirmed before 
 - Trusted Publishing is configured in TestPyPI for `maroil/dbt-forge` -> environment
   `testpypi`
 - The release commit is merged to a clean `main` branch
-- The website worktree changes that are not part of the release are either committed
-  separately or left out of the release branch/tag
+- The GitHub `Release` workflow still publishes `workflow_dispatch` runs to TestPyPI and `v*`
+  tag pushes to PyPI
+- The website worktree changes that are not part of the release are either committed separately
+  or left out of the release branch/tag
 
 ## Release candidate checks
 
-Run these on the exact commit that will become the release candidate:
+Run `python3 scripts/release_assistant.py verify 0.2.0` on the exact commit that will become
+the release candidate. It performs these checks:
 
-```bash
-cd cli
-uv run ruff check .
-uv run pytest
-uv build
-uvx twine check dist/*
-```
+- clean worktree and `main` branch alignment with `origin/main`
+- version consistency across `cli/src/dbt_forge/__init__.py`, `README.md`, `RELEASING.md`, and
+  the released `CHANGELOG.md` section
+- `uv run ruff check .`
+- `uv run pytest`
+- `uv build --clear --out-dir <temp>/dist`
+- `uvx twine check <temp>/dist/*`
+- wheel smoke install using only the target wheel
+- `pnpm build` for `website/`
 
-Smoke-test the built wheel with a supported interpreter (`3.11+`):
-
-```bash
-cd cli
-tmpdir=$(mktemp -d)
-python3.12 -m venv "$tmpdir/venv"
-. "$tmpdir/venv/bin/activate"
-python -m pip install --upgrade pip
-pip install dist/*.whl
-dbt-forge --version
-dbt-forge --help
-```
-
-Website checks:
-
-```bash
-cd website
-pnpm build
-pnpm audit --prod --audit-level moderate
-```
+Website build warnings are reported as `WARN` but do not block the package release.
 
 ## Security notes
 
@@ -85,10 +82,9 @@ Only runtime or intentional release-environment findings should block the packag
 ## Publish sequence
 
 1. Finalize `CHANGELOG.md` and release-facing docs.
-2. Ensure the release commit is on clean `main`.
-3. Run the manual `Release` workflow with `workflow_dispatch` to publish to TestPyPI.
-4. Verify the TestPyPI artifact by installing it or by re-testing the built wheel and
-   checking `dbt-forge --version` and `dbt-forge --help`.
-5. Create and push tag `v0.1.1`.
+2. Review the `prepare` diff, commit it, and merge it to clean `main`.
+3. Run `python3 scripts/release_assistant.py verify 0.2.0`.
+4. Run `python3 scripts/release_assistant.py publish 0.2.0 --confirm`.
+5. Let the script create and push tag `v0.2.0`.
 6. Let GitHub Actions publish to PyPI from the tag.
-7. Create the GitHub Release using the `0.1.1` changelog entry.
+7. Create the GitHub Release using the `0.2.0` changelog entry.

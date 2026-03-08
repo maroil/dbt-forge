@@ -51,9 +51,11 @@ pnpm build
 
 ## Release checklist
 
-1. Update `cli/src/dbt_forge/__init__.py`.
-2. Update `CHANGELOG.md`.
-3. Run the release-candidate checks from [`RELEASING.md`](RELEASING.md).
-4. Merge to clean `main`.
-5. Run the TestPyPI preflight.
-6. Create and push a `vX.Y.Z` tag.
+```bash
+python3 scripts/release_assistant.py prepare 0.2.0
+python3 scripts/release_assistant.py verify 0.2.0
+python3 scripts/release_assistant.py publish 0.2.0 --confirm
+```
+
+`prepare` updates release metadata, `verify` is the clean-`main` gate, and `publish` handles the
+manual TestPyPI checkpoint before creating the tag and GitHub Release.

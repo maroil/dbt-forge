@@ -2,7 +2,7 @@
 
 `dbt-forge` is a Python CLI for scaffolding opinionated dbt projects with a consistent
 layout, starter models, adapter-specific profiles, and optional CI / SQLFluff setup.
-The project is currently in its `0.1.x` alpha phase.
+The project is currently in its `0.2.x` alpha phase.
 
 ## Features
 
@@ -85,12 +85,17 @@ uv run pre-commit install --hook-type commit-msg
 The package publishes from GitHub Actions on `v*` tags. The website in this repo is
 supporting docs/marketing and is not a separately versioned release artifact.
 
-1. Update `src/dbt_forge/__init__.py` if the version changes.
-2. Add release notes to the repository `CHANGELOG.md`.
-3. Run the release-candidate checks.
-4. Run the manual TestPyPI preflight from the `Release` workflow.
-5. Push a tag in the form `vX.Y.Z`.
-6. Let GitHub Actions publish the artifact to PyPI via Trusted Publishing.
+From the repository root:
+
+```bash
+python3 scripts/release_assistant.py prepare 0.2.0
+python3 scripts/release_assistant.py verify 0.2.0
+python3 scripts/release_assistant.py publish 0.2.0 --confirm
+```
+
+`prepare` stages the version and changelog updates. `verify` is the release gate and requires a
+clean `main` branch aligned with `origin/main`. `publish` dispatches the TestPyPI preflight,
+waits for manual confirmation, then tags and creates the GitHub Release.
 
 For the detailed checklist and publish prerequisites, see
 [`RELEASING.md`](https://github.com/maroil/dbt-forge/blob/main/RELEASING.md).

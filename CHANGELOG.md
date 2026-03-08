@@ -8,6 +8,12 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ### Added
 
+- Nothing yet.
+
+## [0.2.0] - 2026-03-08
+
+### Added
+
 - `dbt-forge add snapshot <name>` scaffolds `snapshots/<name>.sql` with a timestamp strategy stub.
 - `dbt-forge add seed <name>` scaffolds `seeds/<name>.csv` and `seeds/_<name>__seeds.yml`.
 - `dbt-forge add exposure <name>` scaffolds `models/marts/__<name>__exposures.yml`.

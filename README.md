@@ -5,7 +5,7 @@
 ## Public Release Scope
 
 - Shipped artifact: the Python package `dbt-forge`
-- Current release target: `0.1.1` alpha
+- Current release target: `0.2.0` alpha
 - Supported Python: `3.11`, `3.12`, `3.13`
 - Primary commands: `dbt-forge init`, `dbt-forge add mart`, `dbt-forge add source`, `dbt-forge add snapshot`, `dbt-forge add seed`, `dbt-forge add exposure`, `dbt-forge add macro`
 - Publish path: GitHub Actions publishes the package to PyPI from `v*` tags
@@ -40,6 +40,19 @@ uv run ruff check .
 uv run pytest
 uv build
 ```
+
+## Release assistant
+
+From the repository root:
+
+```bash
+python3 scripts/release_assistant.py prepare 0.2.0
+python3 scripts/release_assistant.py verify 0.2.0
+python3 scripts/release_assistant.py publish 0.2.0 --confirm
+```
+
+Use `prepare` to stage release metadata, `verify` on clean `main`, and `publish` only after
+manual approval for the TestPyPI checkpoint.
 
 ## Website development
 
