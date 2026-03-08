@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 
 from dbt_forge import __version__
+
+
+def _strip_ansi(text: str) -> str:
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)
 
 
 def test_module_version_flag() -> None:
@@ -16,7 +21,7 @@ def test_module_version_flag() -> None:
         check=True,
     )
 
-    assert f"dbt-forge v{__version__}" in result.stdout
+    assert f"dbt-forge v{__version__}" in _strip_ansi(result.stdout)
 
 
 def test_module_help_lists_init_command() -> None:
@@ -26,10 +31,10 @@ def test_module_help_lists_init_command() -> None:
         text=True,
         check=True,
     )
-
-    assert "Scaffold production-ready dbt projects with opinionated defaults." in result.stdout
-    assert "init" in result.stdout
-    assert "add" in result.stdout
+    out = _strip_ansi(result.stdout)
+    assert "Scaffold production-ready dbt projects with opinionated defaults." in out
+    assert "init" in out
+    assert "add" in out
 
 
 def test_init_dry_run_flag_in_help() -> None:
@@ -39,7 +44,7 @@ def test_init_dry_run_flag_in_help() -> None:
         text=True,
         check=True,
     )
-    assert "--dry-run" in result.stdout
+    assert "--dry-run" in _strip_ansi(result.stdout)
 
 
 def test_add_help_lists_mart_and_source() -> None:
@@ -49,5 +54,6 @@ def test_add_help_lists_mart_and_source() -> None:
         text=True,
         check=True,
     )
-    assert "mart" in result.stdout
-    assert "source" in result.stdout
+    out = _strip_ansi(result.stdout)
+    assert "mart" in out
+    assert "source" in out
