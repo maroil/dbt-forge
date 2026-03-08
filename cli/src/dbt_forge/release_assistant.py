@@ -279,7 +279,7 @@ def extract_website_getting_started_track(content: str) -> str:
         raise ReleaseAssistantError(
             "Could not parse alpha track from website/src/content/docs/docs/getting-started.md."
         )
-    return f"{match.group(1)}.0"
+    return match.group(1)
 
 
 def prepare_release(
@@ -388,17 +388,30 @@ def verify_release(
     results.append(CheckResult("PASS", "git sync", "main matches origin/main"))
 
     version_checks = {
-        "package version": extract_version_from_version_file(
-            read_text(repo_root / VERSION_FILE.relative_to(REPO_ROOT))
+        "package version": (
+            extract_version_from_version_file(
+                read_text(repo_root / VERSION_FILE.relative_to(REPO_ROOT))
+            ),
+            version,
         ),
-        "RELEASING target": extract_releasing_target(
-            read_text(repo_root / RELEASING_FILE.relative_to(REPO_ROOT))
+        "RELEASING target": (
+            extract_releasing_target(
+                read_text(repo_root / RELEASING_FILE.relative_to(REPO_ROOT))
+            ),
+            version,
         ),
-        "website quickstart track": extract_website_getting_started_track(
-            read_text(repo_root / WEBSITE_GETTING_STARTED_FILE.relative_to(REPO_ROOT))
+        "website quickstart track": (
+            extract_website_getting_started_track(
+                read_text(repo_root / WEBSITE_GETTING_STARTED_FILE.relative_to(REPO_ROOT))
+            ),
+            version.rsplit(".", 1)[0],
         ),
     }
-    mismatches = [f"{name}={value}" for name, value in version_checks.items() if value != version]
+    mismatches = [
+        f"{name}={actual}"
+        for name, (actual, expected) in version_checks.items()
+        if actual != expected
+    ]
     changelog_text = read_text(repo_root / CHANGELOG_FILE.relative_to(REPO_ROOT))
     if get_changelog_section(changelog_text, version) is None:
         mismatches.append("CHANGELOG.md missing released section")
