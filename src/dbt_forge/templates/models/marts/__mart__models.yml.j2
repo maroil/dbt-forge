@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: {{ mart }}_orders
+    description: "Final orders table for the {{ mart }} mart."
+    columns:
+      - name: order_id
+        description: "Primary key."
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        tests:
+          - not_null
+      - name: status
+        tests:
+          - not_null
+      - name: amount_usd
+        description: "Order total in USD."
+      - name: completed_amount_usd
+        description: "Amount only for completed orders."
+      - name: order_month
+        description: "Truncated to month for aggregation."
+      - name: created_at
+        tests:
+          - not_null

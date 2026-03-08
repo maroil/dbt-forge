@@ -1,0 +1,9 @@
+-- tests/assert_positive_total_amount.sql
+-- Singular test: all completed orders must have a positive amount.
+
+select
+    order_id,
+    amount_usd
+from {{ '{{' }} ref('stg_example_source__orders') {{ '}}' }}
+where status = 'completed'
+  and amount_usd <= 0

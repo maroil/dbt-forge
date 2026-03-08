@@ -1,0 +1,25 @@
+{{ project_name }}:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: YOUR_ACCOUNT.YOUR_REGION
+      user: YOUR_USER
+      password: "{{ '{{' }} env_var('DBT_PASSWORD') {{ '}}' }}"
+      role: TRANSFORMER
+      warehouse: COMPUTE_WH
+      database: ANALYTICS
+      schema: {{ project_name }}_dev
+      threads: 4
+      client_session_keep_alive: false
+    prod:
+      type: snowflake
+      account: YOUR_ACCOUNT.YOUR_REGION
+      user: YOUR_USER
+      password: "{{ '{{' }} env_var('DBT_PASSWORD') {{ '}}' }}"
+      role: TRANSFORMER
+      warehouse: COMPUTE_WH
+      database: ANALYTICS
+      schema: {{ project_name }}_prod
+      threads: 8
+      client_session_keep_alive: false

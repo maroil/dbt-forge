@@ -1,0 +1,26 @@
+-- marts/{{ mart }}/{{ mart }}_orders.sql
+
+with
+
+enriched as (
+
+    select * from {{ '{{' }} ref('int_{{ mart }}__orders_enriched') {{ '}}' }}
+
+),
+
+final as (
+
+    select
+        order_id,
+        customer_id,
+        status,
+        amount_usd,
+        completed_amount_usd,
+        order_month,
+        created_at
+
+    from enriched
+
+)
+
+select * from final

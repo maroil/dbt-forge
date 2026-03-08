@@ -1,0 +1,22 @@
+{{ project_name }}:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: YOUR_GCP_PROJECT_ID
+      dataset: {{ project_name }}_dev
+      location: US
+      threads: 4
+      timeout_seconds: 300
+      priority: interactive
+      retries: 1
+    prod:
+      type: bigquery
+      method: service-account
+      project: YOUR_GCP_PROJECT_ID
+      dataset: {{ project_name }}_prod
+      location: US
+      keyfile: /path/to/service-account.json
+      threads: 8
+      timeout_seconds: 300

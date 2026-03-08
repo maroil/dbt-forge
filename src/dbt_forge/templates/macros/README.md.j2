@@ -1,0 +1,17 @@
+# macros/
+
+Place custom Jinja macros here.
+
+## Conventions
+
+- One macro per file, named after the macro
+- Use `{{ project_name }}_` prefix for project-specific macros to avoid conflicts
+- Document each macro with a docstring comment
+
+## Example
+
+```sql
+{% macro cents_to_dollars(column_name) %}
+    ({{ column_name }} / 100.0)::numeric(18, 2)
+{% endmacro %}
+```

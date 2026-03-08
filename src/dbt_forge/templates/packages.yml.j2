@@ -1,0 +1,20 @@
+packages:
+{% if "dbt-utils" in packages %}
+  - package: dbt-labs/dbt_utils
+    version: [">=1.0.0", "<2.0.0"]
+{% endif %}
+{% if "dbt-expectations" in packages %}
+  - package: metaplane/dbt_expectations
+    version: [">=0.10.0", "<1.0.0"]
+{% endif %}
+{% if "dbt-codegen" in packages %}
+  - package: dbt-labs/codegen
+    version: [">=0.12.0", "<1.0.0"]
+{% endif %}
+{% if "elementary-data" in packages %}
+  - package: elementary-data/elementary
+    version: [">=0.14.0", "<1.0.0"]
+{% endif %}
+{% if not packages %}
+  [] # no packages selected
+{% endif %}

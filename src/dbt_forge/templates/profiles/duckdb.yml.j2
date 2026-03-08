@@ -1,0 +1,14 @@
+{{ project_name }}:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ project_name }}_dev.duckdb"
+      threads: 4
+      extensions:
+        - httpfs
+        - parquet
+    prod:
+      type: duckdb
+      path: "{{ project_name }}_prod.duckdb"
+      threads: 8

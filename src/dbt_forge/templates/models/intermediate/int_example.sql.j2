@@ -1,0 +1,33 @@
+-- intermediate/{{ mart }}/int_{{ mart }}__orders_enriched.sql
+-- Enrich orders with business logic for the {{ mart }} mart.
+
+with
+
+orders as (
+
+    select * from {{ '{{' }} ref('stg_example_source__orders') {{ '}}' }}
+
+),
+
+enriched as (
+
+    select
+        order_id,
+        customer_id,
+        status,
+        amount_usd,
+        created_at,
+
+        -- {{ mart }}-specific derivations
+        case
+            when status = 'completed' then amount_usd
+            else 0
+        end                             as completed_amount_usd,
+
+        date_trunc('month', created_at) as order_month
+
+    from orders
+
+)
+
+select * from enriched

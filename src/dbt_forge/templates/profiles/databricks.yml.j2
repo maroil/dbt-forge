@@ -1,0 +1,19 @@
+{{ project_name }}:
+  target: dev
+  outputs:
+    dev:
+      type: databricks
+      catalog: hive_metastore
+      schema: {{ project_name }}_dev
+      host: YOUR_WORKSPACE.azuredatabricks.net
+      http_path: /sql/1.0/warehouses/YOUR_WAREHOUSE_ID
+      token: "{{ '{{' }} env_var('DBT_DATABRICKS_TOKEN') {{ '}}' }}"
+      threads: 4
+    prod:
+      type: databricks
+      catalog: hive_metastore
+      schema: {{ project_name }}_prod
+      host: YOUR_WORKSPACE.azuredatabricks.net
+      http_path: /sql/1.0/warehouses/YOUR_WAREHOUSE_ID
+      token: "{{ '{{' }} env_var('DBT_DATABRICKS_TOKEN') {{ '}}' }}"
+      threads: 8

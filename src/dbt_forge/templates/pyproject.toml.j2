@@ -1,0 +1,16 @@
+[project]
+name = "{{ project_name }}"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "{{ dbt_adapter_package }}>=1.8",
+{% if "elementary-data" in packages %}
+    "elementary-data>=0.14",
+{% endif %}
+]
+
+# Run dbt commands via: uv run dbt <command>
+# e.g. uv run --env-file .env dbt debug
+#      uv run --env-file .env dbt deps
+#      uv run --env-file .env dbt run
+#      uv run --env-file .env dbt test

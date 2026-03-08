@@ -1,0 +1,36 @@
+name: '{{ project_name }}'
+version: '1.0.0'
+config-version: 2
+
+profile: '{{ project_name }}'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+vars:
+  # project-level variables
+  # my_var: "value"
+
+models:
+  {{ project_name }}:
+    staging:
+      +materialized: view
+      +schema: staging
+
+    intermediate:
+      +materialized: ephemeral
+
+    marts:
+{% for mart in marts %}
+      {{ mart }}:
+        +materialized: table
+        +schema: {{ mart }}
+{% endfor %}

@@ -1,0 +1,55 @@
+name: dbt CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  DBT_PROFILES_DIR: ./profiles  # matches the generated .env
+
+jobs:
+  dbt-ci:
+    name: dbt CI starter
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Install dbt packages
+        run: uv run --env-file .env dbt deps
+
+{% if adapter == "DuckDB" %}
+      - name: dbt debug
+        run: uv run --env-file .env dbt debug
+
+      - name: dbt build
+        run: uv run --env-file .env dbt build
+{% else %}
+      - name: Configure warehouse credentials
+        run: |
+          echo "This starter workflow installs dependencies successfully."
+          echo "Before enabling warehouse-backed dbt commands in CI:"
+          echo "1. Replace placeholder values in profiles/profiles.yml"
+          echo "2. Move secrets into GitHub Actions secrets or env vars"
+          echo "3. Replace this step with 'uv run --env-file .env dbt build' or your preferred dbt command"
+
+      - name: dbt parse placeholder
+        run: uv run --env-file .env dbt compile
+        continue-on-error: true
+{% if "elementary-data" in packages %}
+
+      - name: Elementary report
+        run: uv run edr send-report
+        continue-on-error: true
+{% endif %}
+{% endif %}

@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: stg_example_source__orders
+    description: "Cleaned and renamed orders from the example source."
+    columns:
+      - name: order_id
+        description: "Surrogate or natural primary key."
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        tests:
+          - not_null
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['placed', 'shipped', 'completed', 'cancelled']
+      - name: amount_usd
+        description: "Order total in USD (converted from cents)."
+      - name: created_at
+        tests:
+          - not_null

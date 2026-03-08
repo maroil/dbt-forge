@@ -1,0 +1,23 @@
+{{ project_name }}:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      port: 5432
+      user: YOUR_USER
+      password: "{{ '{{' }} env_var('DBT_PASSWORD') {{ '}}' }}"
+      dbname: analytics
+      schema: {{ project_name }}_dev
+      threads: 4
+      keepalives_idle: 0
+      connect_timeout: 10
+    prod:
+      type: postgres
+      host: YOUR_PROD_HOST
+      port: 5432
+      user: YOUR_USER
+      password: "{{ '{{' }} env_var('DBT_PASSWORD') {{ '}}' }}"
+      dbname: analytics
+      schema: {{ project_name }}_prod
+      threads: 8
