@@ -6,7 +6,14 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
-- No unreleased changes yet.
+### Added
+
+- `dbt-forge add snapshot <name>` scaffolds `snapshots/<name>.sql` with a timestamp strategy stub.
+- `dbt-forge add seed <name>` scaffolds `seeds/<name>.csv` and `seeds/_<name>__seeds.yml`.
+- `dbt-forge add exposure <name>` scaffolds `models/marts/__<name>__exposures.yml`.
+- `dbt-forge add macro <name>` scaffolds `macros/<name>.sql` with a macro block stub.
+- `init` now offers four optional prompts — snapshot, seed, exposure, and macro — each generating an example file when enabled.
+- `seeds/` and `snapshots/` directories no longer contain a `.gitkeep` placeholder when actual files are written into them.
 
 ## [0.1.1] - 2026-03-08
 

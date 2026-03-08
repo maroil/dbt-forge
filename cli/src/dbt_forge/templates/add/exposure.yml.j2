@@ -1,0 +1,13 @@
+version: 2
+
+exposures:
+  - name: {{ name }}
+    label: "{{ name | replace('_', ' ') | title }}"
+    type: dashboard
+    maturity: medium
+    description: "Dashboard exposure for {{ name }}"
+    depends_on:
+      - ref('example_model')
+    owner:
+      name: Analytics Team
+      email: analytics@example.com

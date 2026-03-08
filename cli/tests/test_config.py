@@ -79,3 +79,27 @@ def test_empty_ci_providers():
     assert c.add_github_actions is False
     assert c.add_gitlab_ci is False
     assert c.add_bitbucket_pipelines is False
+
+
+def test_new_optional_fields_default_false():
+    c = _cfg()
+    assert c.add_snapshot is False
+    assert c.add_seed is False
+    assert c.add_exposure is False
+    assert c.add_macro is False
+
+
+def test_new_optional_fields_can_be_set():
+    c = ProjectConfig(
+        project_name="p", adapter="BigQuery", marts=[], packages=[],
+        add_examples=True, add_sqlfluff=True,
+        ci_providers=[],
+        add_snapshot=True,
+        add_seed=True,
+        add_exposure=True,
+        add_macro=True,
+    )
+    assert c.add_snapshot is True
+    assert c.add_seed is True
+    assert c.add_exposure is True
+    assert c.add_macro is True

@@ -7,7 +7,7 @@
 - Shipped artifact: the Python package `dbt-forge`
 - Current release target: `0.1.1` alpha
 - Supported Python: `3.11`, `3.12`, `3.13`
-- Primary commands: `dbt-forge init`, `dbt-forge add mart`, `dbt-forge add source`
+- Primary commands: `dbt-forge init`, `dbt-forge add mart`, `dbt-forge add source`, `dbt-forge add snapshot`, `dbt-forge add seed`, `dbt-forge add exposure`, `dbt-forge add macro`
 - Publish path: GitHub Actions publishes the package to PyPI from `v*` tags
 - Website role: docs and marketing for the CLI; it is not a separately versioned release
   artifact

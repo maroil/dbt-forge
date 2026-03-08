@@ -78,6 +78,10 @@ without overwriting files that already exist:
 ```bash
 dbt-forge add mart finance
 dbt-forge add source salesforce
+dbt-forge add snapshot orders
+dbt-forge add seed dim_country
+dbt-forge add exposure weekly_revenue
+dbt-forge add macro cents_to_dollars
 ```
 
 ## Default selections

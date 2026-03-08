@@ -60,6 +60,10 @@ Without `--defaults`, `init` currently asks for:
 - CI providers
 - dbt unit test examples
 - MetricFlow semantic model examples
+- example snapshot
+- example seed
+- example exposure
+- example macro
 
 ## Generated output
 
@@ -71,6 +75,10 @@ The command creates a dbt project directory with:
 - optional `.sqlfluff`
 - optional CI files
 - optional example staging, marts, and tests
+- optional `snapshots/example_snapshot.sql`
+- optional `seeds/example_seed.csv` and `seeds/_example_seed__seeds.yml`
+- optional `models/marts/__example__exposures.yml`
+- optional `macros/example_macro.sql`
 
 ## Behavior and limits
 

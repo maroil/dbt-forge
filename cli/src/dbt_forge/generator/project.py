@@ -75,8 +75,12 @@ def generate_project(
         write("bitbucket-pipelines.yml", render("bitbucket-pipelines.yml.j2"))
 
     # Empty scaffold directories with README placeholders
-    for dirname in ("seeds", "snapshots", "analyses"):
+    for dirname in ("analyses",):
         write(f"{dirname}/.gitkeep", "")
+    if not config.add_seed:
+        write("seeds/.gitkeep", "")
+    if not config.add_snapshot:
+        write("snapshots/.gitkeep", "")
 
     write("macros/README.md", render("macros/README.md.j2"))
 
@@ -132,6 +136,32 @@ def generate_project(
             render("models/marts/semantic_models/sem_orders.yml.j2"),
         )
 
+    # Snapshot example
+    if config.add_snapshot:
+        write(
+            "snapshots/example_snapshot.sql",
+            render("snapshots/example_snapshot.sql.j2"),
+        )
+
+    # Seed example
+    if config.add_seed:
+        write("seeds/example_seed.csv", render("seeds/example_seed.csv.j2"))
+        write(
+            "seeds/_example_seed__seeds.yml",
+            render("seeds/_example_seed__seeds.yml.j2"),
+        )
+
+    # Exposure example
+    if config.add_exposure:
+        write(
+            "models/marts/__example__exposures.yml",
+            render("models/marts/__example__exposures.yml.j2"),
+        )
+
+    # Macro example
+    if config.add_macro:
+        write("macros/example_macro.sql", render("macros/example_macro.sql.j2"))
+
     return written
 
 
@@ -151,4 +181,8 @@ def _build_context(config: ProjectConfig) -> dict:
         "add_bitbucket_pipelines": config.add_bitbucket_pipelines,
         "add_unit_tests": config.add_unit_tests,
         "add_metricflow": config.add_metricflow,
+        "add_snapshot": config.add_snapshot,
+        "add_seed": config.add_seed,
+        "add_exposure": config.add_exposure,
+        "add_macro": config.add_macro,
     }
