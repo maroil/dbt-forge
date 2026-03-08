@@ -32,10 +32,18 @@ uv run pre-commit install --hook-type commit-msg
 ```bash
 cd cli
 uv run ruff check .
-uv run pytest
+uv run pytest -m "not integration"   # unit tests only
+uv run pytest -m integration -v      # integration tests (dbt + DuckDB)
+uv run pytest                        # all tests
 uv build
 uvx twine check dist/*
 ```
+
+### Test structure
+
+- **Unit tests** (`tests/test_*.py`, excluding `test_e2e_duckdb.py`) — fast, no external dependencies, validate file generation and CLI output.
+- **Integration tests** (`tests/test_e2e_duckdb.py`, marked `@pytest.mark.integration`) — scaffold a real dbt project, seed DuckDB, and run `dbt build` commands end-to-end.
+- **Shared fixtures** (`tests/conftest.py`) — session-scoped `e2e_project_dir` fixture and `run_dbt`/`run_forge` subprocess helpers.
 
 ## Website commands
 

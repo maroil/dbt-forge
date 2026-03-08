@@ -100,7 +100,9 @@ cd cli
 uv sync --all-groups
 uv run pre-commit install --hook-type commit-msg
 uv run ruff check .
-uv run pytest
+uv run pytest -m "not integration"   # unit tests only (~205 tests)
+uv run pytest -m integration -v      # integration tests with DuckDB (~32 tests)
+uv run pytest                        # all tests
 uv build
 uvx twine check dist/*
 ```

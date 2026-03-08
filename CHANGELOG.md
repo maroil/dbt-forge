@@ -8,7 +8,20 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ### Added
 
-- Nothing yet.
+- End-to-end integration tests with DuckDB — 32 tests covering the full dbt lifecycle (init, build, add commands, doctor, status, update) against a real database.
+- Integration test CI job in GitHub Actions (`integration-test` with DuckDB).
+- `pytest-timeout` dev dependency for integration test timeouts.
+- `dbt-core`, `dbt-duckdb`, and `duckdb` dev dependencies for integration testing.
+- `integration` pytest marker to separate unit and integration test runs.
+
+### Fixed
+
+- `add mart` / `add source` intermediate stub templates now reference correct column names (`amount_usd`, `customer_id`, `created_at`) matching the staging model output.
+- `add exposure` template now uses the provided model name in `ref()` instead of a hardcoded `example_model`.
+- `add snapshot` template now uses a placeholder `source('your_source', '<name>')` with a guiding comment instead of referencing a non-existent project-name source.
+- Unit test template (`test_stg_example.yml`) now uses correct input amounts (cents) and expected output columns/values matching the staging model transformation.
+- `add package` registry: version ranges are now proper Python lists instead of string representations, fixing `SemverError` when installing packages.
+- Model YAML templates (`_example_source__models.yml.j2`, `__mart__models.yml.j2`, `_example_source__sources.yml.j2`) now use `data_tests:` instead of deprecated `tests:` key (dbt 1.8+).
 
 ## [0.3.0] - 2026-03-08
 

@@ -80,7 +80,7 @@ Python project file listing the dbt adapter as a dependency. Use `uv sync` or
 ### `models/staging/`
 
 Source YAML files and starter staging models. With examples enabled, this includes a
-sample source (`_example_source__sources.yml`) and staging model (`stg_example_source__records.sql`).
+sample source (`_example_source__sources.yml`) and staging model (`stg_example_source__orders.sql`).
 
 Staging model names follow the convention `stg_<source>__<entity>.sql`.
 

@@ -850,28 +850,28 @@ def add_test(
 PACKAGE_REGISTRY: dict[str, dict] = {
     "dbt-utils": {
         "hub": "dbt-labs/dbt_utils",
-        "version": '[">=1.3.0", "<2.0.0"]',
+        "version": [">=1.3.0", "<2.0.0"],
     },
     "dbt-expectations": {
         "hub": "metaplane/dbt_expectations",
-        "version": '[">=0.10.0", "<0.11.0"]',
+        "version": [">=0.10.0", "<0.11.0"],
     },
     "dbt-codegen": {
         "hub": "dbt-labs/codegen",
-        "version": '[">=0.12.0", "<0.13.0"]',
+        "version": [">=0.12.0", "<0.13.0"],
     },
     "elementary": {
         "hub": "elementary-data/elementary",
-        "version": '[">=0.16.0", "<0.17.0"]',
+        "version": [">=0.16.0", "<0.17.0"],
         "config": {"vars": {"elementary": {"edr_cli_run": "true"}}},
     },
     "dbt-audit-helper": {
         "hub": "dbt-labs/audit_helper",
-        "version": '[">=0.12.0", "<0.13.0"]',
+        "version": [">=0.12.0", "<0.13.0"],
     },
     "dbt-project-evaluator": {
         "hub": "dbt-labs/dbt_project_evaluator",
-        "version": '[">=0.11.0", "<0.12.0"]',
+        "version": [">=0.11.0", "<0.12.0"],
         "config": {"vars": {"dbt_project_evaluator": {
             "documentation_coverage_target": 100,
             "test_coverage_target": 100,
@@ -879,59 +879,59 @@ PACKAGE_REGISTRY: dict[str, dict] = {
     },
     "dbt-meta-testing": {
         "hub": "tnightengale/dbt_meta_testing",
-        "version": '[">=0.3.0", "<0.4.0"]',
+        "version": [">=0.3.0", "<0.4.0"],
     },
     "dbt-date": {
         "hub": "calogica/dbt_date",
-        "version": '[">=0.10.0", "<0.11.0"]',
+        "version": [">=0.10.0", "<0.11.0"],
     },
     "dbt-profiler": {
         "hub": "data-mie/dbt_profiler",
-        "version": '[">=0.8.0", "<0.9.0"]',
+        "version": [">=0.8.0", "<0.9.0"],
     },
     "re-data": {
         "hub": "re-data/dbt_re_data",
-        "version": '[">=0.11.0", "<0.12.0"]',
+        "version": [">=0.11.0", "<0.12.0"],
     },
     "dbt-artifacts": {
         "hub": "brooklyn-data/dbt_artifacts",
-        "version": '[">=2.6.0", "<3.0.0"]',
+        "version": [">=2.6.0", "<3.0.0"],
     },
     "dbt-external-tables": {
         "hub": "dbt-labs/dbt_external_tables",
-        "version": '[">=0.9.0", "<0.10.0"]',
+        "version": [">=0.9.0", "<0.10.0"],
     },
     "metrics": {
         "hub": "dbt-labs/metrics",
-        "version": '[">=0.5.0", "<0.6.0"]',
+        "version": [">=0.5.0", "<0.6.0"],
     },
     "dbt-activity-schema": {
         "hub": "bcodell/dbt_activity_schema",
-        "version": '[">=2.0.0", "<3.0.0"]',
+        "version": [">=2.0.0", "<3.0.0"],
     },
     "dbt-constraints": {
         "hub": "Snowflake-Labs/dbt_constraints",
-        "version": '[">=1.0.0", "<2.0.0"]',
+        "version": [">=1.0.0", "<2.0.0"],
     },
     "dbt-privacy": {
         "hub": "pvcy/dbt_privacy",
-        "version": '[">=0.3.0", "<0.4.0"]',
+        "version": [">=0.3.0", "<0.4.0"],
     },
     "dbt-unit-testing": {
         "hub": "EqualExperts/dbt-unit-testing",
-        "version": '[">=0.5.0", "<0.6.0"]',
+        "version": [">=0.5.0", "<0.6.0"],
     },
     "dbt-fivetran-utils": {
         "hub": "fivetran/fivetran_utils",
-        "version": '[">=0.4.0", "<0.5.0"]',
+        "version": [">=0.4.0", "<0.5.0"],
     },
     "dbt-snowplow-web": {
         "hub": "snowplow/dbt_snowplow_web",
-        "version": '[">=1.0.0", "<2.0.0"]',
+        "version": [">=1.0.0", "<2.0.0"],
     },
     "dbt-segment": {
         "hub": "dbt-labs/segment",
-        "version": '[">=0.12.0", "<0.13.0"]',
+        "version": [">=0.12.0", "<0.13.0"],
     },
 }
 

@@ -6,19 +6,19 @@ models:
     columns:
       - name: order_id
         description: "Surrogate or natural primary key."
-        tests:
+        data_tests:
           - unique
           - not_null
       - name: customer_id
-        tests:
+        data_tests:
           - not_null
       - name: status
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
               values: ['placed', 'shipped', 'completed', 'cancelled']
       - name: amount_usd
         description: "Order total in USD (converted from cents)."
       - name: created_at
-        tests:
+        data_tests:
           - not_null

@@ -121,7 +121,9 @@ dbt-forge init my_project --preset company-standard.yml
 cd cli
 uv sync --all-groups
 uv run ruff check .
-uv run pytest
+uv run pytest -m "not integration"   # unit tests only
+uv run pytest -m integration -v      # integration tests (requires dbt + DuckDB)
+uv run pytest                        # all tests
 uv build
 ```
 

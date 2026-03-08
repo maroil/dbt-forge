@@ -5,9 +5,10 @@ with source as (
 final as (
     select
         order_id,
-        amount,
+        customer_id,
         status,
-        order_date
+        amount_usd,
+        created_at
     from source
 )
 

@@ -31,7 +31,9 @@ dbt-forge/
 cd cli
 uv sync --all-groups
 uv run ruff check .
-uv run pytest
+uv run pytest -m "not integration"   # unit tests only
+uv run pytest -m integration -v      # integration tests (dbt + DuckDB)
+uv run pytest                        # all tests
 uv build
 uvx twine check dist/*
 ```
