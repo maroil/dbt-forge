@@ -67,6 +67,9 @@ class ProjectConfig:
     add_seed: bool = False
     add_exposure: bool = False
     add_macro: bool = False
+    add_pre_commit: bool = False
+    add_env_config: bool = False
+    team_owner: str = ""
     output_dir: str = "."
 
     @property
@@ -268,6 +271,33 @@ def gather_config(
     if add_macro is None:
         _abort()
 
+    # --- Pre-commit hooks ---
+    add_pre_commit = questionary.confirm(
+        "Add pre-commit hooks config? (SQLFluff, yamllint, etc.)",
+        default=add_sqlfluff,
+        style=_style(),
+    ).ask()
+    if add_pre_commit is None:
+        _abort()
+
+    # --- Environment config (generate_schema_name + .env.example) ---
+    add_env_config = questionary.confirm(
+        "Add environment config? (generate_schema_name macro + .env.example)",
+        default=True,
+        style=_style(),
+    ).ask()
+    if add_env_config is None:
+        _abort()
+
+    # --- CODEOWNERS ---
+    team_owner = questionary.text(
+        "Team owner for CODEOWNERS (e.g. @my-org/data-team, leave blank to skip):",
+        default="",
+        style=_style(),
+    ).ask()
+    if team_owner is None:
+        _abort()
+
     return ProjectConfig(
         project_name=name,
         adapter=adapter,
@@ -282,6 +312,9 @@ def gather_config(
         add_seed=add_seed,
         add_exposure=add_exposure,
         add_macro=add_macro,
+        add_pre_commit=add_pre_commit,
+        add_env_config=add_env_config,
+        team_owner=team_owner.strip(),
         output_dir=output_dir,
     )
 

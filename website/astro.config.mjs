@@ -31,6 +31,7 @@ export default defineConfig({
 					items: [
 						{ label: 'init', slug: 'docs/cli/init' },
 						{ label: 'add', slug: 'docs/cli/add' },
+						{ label: 'doctor', slug: 'docs/cli/doctor' },
 					],
 				},
 			],

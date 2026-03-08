@@ -65,6 +65,12 @@ def generate_project(
     # SQLFluff
     if config.add_sqlfluff:
         write(".sqlfluff", render(".sqlfluff.j2"))
+        write(".sqlfluffignore", render(".sqlfluffignore.j2"))
+
+    # Pre-commit
+    if config.add_pre_commit:
+        write(".pre-commit-config.yaml", render(".pre-commit-config.yaml.j2"))
+        write(".editorconfig", render(".editorconfig.j2"))
 
     # CI providers
     if config.add_github_actions:
@@ -73,6 +79,18 @@ def generate_project(
         write(".gitlab-ci.yml", render(".gitlab-ci.yml.j2"))
     if config.add_bitbucket_pipelines:
         write("bitbucket-pipelines.yml", render("bitbucket-pipelines.yml.j2"))
+
+    # Environment config
+    if config.add_env_config:
+        write(".env.example", render(".env.example.j2"))
+        write(
+            "macros/generate_schema_name.sql",
+            render("macros/generate_schema_name.sql.j2"),
+        )
+
+    # CODEOWNERS
+    if config.team_owner:
+        write("CODEOWNERS", render("CODEOWNERS.j2"))
 
     # Empty scaffold directories with README placeholders
     for dirname in ("analyses",):
@@ -185,4 +203,7 @@ def _build_context(config: ProjectConfig) -> dict:
         "add_seed": config.add_seed,
         "add_exposure": config.add_exposure,
         "add_macro": config.add_macro,
+        "add_pre_commit": config.add_pre_commit,
+        "add_env_config": config.add_env_config,
+        "team_owner": config.team_owner,
     }
