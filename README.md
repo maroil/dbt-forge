@@ -1,86 +1,42 @@
 # dbt-forge
 
-`dbt-forge` is a Python CLI for scaffolding opinionated dbt projects with a consistent layout, starter models, adapter-specific profiles, and optional GitHub Actions and SQLFluff setup.
+`dbt-forge` is organized as a small monorepo:
 
-## Features
+- `cli/` contains the Python package, tests, and release tooling for the `dbt-forge` CLI.
+- `website/` contains the public landing page and docs built with Astro + Starlight.
 
-- `src/`-packaged Python CLI built on Typer and Rich
-- Interactive or default-driven project generation
-- Adapter templates for BigQuery, Snowflake, PostgreSQL, DuckDB, and Databricks
-- Optional starter dbt packages, SQLFluff config, and GitHub Actions workflow
-- Generated `.env` support so local dbt commands resolve `profiles/` consistently
-
-## Install
+## CLI development
 
 ```bash
-pip install dbt-forge
-```
-
-Or with `uv`:
-
-```bash
-uv tool install dbt-forge
-```
-
-## Quickstart
-
-```bash
-dbt-forge init
-```
-
-For a non-interactive scaffold:
-
-```bash
-dbt-forge init my_dbt_project --defaults
-```
-
-## Supported Python
-
-- Python 3.11
-- Python 3.12
-- Python 3.13
-
-## Local Development
-
-```bash
+cd cli
 uv sync --all-groups
-uv run pre-commit install --hook-type commit-msg
 uv run ruff check .
 uv run pytest
 uv build
-uvx twine check dist/*
 ```
 
-## Commit Messages
-
-This repo uses Conventional Commits. Every commit message must start with a type such as:
-
-- `feat: add databricks profile scaffolding`
-- `fix: handle missing target directory`
-- `chore: refresh release workflow`
-
-The local `commit-msg` hook enforces this after you run:
+## Website development
 
 ```bash
-uv run pre-commit install --hook-type commit-msg
+cd website
+pnpm install
+pnpm dev
+pnpm build
 ```
 
-## Release Process
+## Deployment
 
-1. Update `src/dbt_forge/__init__.py` with the next version.
-2. Add release notes to `CHANGELOG.md`.
-3. Commit the release changes.
-4. Push a tag in the form `vX.Y.Z`.
-5. Let GitHub Actions publish the artifact to PyPI via Trusted Publishing.
+The site is designed for Vercel:
 
-For a TestPyPI preflight, run the manual `Release` workflow from GitHub Actions.
+- Root Directory: `website`
+- Build Command: `pnpm build`
+- Output Directory: `dist`
 
-## Publishing Setup
+The Python package still releases from GitHub Actions on `v*` tags.
 
-- Public repo: [maroil/dbt-forge](https://github.com/maroil/dbt-forge)
-- Configure GitHub environments named `pypi` and `testpypi`
-- Register the GitHub repo as a Trusted Publisher in PyPI and TestPyPI
+## Repository links
 
-## License
-
-MIT. See [LICENSE](LICENSE).
+- GitHub: [maroil/dbt-forge](https://github.com/maroil/dbt-forge)
+- Package README: [cli/README.md](cli/README.md)
+- Changelog: [CHANGELOG.md](CHANGELOG.md)
+- Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)

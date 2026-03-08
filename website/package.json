@@ -1,0 +1,22 @@
+{
+  "name": "@dbt-forge/website",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check && astro build",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@fontsource-variable/fraunces": "^5.2.8",
+    "@fontsource/ibm-plex-mono": "^5.2.6",
+    "@astrojs/starlight": "^0.37.7",
+    "astro": "^5.18.0",
+    "sharp": "^0.34.5"
+  }
+}

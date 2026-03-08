@@ -1,0 +1,34 @@
+---
+title: dbt-forge docs
+description: Overview of the dbt-forge CLI and the core guides for using it.
+template: splash
+hero:
+  tagline: Scaffold production-ready dbt projects with opinionated defaults.
+  actions:
+    - text: Getting started
+      link: /docs/getting-started/
+      icon: right-arrow
+    - text: GitHub
+      link: https://github.com/maroil/dbt-forge
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## What is here
+
+<CardGrid stagger>
+  <Card title="Getting started" icon="rocket">
+    Install the CLI, scaffold your first project, and see the command shape in one place.
+  </Card>
+  <Card title="CLI reference" icon="seti:terminal">
+    Read the current `init`, `add mart`, and `add source` command behavior without guessing.
+  </Card>
+  <Card title="Project structure" icon="seti:folder">
+    Understand the generated directories, starter files, and where to extend them.
+  </Card>
+  <Card title="Development" icon="pencil">
+    Work on the Python CLI in `cli/` and the public website in `website/`.
+  </Card>
+</CardGrid>
