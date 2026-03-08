@@ -8,6 +8,12 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ### Added
 
+- Nothing yet.
+
+## [0.3.0] - 2026-03-08
+
+### Added
+
 - `dbt-forge status` command — Rich terminal dashboard showing model counts by layer, test/doc coverage percentages, sources, and installed packages.
 - `dbt-forge update` command — re-applies dbt-forge templates to an existing project and shows unified diffs for changed files. Supports `--dry-run` to preview changes without writing. Interactive mode lets you accept or skip each changed file.
 - `.dbt-forge.yml` manifest — written during `init`, stores the dbt-forge version, ProjectConfig, and SHA-256 hashes of all generated files. Powers the `update` command.

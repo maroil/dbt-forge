@@ -2,7 +2,7 @@
 
 `dbt-forge` is a Python CLI for scaffolding opinionated dbt projects with a consistent
 layout, starter models, adapter-specific profiles, and optional CI / SQLFluff setup.
-The project is currently in its `0.2.x` alpha phase.
+The project is currently in its `0.3.x` alpha phase.
 
 ## Features
 
@@ -127,9 +127,9 @@ supporting docs/marketing and is not a separately versioned release artifact.
 From the repository root:
 
 ```bash
-python3 scripts/release_assistant.py prepare 0.2.0
-python3 scripts/release_assistant.py verify 0.2.0
-python3 scripts/release_assistant.py publish 0.2.0 --confirm
+python3 scripts/release_assistant.py prepare 0.3.0
+python3 scripts/release_assistant.py verify 0.3.0
+python3 scripts/release_assistant.py publish 0.3.0 --confirm
 ```
 
 `prepare` stages the version and changelog updates. `verify` is the release gate and requires a
