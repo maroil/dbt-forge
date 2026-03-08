@@ -8,6 +8,16 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ### Added
 
+- `dbt-forge status` command — Rich terminal dashboard showing model counts by layer, test/doc coverage percentages, sources, and installed packages.
+- `dbt-forge update` command — re-applies dbt-forge templates to an existing project and shows unified diffs for changed files. Supports `--dry-run` to preview changes without writing. Interactive mode lets you accept or skip each changed file.
+- `.dbt-forge.yml` manifest — written during `init`, stores the dbt-forge version, ProjectConfig, and SHA-256 hashes of all generated files. Powers the `update` command.
+- `dbt-forge preset validate <file>` command — validates a preset YAML file and reports errors.
+- `dbt-forge init --preset <path-or-url>` flag — applies a preset YAML to `init`. Presets define `defaults` (override prompt defaults) and `locked` fields (skip prompts entirely). Supports local files and HTTPS URLs.
+- `dbt-forge add test` now supports a third test type: **schema test** (column-level tests in `.yml`). Auto-detects existing columns from schema YAML, prompts for test types per column (unique, not_null, accepted_values, relationships), and generates a `_<model>__tests.yml` file.
+- `dbt-forge add model` now auto-detects existing sources from `models/**/*sources*.yml` files. When sources are found, presents a selection list instead of a free-text prompt.
+- `dbt-forge add package` now generates package-specific config in `dbt_project.yml`. Packages with a `config` entry (e.g., `elementary`, `dbt-project-evaluator`) automatically add required `vars` to `dbt_project.yml`.
+- Generated `README.md` now includes an "Environment configuration" section when `add_env_config` is enabled, documenting the `generate_schema_name` macro and `.env` setup.
+- Shared `scanner.py` module extracted from `doctor.py` — reusable functions for finding models, YAML files, sources, packages, and counting models by layer.
 - `dbt-forge doctor` command with 10 health checks (naming conventions, schema/test coverage, hardcoded refs, pinned packages, source freshness, orphaned YAML, sqlfluff config, gitignore, disabled models). Includes `--fix` to auto-generate missing schema stubs, `--ci` for non-interactive mode with exit code 1 on failures, and `--check <name>` to run a single check.
 - `dbt-forge add pre-commit` scaffolds `.pre-commit-config.yaml`, `.editorconfig`, and `.sqlfluffignore`.
 - `dbt-forge add ci [github|gitlab|bitbucket]` scaffolds CI pipeline config post-init. Reuses existing CI templates and auto-detects the adapter from `profiles.yml`.

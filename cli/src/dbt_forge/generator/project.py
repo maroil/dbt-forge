@@ -180,6 +180,11 @@ def generate_project(
     if config.add_macro:
         write("macros/example_macro.sql", render("macros/example_macro.sql.j2"))
 
+    # Write manifest for update lifecycle
+    if not dry_run:
+        from dbt_forge.manifest import write_manifest
+        write_manifest(base, config, written)
+
     return written
 
 

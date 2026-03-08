@@ -126,8 +126,21 @@ def gather_config(
     project_name: str | None,
     use_defaults: bool,
     output_dir: str,
+    preset: object | None = None,
 ) -> ProjectConfig:
-    """Run interactive prompts and return a ProjectConfig."""
+    """Run interactive prompts and return a ProjectConfig.
+
+    If *preset* is provided (a PresetConfig), locked fields are skipped and
+    default fields override questionary defaults.
+    """
+    # Helper to check preset
+    def _is_locked(field: str) -> bool:
+        return preset is not None and field in getattr(preset, "locked", [])
+
+    def _preset_default(field: str, fallback):
+        if preset is not None:
+            return getattr(preset, "defaults", {}).get(field, fallback)
+        return fallback
 
     if use_defaults:
         name = project_name or "my_dbt_project"
@@ -158,27 +171,37 @@ def gather_config(
         name = _slugify(answer)
 
     # --- Adapter ---
-    adapter = questionary.select(
-        "Warehouse adapter:",
-        choices=ADAPTERS,
-        style=_style(),
-    ).ask()
-    if adapter is None:
-        _abort()
+    if _is_locked("adapter"):
+        adapter = _preset_default("adapter", "BigQuery")
+    else:
+        default_adapter = _preset_default("adapter", None)
+        adapter = questionary.select(
+            "Warehouse adapter:",
+            choices=ADAPTERS,
+            default=default_adapter if default_adapter in ADAPTERS else None,
+            style=_style(),
+        ).ask()
+        if adapter is None:
+            _abort()
 
     # --- Marts ---
-    mart_choices = [
-        questionary.Choice(title=m, value=m, checked=(m in {"finance", "marketing"}))
-        for m in MARTS
-    ]
-    marts = questionary.checkbox(
-        "Which marts/departments to scaffold? (space to select)",
-        choices=mart_choices,
-        style=_style(),
-        validate=lambda v: True if v else "Select at least one mart.",
-    ).ask()
-    if marts is None:
-        _abort()
+    if _is_locked("marts"):
+        marts = _preset_default("marts", ["finance", "marketing"])
+    else:
+        preset_marts = _preset_default("marts", None)
+        default_marts = set(preset_marts) if preset_marts else {"finance", "marketing"}
+        mart_choices = [
+            questionary.Choice(title=m, value=m, checked=(m in default_marts))
+            for m in MARTS
+        ]
+        marts = questionary.checkbox(
+            "Which marts/departments to scaffold? (space to select)",
+            choices=mart_choices,
+            style=_style(),
+            validate=lambda v: True if v else "Select at least one mart.",
+        ).ask()
+        if marts is None:
+            _abort()
 
     # --- Packages ---
     packages = questionary.checkbox(
@@ -198,105 +221,148 @@ def gather_config(
     if add_examples is None:
         _abort()
 
-    add_sqlfluff = questionary.confirm(
-        "Add SQLFluff config?",
-        default=True,
-        style=_style(),
-    ).ask()
-    if add_sqlfluff is None:
-        _abort()
+    if _is_locked("add_sqlfluff"):
+        add_sqlfluff = _preset_default("add_sqlfluff", True)
+    else:
+        add_sqlfluff = questionary.confirm(
+            "Add SQLFluff config?",
+            default=_preset_default("add_sqlfluff", True),
+            style=_style(),
+        ).ask()
+        if add_sqlfluff is None:
+            _abort()
 
     # --- CI providers (multi-select) ---
-    ci_providers = questionary.checkbox(
-        "Add CI/CD config? (space to select, none = skip)",
-        choices=CI_PROVIDER_CHOICES,
-        style=_style(),
-    ).ask()
-    if ci_providers is None:
-        _abort()
+    if _is_locked("ci_providers"):
+        ci_providers = _preset_default("ci_providers", [])
+    else:
+        preset_ci = _preset_default("ci_providers", None)
+        default_ci = set(preset_ci) if preset_ci else {"GitHub Actions"}
+        ci_choices = [
+            questionary.Choice(
+                title=provider,
+                value=provider,
+                checked=(provider in default_ci),
+            )
+            for provider in CI_PROVIDERS
+        ]
+        ci_providers = questionary.checkbox(
+            "Add CI/CD config? (space to select, none = skip)",
+            choices=ci_choices,
+            style=_style(),
+        ).ask()
+        if ci_providers is None:
+            _abort()
 
     # --- dbt unit tests (dbt 1.8+) ---
     add_unit_tests = False
     if add_examples:
-        add_unit_tests = questionary.confirm(
-            "Add dbt unit test examples? (dbt 1.8+)",
-            default=False,
-            style=_style(),
-        ).ask()
-        if add_unit_tests is None:
-            _abort()
+        if _is_locked("add_unit_tests"):
+            add_unit_tests = _preset_default("add_unit_tests", False)
+        else:
+            add_unit_tests = questionary.confirm(
+                "Add dbt unit test examples? (dbt 1.8+)",
+                default=_preset_default("add_unit_tests", False),
+                style=_style(),
+            ).ask()
+            if add_unit_tests is None:
+                _abort()
 
     # --- MetricFlow / Semantic Layer (dbt 1.6+) ---
-    add_metricflow = questionary.confirm(
-        "Add MetricFlow semantic model examples? (dbt 1.6+)",
-        default=False,
-        style=_style(),
-    ).ask()
-    if add_metricflow is None:
-        _abort()
+    if _is_locked("add_metricflow"):
+        add_metricflow = _preset_default("add_metricflow", False)
+    else:
+        add_metricflow = questionary.confirm(
+            "Add MetricFlow semantic model examples? (dbt 1.6+)",
+            default=_preset_default("add_metricflow", False),
+            style=_style(),
+        ).ask()
+        if add_metricflow is None:
+            _abort()
 
     # --- Snapshots ---
-    add_snapshot = questionary.confirm(
-        "Add an example snapshot?",
-        default=False,
-        style=_style(),
-    ).ask()
-    if add_snapshot is None:
-        _abort()
+    if _is_locked("add_snapshot"):
+        add_snapshot = _preset_default("add_snapshot", False)
+    else:
+        add_snapshot = questionary.confirm(
+            "Add an example snapshot?",
+            default=_preset_default("add_snapshot", False),
+            style=_style(),
+        ).ask()
+        if add_snapshot is None:
+            _abort()
 
     # --- Seeds ---
-    add_seed = questionary.confirm(
-        "Add an example seed (CSV reference data)?",
-        default=False,
-        style=_style(),
-    ).ask()
-    if add_seed is None:
-        _abort()
+    if _is_locked("add_seed"):
+        add_seed = _preset_default("add_seed", False)
+    else:
+        add_seed = questionary.confirm(
+            "Add an example seed (CSV reference data)?",
+            default=_preset_default("add_seed", False),
+            style=_style(),
+        ).ask()
+        if add_seed is None:
+            _abort()
 
     # --- Exposures ---
-    add_exposure = questionary.confirm(
-        "Add an example exposure (downstream dashboard)?",
-        default=False,
-        style=_style(),
-    ).ask()
-    if add_exposure is None:
-        _abort()
+    if _is_locked("add_exposure"):
+        add_exposure = _preset_default("add_exposure", False)
+    else:
+        add_exposure = questionary.confirm(
+            "Add an example exposure (downstream dashboard)?",
+            default=_preset_default("add_exposure", False),
+            style=_style(),
+        ).ask()
+        if add_exposure is None:
+            _abort()
 
     # --- Macros ---
-    add_macro = questionary.confirm(
-        "Add an example macro?",
-        default=False,
-        style=_style(),
-    ).ask()
-    if add_macro is None:
-        _abort()
+    if _is_locked("add_macro"):
+        add_macro = _preset_default("add_macro", False)
+    else:
+        add_macro = questionary.confirm(
+            "Add an example macro?",
+            default=_preset_default("add_macro", False),
+            style=_style(),
+        ).ask()
+        if add_macro is None:
+            _abort()
 
     # --- Pre-commit hooks ---
-    add_pre_commit = questionary.confirm(
-        "Add pre-commit hooks config? (SQLFluff, yamllint, etc.)",
-        default=add_sqlfluff,
-        style=_style(),
-    ).ask()
-    if add_pre_commit is None:
-        _abort()
+    if _is_locked("add_pre_commit"):
+        add_pre_commit = _preset_default("add_pre_commit", False)
+    else:
+        add_pre_commit = questionary.confirm(
+            "Add pre-commit hooks config? (SQLFluff, yamllint, etc.)",
+            default=_preset_default("add_pre_commit", add_sqlfluff),
+            style=_style(),
+        ).ask()
+        if add_pre_commit is None:
+            _abort()
 
     # --- Environment config (generate_schema_name + .env.example) ---
-    add_env_config = questionary.confirm(
-        "Add environment config? (generate_schema_name macro + .env.example)",
-        default=True,
-        style=_style(),
-    ).ask()
-    if add_env_config is None:
-        _abort()
+    if _is_locked("add_env_config"):
+        add_env_config = _preset_default("add_env_config", True)
+    else:
+        add_env_config = questionary.confirm(
+            "Add environment config? (generate_schema_name macro + .env.example)",
+            default=_preset_default("add_env_config", True),
+            style=_style(),
+        ).ask()
+        if add_env_config is None:
+            _abort()
 
     # --- CODEOWNERS ---
-    team_owner = questionary.text(
-        "Team owner for CODEOWNERS (e.g. @my-org/data-team, leave blank to skip):",
-        default="",
-        style=_style(),
-    ).ask()
-    if team_owner is None:
-        _abort()
+    if _is_locked("team_owner"):
+        team_owner = _preset_default("team_owner", "")
+    else:
+        team_owner = questionary.text(
+            "Team owner for CODEOWNERS (e.g. @my-org/data-team, leave blank to skip):",
+            default=_preset_default("team_owner", ""),
+            style=_style(),
+        ).ask()
+        if team_owner is None:
+            _abort()
 
     return ProjectConfig(
         project_name=name,

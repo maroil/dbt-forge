@@ -7,7 +7,7 @@
 - Shipped artifact: the Python package `dbt-forge`
 - Current release target: `0.2.0` alpha
 - Supported Python: `3.11`, `3.12`, `3.13`
-- Primary commands: `dbt-forge init`, `dbt-forge doctor`, and `dbt-forge add` (mart, source, snapshot, seed, exposure, macro, pre-commit, ci, model, test, package)
+- Primary commands: `dbt-forge init`, `dbt-forge doctor`, `dbt-forge status`, `dbt-forge update`, and `dbt-forge add` (mart, source, snapshot, seed, exposure, macro, pre-commit, ci, model, test, package)
 - Publish path: GitHub Actions publishes the package to PyPI from `v*` tags
 - Website role: docs and marketing for the CLI; it is not a separately versioned release
   artifact
@@ -44,6 +44,9 @@ dbt-forge init my_project --defaults
 
 # Preview what would be generated without writing files
 dbt-forge init my_project --defaults --dry-run
+
+# Use a company preset to enforce standards
+dbt-forge init my_project --preset company-standard.yml
 ```
 
 ### Add components to an existing project
@@ -83,6 +86,33 @@ dbt-forge doctor --ci
 
 # Run a single check
 dbt-forge doctor --check test-coverage
+```
+
+### Project stats dashboard
+
+```bash
+# Show model counts, test/doc coverage, sources, and packages
+dbt-forge status
+```
+
+### Update templates
+
+```bash
+# Preview what would change if templates were re-applied
+dbt-forge update --dry-run
+
+# Interactively accept/skip each changed file
+dbt-forge update
+```
+
+### Presets
+
+```bash
+# Validate a preset file
+dbt-forge preset validate company-standard.yml
+
+# Use a preset during init (local file or HTTPS URL)
+dbt-forge init my_project --preset company-standard.yml
 ```
 
 ## CLI development

@@ -64,7 +64,7 @@ Dev/staging/prod environment setup is universally confusing for dbt teams. The `
 **Checklist:**
 - [x] Create `macros/generate_schema_name.sql.j2` template
 - [x] Create `.env.example.j2` template (adapter-aware)
-- [ ] Update `README.md.j2` with environment setup section
+- [x] Update `README.md.j2` with environment setup section
 - [x] Add `add_env_config` field and prompt
 - [x] Wire up in `generator/project.py`
 - [x] Add tests
@@ -155,7 +155,7 @@ YAML boilerplate is the most tedious part of dbt development (dbt GitHub issue #
 - [x] Add interactive column definition loop
 - [x] Add test selection per column
 - [x] Implement directory placement logic
-- [ ] Implement source auto-detection
+- [x] Implement source auto-detection
 - [x] Add `add model` subcommand in `cli/add.py`
 - [x] Add tests
 
@@ -177,7 +177,7 @@ Unit test adoption in dbt is extremely low (~1% column coverage is typical). Tea
 - [x] Create `add/test_data.sql.j2` template
 - [x] Create `add/test_unit.yml.j2` template
 - [x] Add test type prompt
-- [ ] Implement schema test column/type selection
+- [x] Implement schema test column/type selection
 - [x] Implement data test stub generation
 - [x] Implement unit test mock generation
 - [x] Add `add test` subcommand in `cli/add.py`
@@ -202,7 +202,7 @@ Adding dbt packages requires editing `packages.yml`, knowing compatible versions
 - [x] Create package registry data structure (name, hub URL, version range, config needed)
 - [x] Populate registry with 20+ packages
 - [x] Implement `packages.yml` parser and updater
-- [ ] Implement config generation for packages that need it
+- [x] Implement config generation for packages that need it
 - [x] Add interactive package browser
 - [x] Add `add package` subcommand in `cli/add.py`
 - [x] Add tests
@@ -223,13 +223,13 @@ When dbt-forge templates improve (new best practices, security fixes, dbt versio
 - `--dry-run` to preview changes without applying
 
 **Checklist:**
-- [ ] Design `.dbt-forge.yml` manifest schema
-- [ ] Write manifest during `init`
-- [ ] Implement template re-rendering with stored config
-- [ ] Implement diff generation and display
-- [ ] Implement per-file accept/reject flow
-- [ ] Add `update` command in `main.py`
-- [ ] Add tests
+- [x] Design `.dbt-forge.yml` manifest schema
+- [x] Write manifest during `init`
+- [x] Implement template re-rendering with stored config
+- [x] Implement diff generation and display
+- [x] Implement per-file accept/reject flow
+- [x] Add `update` command in `main.py`
+- [x] Add tests
 
 ---
 
@@ -245,13 +245,13 @@ Enterprise teams managing dozens of dbt projects need to enforce standards: same
 - `dbt-forge preset validate <file>` to check preset syntax
 
 **Checklist:**
-- [ ] Design preset YAML schema
-- [ ] Implement preset loader (local + URL)
-- [ ] Merge preset values into ProjectConfig
-- [ ] Support locked vs default-only options
-- [ ] Add `--preset` flag to `init`
-- [ ] Add `preset validate` command
-- [ ] Add tests
+- [x] Design preset YAML schema
+- [x] Implement preset loader (local + URL)
+- [x] Merge preset values into ProjectConfig
+- [x] Support locked vs default-only options
+- [x] Add `--preset` flag to `init`
+- [x] Add `preset validate` command
+- [x] Add tests
 
 ---
 
@@ -298,14 +298,14 @@ There's no quick way to get a high-level overview of a dbt project's health and 
 - Compact single-screen layout using Rich panels
 
 **Checklist:**
-- [ ] Create `cli/status.py` module
-- [ ] Implement model counter and layer classifier
-- [ ] Implement test coverage calculator
-- [ ] Implement documentation coverage calculator
-- [ ] Implement source freshness scanner
-- [ ] Implement Rich dashboard layout
-- [ ] Register `status` command in `main.py`
-- [ ] Add tests
+- [x] Create `cli/status.py` module
+- [x] Implement model counter and layer classifier
+- [x] Implement test coverage calculator
+- [x] Implement documentation coverage calculator
+- [x] Implement source freshness scanner
+- [x] Implement Rich dashboard layout
+- [x] Register `status` command in `main.py`
+- [x] Add tests
 
 ---
 

@@ -20,11 +20,13 @@ def init_command(
     use_defaults: bool,
     output_dir: str,
     dry_run: bool = False,
+    preset: object | None = None,
 ) -> None:
     config = gather_config(
         project_name=project_name,
         use_defaults=use_defaults,
         output_dir=output_dir,
+        preset=preset,
     )
 
     console.print()

@@ -3,7 +3,7 @@ title: dbt-forge docs
 description: Install dbt-forge, scaffold a dbt project, and use the core CLI guides.
 template: splash
 hero:
-  tagline: Python CLI for scaffolding dbt projects, running health checks, and generating models, tests, and CI pipelines.
+  tagline: Python CLI for scaffolding dbt projects, running health checks, generating models and tests, updating templates, and enforcing team standards with presets.
   actions:
     - text: Getting started
       link: /docs/getting-started/
@@ -17,10 +17,12 @@ hero:
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
 `dbt-forge` is a Python CLI that scaffolds new dbt projects, extends existing ones
-with models, tests, and CI pipelines, and validates project health with automated checks.
+with models, tests, and CI pipelines, validates project health, and keeps generated files
+up to date as templates improve.
 
-Use `init` to create a project. Use `add` to extend it with new components. Use `doctor`
-to validate best practices.
+Use `init` to create a project. Use `add` to extend it. Use `doctor` to validate best
+practices. Use `status` for a project overview. Use `update` to re-apply templates.
+Use `--preset` to enforce team standards.
 
 ## Start here
 
@@ -29,7 +31,7 @@ to validate best practices.
     Install the CLI, scaffold a dbt project, inspect the generated structure, and run the next commands.
   </Card>
   <Card title="CLI reference" icon="seti:terminal">
-    Use the `init`, `add`, and `doctor` reference pages for command syntax, flags, and generated files.
+    Use the `init`, `add`, `doctor`, `status`, `update`, and `preset` reference pages for command syntax, flags, and generated files.
   </Card>
   <Card title="Project structure" icon="seti:folder">
     See the directories and files created by the scaffold and what each part of the dbt project is for.
@@ -45,4 +47,7 @@ to validate best practices.
 - Use [init](/docs/cli/init/) when you are creating a new dbt project.
 - Use [add](/docs/cli/add/) when you are extending an existing dbt project with new components.
 - Use [doctor](/docs/cli/doctor/) when you want to validate project health and best practices.
+- Use [status](/docs/cli/status/) when you want a quick overview of model counts, test coverage, and packages.
+- Use [update](/docs/cli/update/) when you want to re-apply dbt-forge templates after upgrading.
+- Use [preset](/docs/cli/preset/) when you want to enforce team standards across projects.
 - Use [Project structure](/docs/project-structure/) when you need to understand the generated layout before editing it.

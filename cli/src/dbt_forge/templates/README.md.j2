@@ -148,6 +148,19 @@ DBT_USER=your_user
 ```
 {% endif %}
 
+{% if add_env_config %}
+## Environment configuration
+
+This project includes a `generate_schema_name` macro for environment-aware schema routing.
+In **dev**, models land in `dev_<custom_schema>`. In **prod**, they use the clean schema name.
+
+1. Copy the example env file:  `cp .env.example .env`
+2. Fill in adapter-specific credentials (see `.env.example` for docs)
+3. The `generate_schema_name` macro in `macros/` handles dev/prod schema routing automatically
+
+> Tip: never put secrets directly in `profiles.yml` — use `env_var()` and `.env` instead.
+{% endif %}
+
 ## Common dbt commands
 
 | Command | Description |
