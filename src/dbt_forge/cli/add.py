@@ -61,7 +61,9 @@ def add_mart(
     ctx = {"mart": name, "project_name": project_name}
 
     console.print()
-    console.print(f"  Adding mart [bold cyan]{name}[/bold cyan] to [bold]{project_root.name}[/bold]")
+    console.print(
+        f"  Adding mart [bold cyan]{name}[/bold cyan] to [bold]{project_root.name}[/bold]"
+    )
     console.print()
 
     _write(
@@ -96,7 +98,9 @@ def add_source(
     ctx = {"source_name": name, "project_name": project_name}
 
     console.print()
-    console.print(f"  Adding source [bold cyan]{name}[/bold cyan] to [bold]{project_root.name}[/bold]")
+    console.print(
+        f"  Adding source [bold cyan]{name}[/bold cyan] to [bold]{project_root.name}[/bold]"
+    )
     console.print()
 
     staging_dir = project_root / f"models/staging/{name}"
