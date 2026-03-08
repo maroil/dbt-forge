@@ -6,7 +6,6 @@ import os
 import tempfile
 from pathlib import Path
 
-import pytest
 import yaml
 
 from dbt_forge.generator.project import generate_project
@@ -44,8 +43,8 @@ class TestAddMart:
             old_cwd = os.getcwd()
             try:
                 os.chdir(project_root)
-                from dbt_forge.cli.add import add_mart
                 from typer.testing import CliRunner
+
                 from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["mart", "operations"])
@@ -53,8 +52,12 @@ class TestAddMart:
             finally:
                 os.chdir(old_cwd)
 
-            assert (project_root / "models" / "marts" / "operations" / "operations_orders.sql").exists()
-            assert (project_root / "models" / "marts" / "operations" / "__operations__models.yml").exists()
+            assert (
+                project_root / "models" / "marts" / "operations" / "operations_orders.sql"
+            ).exists()
+            assert (
+                project_root / "models" / "marts" / "operations" / "__operations__models.yml"
+            ).exists()
             assert (
                 project_root / "models" / "intermediate" / "operations"
                 / "int_operations__orders_enriched.sql"
@@ -66,8 +69,9 @@ class TestAddMart:
             old_cwd = os.getcwd()
             try:
                 os.chdir(project_root)
-                from dbt_forge.cli.add import add_app
                 from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 runner.invoke(add_app, ["mart", "product"])
             finally:
@@ -88,8 +92,9 @@ class TestAddMart:
             old_cwd = os.getcwd()
             try:
                 os.chdir(project_root)
-                from dbt_forge.cli.add import add_app
                 from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 runner.invoke(add_app, ["mart", "finance"])
             finally:
@@ -110,8 +115,9 @@ class TestAddSource:
             old_cwd = os.getcwd()
             try:
                 os.chdir(project_root)
-                from dbt_forge.cli.add import add_app
                 from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["source", "salesforce"])
                 assert result.exit_code == 0, result.output
@@ -129,8 +135,9 @@ class TestAddSource:
             old_cwd = os.getcwd()
             try:
                 os.chdir(project_root)
-                from dbt_forge.cli.add import add_app
                 from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 runner.invoke(add_app, ["source", "stripe"])
             finally:
@@ -146,8 +153,9 @@ class TestAddSource:
             old_cwd = os.getcwd()
             try:
                 os.chdir(tmpdir)
-                from dbt_forge.cli.add import add_app
                 from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["source", "hubspot"])
             finally:
