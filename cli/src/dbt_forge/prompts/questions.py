@@ -63,6 +63,10 @@ class ProjectConfig:
     ci_providers: list[str] = field(default_factory=list)
     add_unit_tests: bool = False
     add_metricflow: bool = False
+    add_snapshot: bool = False
+    add_seed: bool = False
+    add_exposure: bool = False
+    add_macro: bool = False
     output_dir: str = "."
 
     @property
@@ -228,6 +232,42 @@ def gather_config(
     if add_metricflow is None:
         _abort()
 
+    # --- Snapshots ---
+    add_snapshot = questionary.confirm(
+        "Add an example snapshot?",
+        default=False,
+        style=_style(),
+    ).ask()
+    if add_snapshot is None:
+        _abort()
+
+    # --- Seeds ---
+    add_seed = questionary.confirm(
+        "Add an example seed (CSV reference data)?",
+        default=False,
+        style=_style(),
+    ).ask()
+    if add_seed is None:
+        _abort()
+
+    # --- Exposures ---
+    add_exposure = questionary.confirm(
+        "Add an example exposure (downstream dashboard)?",
+        default=False,
+        style=_style(),
+    ).ask()
+    if add_exposure is None:
+        _abort()
+
+    # --- Macros ---
+    add_macro = questionary.confirm(
+        "Add an example macro?",
+        default=False,
+        style=_style(),
+    ).ask()
+    if add_macro is None:
+        _abort()
+
     return ProjectConfig(
         project_name=name,
         adapter=adapter,
@@ -238,6 +278,10 @@ def gather_config(
         ci_providers=ci_providers,
         add_unit_tests=add_unit_tests,
         add_metricflow=add_metricflow,
+        add_snapshot=add_snapshot,
+        add_seed=add_seed,
+        add_exposure=add_exposure,
+        add_macro=add_macro,
         output_dir=output_dir,
     )
 

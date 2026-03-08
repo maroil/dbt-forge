@@ -1,0 +1,22 @@
+version: 2
+
+seeds:
+  - name: {{ name }}
+    description: "Seed data for {{ name }}"
+    config:
+      column_types:
+        id: integer
+        name: varchar
+        created_at: date
+    columns:
+      - name: id
+        description: "Primary key"
+        data_tests:
+          - unique
+          - not_null
+      - name: name
+        description: "Name value"
+        data_tests:
+          - not_null
+      - name: created_at
+        description: "Record creation date"

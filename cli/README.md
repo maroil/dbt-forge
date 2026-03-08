@@ -9,7 +9,7 @@ The project is currently in its `0.1.x` alpha phase.
 - `src/`-packaged Python CLI built on Typer and Rich
 - Interactive or default-driven project generation
 - Adapter templates for BigQuery, Snowflake, PostgreSQL, DuckDB, Databricks, Redshift, Trino, and Spark
-- `add mart` and `add source` commands for extending an existing dbt project
+- `add mart`, `add source`, `add snapshot`, `add seed`, `add exposure`, and `add macro` commands for extending an existing dbt project
 - Optional starter dbt packages, SQLFluff config, and CI templates
 - Generated `.env` support so local dbt commands resolve `profiles/` consistently
 
@@ -37,11 +37,15 @@ For a non-interactive scaffold:
 dbt-forge init my_dbt_project --defaults
 ```
 
-Add a mart or source inside an existing dbt project:
+Add components inside an existing dbt project:
 
 ```bash
 dbt-forge add mart finance
 dbt-forge add source salesforce
+dbt-forge add snapshot orders
+dbt-forge add seed dim_country
+dbt-forge add exposure weekly_revenue
+dbt-forge add macro cents_to_dollars
 ```
 
 ## Supported Python

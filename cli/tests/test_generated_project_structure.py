@@ -331,3 +331,110 @@ class TestPackages:
                 "calogica/dbt_expectations is deprecated — use metaplane/dbt_expectations"
             )
             assert "metaplane" in content
+
+
+# ---------------------------------------------------------------------------
+# New init-time optional components
+# ---------------------------------------------------------------------------
+
+class TestInitSnapshot:
+    def test_snapshot_generated_when_opted_in(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, add_snapshot=True)
+            generate_project(config)
+            base = Path(tmpdir) / "test_project"
+            assert (base / "snapshots" / "example_snapshot.sql").exists()
+
+    def test_snapshot_not_generated_when_opted_out(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, add_snapshot=False)
+            generate_project(config)
+            base = Path(tmpdir) / "test_project"
+            assert not (base / "snapshots" / "example_snapshot.sql").exists()
+
+    def test_snapshot_contains_snapshot_block(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, add_snapshot=True)
+            generate_project(config)
+            content = (
+                Path(tmpdir) / "test_project" / "snapshots" / "example_snapshot.sql"
+            ).read_text()
+            assert "snapshot" in content
+            assert "endsnapshot" in content
+
+
+class TestInitSeed:
+    def test_seed_files_generated_when_opted_in(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, add_seed=True)
+            generate_project(config)
+            base = Path(tmpdir) / "test_project"
+            assert (base / "seeds" / "example_seed.csv").exists()
+            assert (base / "seeds" / "_example_seed__seeds.yml").exists()
+
+    def test_seed_not_generated_when_opted_out(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, add_seed=False)
+            generate_project(config)
+            base = Path(tmpdir) / "test_project"
+            assert not (base / "seeds" / "example_seed.csv").exists()
+
+    def test_seed_yml_is_valid_yaml(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, add_seed=True)
+            generate_project(config)
+            yml = Path(tmpdir) / "test_project" / "seeds" / "_example_seed__seeds.yml"
+            data = yaml.safe_load(yml.read_text())
+            assert "seeds" in data
+            assert data["seeds"][0]["name"] == "example_seed"
+
+
+class TestInitExposure:
+    def test_exposure_generated_when_opted_in(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, add_exposure=True)
+            generate_project(config)
+            base = Path(tmpdir) / "test_project"
+            assert (base / "models" / "marts" / "__example__exposures.yml").exists()
+
+    def test_exposure_not_generated_when_opted_out(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, add_exposure=False)
+            generate_project(config)
+            base = Path(tmpdir) / "test_project"
+            assert not (base / "models" / "marts" / "__example__exposures.yml").exists()
+
+    def test_exposure_yml_is_valid_yaml(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, add_exposure=True)
+            generate_project(config)
+            yml = Path(tmpdir) / "test_project" / "models" / "marts" / "__example__exposures.yml"
+            data = yaml.safe_load(yml.read_text())
+            assert "exposures" in data
+            assert data["exposures"][0]["type"] == "dashboard"
+
+
+class TestInitMacro:
+    def test_macro_generated_when_opted_in(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, add_macro=True)
+            generate_project(config)
+            base = Path(tmpdir) / "test_project"
+            assert (base / "macros" / "example_macro.sql").exists()
+
+    def test_macro_not_generated_when_opted_out(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, add_macro=False)
+            generate_project(config)
+            base = Path(tmpdir) / "test_project"
+            assert not (base / "macros" / "example_macro.sql").exists()
+
+    def test_macro_contains_macro_block(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = _config(output_dir=tmpdir, add_macro=True)
+            generate_project(config)
+            content = (
+                Path(tmpdir) / "test_project" / "macros" / "example_macro.sql"
+            ).read_text()
+            assert "macro" in content
+            assert "endmacro" in content

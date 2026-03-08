@@ -1,0 +1,13 @@
+version: 2
+
+exposures:
+  - name: example_dashboard
+    label: "Example Dashboard"
+    type: dashboard
+    maturity: medium
+    description: "Example exposure showing how to document a downstream dashboard"
+    depends_on:
+      - ref('{{ marts[0] }}_orders')
+    owner:
+      name: Analytics Team
+      email: analytics@example.com

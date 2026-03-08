@@ -124,3 +124,127 @@ def add_source(
         "Update the source YAML to match your actual warehouse tables.[/dim]"
     )
     console.print()
+
+
+@add_app.command("snapshot")
+def add_snapshot(
+    name: str = typer.Argument(..., help="Name of the snapshot to scaffold (e.g. 'orders')."),
+) -> None:
+    """Scaffold a new snapshot inside an existing dbt project."""
+    project_root = _find_project_root()
+    project_name = _read_project_name(project_root)
+
+    ctx = {"name": name, "project_name": project_name}
+
+    console.print()
+    console.print(
+        f"  Adding snapshot [bold cyan]{name}[/bold cyan] to [bold]{project_root.name}[/bold]"
+    )
+    console.print()
+
+    _write(
+        project_root / f"snapshots/{name}.sql",
+        render_template(f"{TEMPLATES_BASE}/snapshot.sql.j2", ctx),
+    )
+
+    console.print()
+    console.print(
+        f"  [dim]Snapshot [bold]{name}[/bold] scaffolded. "
+        "Update the source reference and unique key to match your data.[/dim]"
+    )
+    console.print()
+
+
+@add_app.command("seed")
+def add_seed(
+    name: str = typer.Argument(..., help="Name of the seed to scaffold (e.g. 'dim_country')."),
+) -> None:
+    """Scaffold a new seed (CSV + YAML) inside an existing dbt project."""
+    project_root = _find_project_root()
+    project_name = _read_project_name(project_root)
+
+    ctx = {"name": name, "project_name": project_name}
+
+    console.print()
+    console.print(
+        f"  Adding seed [bold cyan]{name}[/bold cyan] to [bold]{project_root.name}[/bold]"
+    )
+    console.print()
+
+    _write(
+        project_root / f"seeds/{name}.csv",
+        render_template(f"{TEMPLATES_BASE}/seed.csv.j2", ctx),
+    )
+    _write(
+        project_root / f"seeds/_{name}__seeds.yml",
+        render_template(f"{TEMPLATES_BASE}/seed.yml.j2", ctx),
+    )
+
+    console.print()
+    console.print(
+        f"  [dim]Seed [bold]{name}[/bold] scaffolded. "
+        "Replace the CSV stub with your actual reference data.[/dim]"
+    )
+    console.print()
+
+
+@add_app.command("exposure")
+def add_exposure(
+    name: str = typer.Argument(
+        ..., help="Name of the exposure to scaffold (e.g. 'weekly_revenue')."
+    ),
+) -> None:
+    """Scaffold a new exposure YAML inside an existing dbt project."""
+    project_root = _find_project_root()
+    project_name = _read_project_name(project_root)
+
+    ctx = {"name": name, "project_name": project_name}
+
+    console.print()
+    console.print(
+        f"  Adding exposure [bold cyan]{name}[/bold cyan] to [bold]{project_root.name}[/bold]"
+    )
+    console.print()
+
+    _write(
+        project_root / f"models/marts/__{name}__exposures.yml",
+        render_template(f"{TEMPLATES_BASE}/exposure.yml.j2", ctx),
+    )
+
+    console.print()
+    console.print(
+        f"  [dim]Exposure [bold]{name}[/bold] scaffolded. "
+        "Update the depends_on references and owner details.[/dim]"
+    )
+    console.print()
+
+
+@add_app.command("macro")
+def add_macro(
+    name: str = typer.Argument(
+        ..., help="Name of the macro to scaffold (e.g. 'cents_to_dollars')."
+    ),
+) -> None:
+    """Scaffold a new macro inside an existing dbt project."""
+    project_root = _find_project_root()
+    project_name = _read_project_name(project_root)
+
+    ctx = {"name": name, "project_name": project_name}
+
+    console.print()
+    console.print(
+        f"  Adding macro [bold cyan]{name}[/bold cyan] to [bold]{project_root.name}[/bold]"
+    )
+    console.print()
+
+    _write(
+        project_root / f"macros/{name}.sql",
+        render_template(f"{TEMPLATES_BASE}/macro.sql.j2", ctx),
+    )
+
+    console.print()
+    console.print(
+        f"  [dim]Macro [bold]{name}[/bold] scaffolded. "
+        "Add your macro logic inside the block.[/dim]"
+    )
+    console.print()

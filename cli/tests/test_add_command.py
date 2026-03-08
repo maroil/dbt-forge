@@ -163,3 +163,241 @@ class TestAddSource:
 
             # Should exit non-zero because no dbt_project.yml found
             assert result.exit_code != 0
+
+
+# ---------------------------------------------------------------------------
+# add snapshot
+# ---------------------------------------------------------------------------
+
+class TestAddSnapshot:
+    def test_add_snapshot_creates_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = _scaffold_project(tmpdir)
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(project_root)
+                from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
+                runner = CliRunner()
+                result = runner.invoke(add_app, ["snapshot", "orders"])
+                assert result.exit_code == 0, result.output
+            finally:
+                os.chdir(old_cwd)
+
+            assert (project_root / "snapshots" / "orders.sql").exists()
+
+    def test_add_snapshot_does_not_overwrite(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = _scaffold_project(tmpdir)
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(project_root)
+                from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
+                runner = CliRunner()
+                runner.invoke(add_app, ["snapshot", "customers"])
+                target = project_root / "snapshots" / "customers.sql"
+                original = target.read_text()
+                runner.invoke(add_app, ["snapshot", "customers"])
+                assert target.read_text() == original
+            finally:
+                os.chdir(old_cwd)
+
+    def test_add_snapshot_outside_project_exits(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(tmpdir)
+                from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
+                runner = CliRunner()
+                result = runner.invoke(add_app, ["snapshot", "orders"])
+            finally:
+                os.chdir(old_cwd)
+
+            assert result.exit_code != 0
+
+
+# ---------------------------------------------------------------------------
+# add seed
+# ---------------------------------------------------------------------------
+
+class TestAddSeed:
+    def test_add_seed_creates_files(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = _scaffold_project(tmpdir)
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(project_root)
+                from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
+                runner = CliRunner()
+                result = runner.invoke(add_app, ["seed", "dim_country"])
+                assert result.exit_code == 0, result.output
+            finally:
+                os.chdir(old_cwd)
+
+            assert (project_root / "seeds" / "dim_country.csv").exists()
+            assert (project_root / "seeds" / "_dim_country__seeds.yml").exists()
+
+    def test_add_seed_yml_is_valid_yaml(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = _scaffold_project(tmpdir)
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(project_root)
+                from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
+                runner = CliRunner()
+                runner.invoke(add_app, ["seed", "dim_region"])
+            finally:
+                os.chdir(old_cwd)
+
+            yml = project_root / "seeds" / "_dim_region__seeds.yml"
+            data = yaml.safe_load(yml.read_text())
+            assert "seeds" in data
+            assert data["seeds"][0]["name"] == "dim_region"
+
+    def test_add_seed_does_not_overwrite(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = _scaffold_project(tmpdir)
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(project_root)
+                from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
+                runner = CliRunner()
+                runner.invoke(add_app, ["seed", "dim_status"])
+                target = project_root / "seeds" / "dim_status.csv"
+                original = target.read_text()
+                runner.invoke(add_app, ["seed", "dim_status"])
+                assert target.read_text() == original
+            finally:
+                os.chdir(old_cwd)
+
+
+# ---------------------------------------------------------------------------
+# add exposure
+# ---------------------------------------------------------------------------
+
+class TestAddExposure:
+    def test_add_exposure_creates_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = _scaffold_project(tmpdir)
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(project_root)
+                from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
+                runner = CliRunner()
+                result = runner.invoke(add_app, ["exposure", "weekly_revenue"])
+                assert result.exit_code == 0, result.output
+            finally:
+                os.chdir(old_cwd)
+
+            assert (
+                project_root / "models" / "marts" / "__weekly_revenue__exposures.yml"
+            ).exists()
+
+    def test_add_exposure_yml_is_valid_yaml(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = _scaffold_project(tmpdir)
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(project_root)
+                from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
+                runner = CliRunner()
+                runner.invoke(add_app, ["exposure", "sales_report"])
+            finally:
+                os.chdir(old_cwd)
+
+            yml = project_root / "models" / "marts" / "__sales_report__exposures.yml"
+            data = yaml.safe_load(yml.read_text())
+            assert "exposures" in data
+            assert data["exposures"][0]["name"] == "sales_report"
+
+    def test_add_exposure_does_not_overwrite(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = _scaffold_project(tmpdir)
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(project_root)
+                from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
+                runner = CliRunner()
+                runner.invoke(add_app, ["exposure", "daily_summary"])
+                target = project_root / "models" / "marts" / "__daily_summary__exposures.yml"
+                original = target.read_text()
+                runner.invoke(add_app, ["exposure", "daily_summary"])
+                assert target.read_text() == original
+            finally:
+                os.chdir(old_cwd)
+
+
+# ---------------------------------------------------------------------------
+# add macro
+# ---------------------------------------------------------------------------
+
+class TestAddMacro:
+    def test_add_macro_creates_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = _scaffold_project(tmpdir)
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(project_root)
+                from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
+                runner = CliRunner()
+                result = runner.invoke(add_app, ["macro", "cents_to_dollars"])
+                assert result.exit_code == 0, result.output
+            finally:
+                os.chdir(old_cwd)
+
+            assert (project_root / "macros" / "cents_to_dollars.sql").exists()
+
+    def test_add_macro_contains_macro_block(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = _scaffold_project(tmpdir)
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(project_root)
+                from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
+                runner = CliRunner()
+                runner.invoke(add_app, ["macro", "my_util"])
+            finally:
+                os.chdir(old_cwd)
+
+            content = (project_root / "macros" / "my_util.sql").read_text()
+            assert "macro my_util" in content
+            assert "endmacro" in content
+
+    def test_add_macro_does_not_overwrite(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = _scaffold_project(tmpdir)
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(project_root)
+                from typer.testing import CliRunner
+
+                from dbt_forge.cli.add import add_app
+                runner = CliRunner()
+                runner.invoke(add_app, ["macro", "my_helper"])
+                target = project_root / "macros" / "my_helper.sql"
+                original = target.read_text()
+                runner.invoke(add_app, ["macro", "my_helper"])
+                assert target.read_text() == original
+            finally:
+                os.chdir(old_cwd)
