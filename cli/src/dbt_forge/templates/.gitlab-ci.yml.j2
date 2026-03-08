@@ -1,0 +1,40 @@
+image: python:3.11-slim
+
+variables:
+  DBT_PROFILES_DIR: ./profiles
+  UV_CACHE_DIR: .uv-cache
+
+stages:
+  - build
+  - test
+
+.uv-setup: &uv-setup
+  before_script:
+    - pip install uv --quiet
+    - uv sync --quiet
+    - uv run --env-file .env dbt deps --quiet
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .uv-cache/
+    - .venv/
+
+dbt-ci:
+  stage: test
+  <<: *uv-setup
+  script:
+{% if adapter == "DuckDB" %}
+    - uv run --env-file .env dbt debug
+    - uv run --env-file .env dbt build
+{% else %}
+    - |
+      echo "Warehouse credentials must be configured before enabling dbt build."
+      echo "1. Add DBT_HOST, DBT_USER, DBT_PASSWORD to GitLab CI/CD variables"
+      echo "2. Replace this step with: uv run --env-file .env dbt build"
+    - uv run --env-file .env dbt compile
+  allow_failure: true
+{% endif %}
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'

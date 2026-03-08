@@ -1,0 +1,46 @@
+semantic_models:
+  - name: orders
+    description: >
+      Semantic model for orders. Exposes metrics across all marts
+      through the MetricFlow semantic layer.
+    model: ref('{{ marts[0] }}_orders')
+    defaults:
+      agg_time_dimension: order_date
+
+    entities:
+      - name: order
+        type: primary
+        expr: order_id
+
+    dimensions:
+      - name: order_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: status
+        type: categorical
+
+    measures:
+      - name: order_total
+        description: Total order value
+        agg: sum
+        expr: amount
+      - name: order_count
+        description: Number of orders
+        agg: count_distinct
+        expr: order_id
+
+metrics:
+  - name: total_revenue
+    description: Total revenue from completed orders
+    type: simple
+    type_params:
+      measure: order_total
+    filter: |
+      {{ '{{' }} Dimension('order__status') {{ '}}' }} = 'completed'
+
+  - name: order_count
+    description: Total number of orders
+    type: simple
+    type_params:
+      measure: order_count

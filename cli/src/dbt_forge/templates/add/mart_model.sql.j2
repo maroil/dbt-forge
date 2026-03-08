@@ -1,0 +1,14 @@
+with source as (
+    select * from {{ '{{' }} ref('int_{{ mart }}__orders_enriched') {{ '}}' }}
+),
+
+final as (
+    select
+        order_id,
+        amount,
+        status,
+        order_date
+    from source
+)
+
+select * from final

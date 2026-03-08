@@ -14,9 +14,13 @@ wheels/
 
 # Virtual environments
 .venv
+cli/.venv
 
 # Local tooling
 .claude/
+website/node_modules/
+website/.astro/
+website/dist/
 
 # OS files
 .DS_Store

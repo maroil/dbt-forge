@@ -1,0 +1,19 @@
+{{ project_name }}:
+  target: dev
+  outputs:
+    dev:
+      type: spark
+      method: thrift
+      host: "{{ '{{' }} env_var('DBT_HOST') {{ '}}' }}"
+      port: 10001
+      user: "{{ '{{' }} env_var('DBT_USER') {{ '}}' }}"
+      schema: {{ project_name }}_dev
+      threads: 4
+    prod:
+      type: spark
+      method: thrift
+      host: "{{ '{{' }} env_var('DBT_HOST') {{ '}}' }}"
+      port: 10001
+      user: "{{ '{{' }} env_var('DBT_USER') {{ '}}' }}"
+      schema: {{ project_name }}_prod
+      threads: 8
