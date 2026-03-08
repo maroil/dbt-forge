@@ -1,60 +1,109 @@
+<div align="center">
+
 # dbt-forge
 
-`dbt-forge` is the monorepo for the `dbt-forge` CLI and its companion docs website.
+**Scaffold production-ready dbt projects in seconds.**
 
-## Public Release Scope
+[![CI](https://github.com/maroil/dbt-forge/actions/workflows/cli-ci.yml/badge.svg)](https://github.com/maroil/dbt-forge/actions/workflows/cli-ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/dbt-forge.svg)](https://pypi.org/project/dbt-forge/)
+[![Python versions](https://img.shields.io/pypi/pyversions/dbt-forge.svg)](https://pypi.org/project/dbt-forge/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Downloads](https://img.shields.io/pypi/dm/dbt-forge.svg)](https://pypi.org/project/dbt-forge/)
 
-- Shipped artifact: the Python package `dbt-forge`
-- Current release target: `0.3.0` alpha
-- Supported Python: `3.11`, `3.12`, `3.13`
-- Primary commands: `dbt-forge init`, `dbt-forge doctor`, `dbt-forge status`, `dbt-forge update`, and `dbt-forge add` (mart, source, snapshot, seed, exposure, macro, pre-commit, ci, model, test, package)
-- Publish path: GitHub Actions publishes the package to PyPI from `v*` tags
-- Website role: docs and marketing for the CLI; it is not a separately versioned release
-  artifact
+[Installation](#installation) · [Quick Start](#quick-start) · [Commands](#commands) · [Adapters](#supported-adapters) · [Contributing](#contributing)
 
-## Repository Layout
+</div>
 
-`dbt-forge` is organized as a small monorepo:
+---
 
-- `cli/` contains the Python package, tests, and release tooling for the `dbt-forge` CLI.
-- `website/` contains the public landing page and docs built with Astro + Starlight.
+## Why dbt-forge?
 
-## Install The CLI
+Starting a new dbt project means creating dozens of files, configuring profiles, setting up CI, adding linters, and writing boilerplate YAML. **dbt-forge** does all of this in one command — with interactive prompts or sensible defaults.
+
+- **One command** to scaffold a complete, production-ready dbt project
+- **8 database adapters** supported out of the box
+- **11 `add` subcommands** to extend projects after init
+- **10 health checks** via `doctor` to keep your project clean
+- **Team presets** to enforce standards across projects
+
+## Installation
 
 ```bash
+# With pip
 pip install dbt-forge
-```
 
-Or with `uv`:
-
-```bash
+# With uv (recommended)
 uv tool install dbt-forge
+
+# Or run directly without installing
+uvx dbt-forge init my_project
 ```
 
-## Usage
+> **Requirements:** Python 3.11, 3.12, or 3.13
 
-### Scaffold a new dbt project
+## Quick Start
 
 ```bash
-# Interactive — choose adapter, marts, packages, CI, and optional features
+# Interactive — choose adapter, marts, packages, CI, and features
 dbt-forge init
 
 # Non-interactive — use opinionated defaults
 dbt-forge init my_project --defaults
 
-# Preview what would be generated without writing files
+# Preview what would be generated
 dbt-forge init my_project --defaults --dry-run
 
-# Use a company preset to enforce standards
+# Use a team preset
 dbt-forge init my_project --preset company-standard.yml
 ```
 
-### Add components to an existing project
+<details>
+<summary><strong>Example generated project structure</strong></summary>
 
-Run these from inside a dbt project (any directory containing `dbt_project.yml`):
+```
+my_project/
+├── dbt_project.yml
+├── packages.yml
+├── selectors.yml
+├── profiles/
+│   └── profiles.yml          # adapter-specific
+├── models/
+│   ├── staging/
+│   │   └── example_source/
+│   │       ├── stg_example_source__orders.sql
+│   │       ├── _example_source__models.yml
+│   │       └── _example_source__sources.yml
+│   ├── intermediate/
+│   │   └── int_example.sql
+│   └── marts/
+│       ├── orders.sql
+│       └── __mart__models.yml
+├── tests/
+├── macros/
+├── seeds/
+├── snapshots/
+├── .sqlfluff                 # if enabled
+├── .pre-commit-config.yaml   # if enabled
+├── .github/workflows/        # if GitHub Actions selected
+└── README.md
+```
+
+</details>
+
+## Commands
+
+### `init` — Scaffold a new project
 
 ```bash
-# Scaffold structural components
+dbt-forge init [PROJECT_NAME] [--defaults] [--dry-run] [--preset FILE] [--output DIR]
+```
+
+### `add` — Extend an existing project
+
+Run from inside a dbt project directory:
+
+```bash
+# Structural components
 dbt-forge add mart finance
 dbt-forge add source salesforce
 dbt-forge add snapshot orders
@@ -64,106 +113,119 @@ dbt-forge add macro cents_to_dollars
 
 # Interactive generators
 dbt-forge add model users          # prompts for layer, materialization, columns
-dbt-forge add test stg_orders      # data test or unit test
-dbt-forge add package dbt-utils    # add from curated registry of 20 packages
+dbt-forge add test stg_orders      # data, unit, or schema test
+dbt-forge add package dbt-utils    # curated registry of 20 packages
 
-# Tooling and CI
-dbt-forge add ci github            # generate CI pipeline config
-dbt-forge add pre-commit           # pre-commit hooks + editorconfig
+# Tooling
+dbt-forge add ci github            # also: gitlab, bitbucket
+dbt-forge add pre-commit           # hooks + .editorconfig
 ```
 
-### Check project health
+### `doctor` — Health checks
 
 ```bash
-# Run all 10 checks (naming, test coverage, schema docs, etc.)
-dbt-forge doctor
-
-# Auto-generate missing schema YAML stubs
-dbt-forge doctor --fix
-
-# CI mode — exits with code 1 on failures
-dbt-forge doctor --ci
-
-# Run a single check
-dbt-forge doctor --check test-coverage
+dbt-forge doctor                       # run all 10 checks
+dbt-forge doctor --fix                 # auto-generate missing schema stubs
+dbt-forge doctor --ci                  # exit code 1 on failures (for CI)
+dbt-forge doctor --check test-coverage # run a single check
 ```
 
-### Project stats dashboard
+<details>
+<summary><strong>All 10 checks</strong></summary>
+
+| Check | What it verifies |
+|---|---|
+| `naming-conventions` | Models follow `stg_`, `int_`, mart naming |
+| `schema-coverage` | Models are documented in YAML |
+| `test-coverage` | Models have at least one test |
+| `hardcoded-refs` | No hardcoded `database.schema.table` |
+| `packages-pinned` | `packages.yml` has version pins |
+| `source-freshness` | Sources have freshness config |
+| `orphaned-yml` | No YAML files without corresponding models |
+| `sqlfluff-config` | `.sqlfluff` file exists |
+| `gitignore` | `.gitignore` is configured |
+| `disabled-models` | No disabled models in production |
+
+</details>
+
+### `status` — Project dashboard
 
 ```bash
-# Show model counts, test/doc coverage, sources, and packages
-dbt-forge status
+dbt-forge status    # model counts, test/doc coverage, sources, packages
 ```
 
-### Update templates
+### `update` — Re-apply templates
 
 ```bash
-# Preview what would change if templates were re-applied
-dbt-forge update --dry-run
-
-# Interactively accept/skip each changed file
-dbt-forge update
+dbt-forge update --dry-run    # preview changes
+dbt-forge update              # interactively accept/skip each file
 ```
 
-### Presets
+### `preset` — Manage team presets
 
 ```bash
-# Validate a preset file
 dbt-forge preset validate company-standard.yml
-
-# Use a preset during init (local file or HTTPS URL)
-dbt-forge init my_project --preset company-standard.yml
 ```
 
-## CLI development
+<details>
+<summary><strong>Preset file format</strong></summary>
+
+```yaml
+name: "Company Standard"
+description: "Enforced dbt project defaults"
+defaults:
+  adapter: "Snowflake"
+  marts: ["finance", "marketing"]
+  add_sqlfluff: true
+  ci_providers: ["GitHub Actions"]
+locked:
+  - adapter
+  - ci_providers
+```
+
+Locked fields cannot be overridden during `init`.
+
+</details>
+
+## Supported Adapters
+
+| Adapter | Profile Template | Package |
+|---|---|---|
+| BigQuery | `profiles/bigquery.yml` | `dbt-bigquery` |
+| Snowflake | `profiles/snowflake.yml` | `dbt-snowflake` |
+| PostgreSQL | `profiles/postgresql.yml` | `dbt-postgres` |
+| DuckDB | `profiles/duckdb.yml` | `dbt-duckdb` |
+| Databricks | `profiles/databricks.yml` | `dbt-databricks` |
+| Redshift | `profiles/redshift.yml` | `dbt-redshift` |
+| Trino | `profiles/trino.yml` | `dbt-trino` |
+| Spark | `profiles/spark.yml` | `dbt-spark` |
+
+## Repository Layout
+
+This is a monorepo:
+
+| Directory | Purpose |
+|---|---|
+| `cli/` | Python package — published to PyPI |
+| `website/` | Docs site — Astro + Starlight (deployed separately) |
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, test structure, and commit conventions.
 
 ```bash
 cd cli
 uv sync --all-groups
 uv run ruff check .
-uv run pytest -m "not integration"   # unit tests only
-uv run pytest -m integration -v      # integration tests (requires dbt + DuckDB)
-uv run pytest                        # all tests
-uv build
+uv run pytest -m "not integration"
 ```
 
-## Release assistant
-
-From the repository root:
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) — install the hook with:
 
 ```bash
-python3 scripts/release_assistant.py prepare 0.3.0
-python3 scripts/release_assistant.py verify 0.3.0
-python3 scripts/release_assistant.py publish 0.3.0 --confirm
+uv run pre-commit install --hook-type commit-msg
 ```
 
-Use `prepare` to stage release metadata, `verify` on clean `main`, and `publish` only after
-manual approval for the TestPyPI checkpoint.
+## License
 
-## Website development
-
-```bash
-cd website
-pnpm install
-pnpm dev
-pnpm build
-```
-
-## Deployment
-
-The site is designed for Vercel:
-
-- Root Directory: `website`
-- Build Command: `pnpm build`
-- Output Directory: `dist`
-
-The Python package releases from GitHub Actions on `v*` tags. The website deployment is
-separate from the package release.
-
-## Repository links
-
-- GitHub: [maroil/dbt-forge](https://github.com/maroil/dbt-forge)
-- Package README: [cli/README.md](cli/README.md)
-- Changelog: [CHANGELOG.md](CHANGELOG.md)
-- Release checklist: [RELEASING.md](RELEASING.md)
-- Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
+[MIT](LICENSE) © Marouane
