@@ -6,8 +6,14 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
-- Prepare the package for the first public OSS release.
+- No unreleased changes yet.
 
 ## [0.1.0] - 2026-03-08
 
-- Initial CLI release for scaffolding opinionated dbt projects.
+- First public alpha release of the `dbt-forge` CLI on PyPI.
+- Added `dbt-forge init` to scaffold opinionated dbt projects with adapter-aware profiles,
+  starter marts, optional example models, SQLFluff config, and CI templates.
+- Added `dbt-forge add mart` and `dbt-forge add source` to extend an existing dbt project
+  without overwriting files that are already present.
+- Added dry-run previews, generated `.env` / local `profiles/` conventions, selectors,
+  starter tests, and companion project documentation.

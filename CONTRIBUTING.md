@@ -48,5 +48,7 @@ pnpm build
 
 1. Update `cli/src/dbt_forge/__init__.py`.
 2. Update `CHANGELOG.md`.
-3. Merge to `main`.
-4. Create and push a `vX.Y.Z` tag.
+3. Run the release-candidate checks from [`RELEASING.md`](RELEASING.md).
+4. Merge to clean `main`.
+5. Run the TestPyPI preflight.
+6. Create and push a `vX.Y.Z` tag.

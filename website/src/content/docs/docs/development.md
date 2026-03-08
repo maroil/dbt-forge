@@ -39,12 +39,27 @@ pnpm build
 
 ## Release flow
 
-The package release still happens from GitHub Actions on `v*` tags.
+The package release happens from GitHub Actions on `v*` tags. The website is deployed
+separately on Vercel and is not a separately versioned release artifact.
 
 1. Update `cli/src/dbt_forge/__init__.py`
 2. Update the repository `CHANGELOG.md`
-3. Commit and merge the release changes
-4. Push a `vX.Y.Z` tag
+3. Run the release-candidate checks from
+   [`RELEASING.md`](https://github.com/maroil/dbt-forge/blob/main/RELEASING.md)
+4. Run the manual TestPyPI preflight from the `Release` workflow
+5. Commit and merge the release changes
+6. Push a `vX.Y.Z` tag
+
+## Release notes
+
+Use
+[`RELEASING.md`](https://github.com/maroil/dbt-forge/blob/main/RELEASING.md)
+as the release checklist. It records:
+
+- the first-release scope for the CLI package
+- verified GitHub prerequisites from local inspection
+- manual Trusted Publishing checks for PyPI and TestPyPI
+- the local validation and security commands to run before tagging
 
 ## Website hosting
 
