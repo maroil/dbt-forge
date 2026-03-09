@@ -8,6 +8,12 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ### Added
 
+- Nothing yet.
+
+## [0.4.1] - 2026-03-09
+
+### Added
+
 - `dbt-forge lint` command — 6 architectural lint rules for dbt projects. Checks DAG fan-out (models with too many downstream dependents), source-to-mart violations (marts referencing sources directly), model complexity (CTE/join/line counts), duplicate logic (identical CTE bodies across models), circular dependencies, and YAML-SQL column drift. Supports `--rule` to run a single rule, `--ci` for exit code 1 on warnings, and `--config` for custom thresholds via `.dbt-forge-lint.yml`.
 - `dbt-forge impact` command — downstream impact analysis for model changes. Shows a Rich tree of all affected downstream models colored by depth (direct vs transitive). Computes blast radius (percentage of project affected), counts untested impacted models. Supports `--diff` to auto-detect changed models from `git diff`, `--base` for custom base ref, and `--pr` for markdown output suitable for PR descriptions.
 - `dbt-forge cost` command — query cost estimation from warehouse usage data. Connects via `profiles.yml` to BigQuery (`INFORMATION_SCHEMA.JOBS`), Snowflake (`QUERY_HISTORY`), or Databricks (`system.billing.usage`). Shows top N most expensive models, total estimated cost, and materialization suggestions (view→table for hot views, table→incremental for large scans, table→view for rarely queried). Flags: `--days`, `--top`, `--report` (markdown), `--target`.
