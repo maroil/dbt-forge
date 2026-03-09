@@ -7,13 +7,23 @@
 
 ### Key modules in `cli/src/dbt_forge/`
 
-- `main.py` — Typer app with top-level commands: `init`, `doctor`, `status`, `update`, `migrate`, `docs`, `preset`
+- `main.py` — Typer app with top-level commands: `init`, `doctor`, `status`, `update`, `migrate`, `docs`, `lint`, `impact`, `cost`, `contracts`, `changelog`, `preset`
 - `cli/add.py` — all `add` subcommands (mart, source, model, test, package, project, etc.)
 - `cli/migrate.py` — legacy SQL migration command
 - `cli/docs_cmd.py` — AI-assisted documentation generation command
+- `cli/lint.py` — 6 architectural lint rules (fan-out, source-to-mart, complexity, duplicates, cycles, drift)
+- `cli/impact.py` — downstream impact analysis with blast radius and PR markdown
+- `cli/cost_cmd.py` — query cost estimation from warehouse usage data
+- `cli/contracts_cmd.py` — data contract generation from warehouse introspection
+- `cli/changelog_cmd.py` — model change detection between git refs
 - `cli/doctor.py` — project health checks
 - `cli/status.py` — project stats dashboard
 - `cli/update.py` — template update lifecycle
+- `ref_graph.py` — shared dependency graph builder (ref/source parsing, BFS, cycle detection)
+- `lint_config.py` — lint rule configuration loader (`.dbt-forge-lint.yml`)
+- `changelog.py` — model change detection and column diff logic
+- `contracts.py` — data contract generation and YAML update logic
+- `cost.py` — query cost estimation dataclasses and materialization suggestions
 - `sql_parser.py` — regex-based SQL parsing, dependency graph, topological sort
 - `mesh.py` — dbt Mesh multi-project scaffolding
 - `docs.py` — model documentation scanning and YAML update utilities

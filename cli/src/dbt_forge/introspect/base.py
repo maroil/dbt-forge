@@ -42,6 +42,10 @@ class WarehouseIntrospector(ABC):
     @abstractmethod
     def close(self) -> None: ...
 
+    def get_query_stats(self, days: int = 30) -> list | None:
+        """Get query statistics. Override in adapters that support it."""
+        return None
+
     def __enter__(self):
         self.connect()
         return self

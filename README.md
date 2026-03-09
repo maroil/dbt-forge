@@ -24,6 +24,11 @@ Starting a new dbt project means creating dozens of files, configuring profiles,
 - **8 database adapters** supported out of the box
 - **13 `add` subcommands** to extend projects after init
 - **10 health checks** via `doctor` to keep your project clean
+- **6 architectural lint rules** via `lint` — fan-out, source-to-mart, complexity, duplicates, cycles, drift
+- **Impact analysis** — see which models break when you change an upstream model
+- **Query cost estimation** — identify expensive models from warehouse usage data
+- **Data contracts** — auto-generate dbt contracts by introspecting warehouse column types
+- **Model changelog** — detect breaking and non-breaking schema changes between git refs
 - **Team presets** to enforce standards across projects
 - **SQL migration** — convert legacy SQL scripts into a dbt project with `ref()` and `source()`
 - **Warehouse introspection** — generate sources and staging models from live database metadata
@@ -144,6 +149,66 @@ dbt-forge migrate ./legacy_sql/ --dry-run    # preview without writing
 dbt-forge docs generate                      # generate docs for all undocumented models
 dbt-forge docs generate --model stg_orders   # single model
 dbt-forge docs generate --provider ollama    # use local Ollama
+```
+
+### `lint` — Project structure linter
+
+```bash
+dbt-forge lint                        # run all 6 rules
+dbt-forge lint --rule fan-out         # single rule
+dbt-forge lint --ci                   # exit 1 on warnings
+dbt-forge lint --config custom.yml    # custom thresholds
+```
+
+<details>
+<summary><strong>All 6 lint rules</strong></summary>
+
+| Rule | What it checks |
+|---|---|
+| `fan-out` | Models with too many downstream dependents |
+| `source-to-mart` | Marts referencing `source()` directly (no staging layer) |
+| `complexity` | CTE count, JOIN count, or line count exceeding thresholds |
+| `duplicate-logic` | Identical CTE bodies across different models |
+| `circular-deps` | Circular `ref()` dependencies in the DAG |
+| `yaml-sql-drift` | Columns in YAML not matching the SQL `SELECT` clause |
+
+</details>
+
+### `impact` — Change impact analysis
+
+```bash
+dbt-forge impact stg_orders           # downstream tree for one model
+dbt-forge impact --diff               # detect changed models from git diff
+dbt-forge impact --diff --base main   # custom base ref
+dbt-forge impact --pr                 # markdown output for PR descriptions
+```
+
+### `cost` — Query cost estimation
+
+```bash
+dbt-forge cost                        # connect + show top 10
+dbt-forge cost --days 7 --top 20      # last 7 days, top 20 models
+dbt-forge cost --report               # markdown report
+dbt-forge cost --target prod          # use a specific dbt target
+```
+
+### `contracts` — Data contract generation
+
+```bash
+dbt-forge contracts generate orders          # single model
+dbt-forge contracts generate --all-public    # all public models
+dbt-forge contracts generate --dry-run       # preview without writing
+dbt-forge contracts generate --yes           # auto-accept
+```
+
+### `changelog` — Model change tracking
+
+```bash
+dbt-forge changelog generate                          # latest tag to HEAD
+dbt-forge changelog generate --from v1.0 --to v2.0   # between specific refs
+dbt-forge changelog generate --format json            # machine-readable
+dbt-forge changelog generate --breaking-only          # only breaking changes
+dbt-forge changelog generate -o CHANGELOG.md          # write to file
 ```
 
 ### `doctor` — Health checks

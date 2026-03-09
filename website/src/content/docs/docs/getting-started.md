@@ -213,6 +213,76 @@ migration report summarizes the results.
 
 See [`migrate`](/docs/cli/migrate/) for the full command reference.
 
+## Lint project structure
+
+Run `lint` to check for architectural issues that SQL linters miss:
+
+```bash
+dbt-forge lint                         # run all 6 rules
+dbt-forge lint --rule fan-out          # single rule
+dbt-forge lint --ci                    # exit 1 on warnings
+```
+
+The lint rules check DAG fan-out, source-to-mart violations, model complexity,
+duplicate logic, circular dependencies, and YAML-SQL column drift. Customize
+thresholds with a `.dbt-forge-lint.yml` file.
+
+See [`lint`](/docs/cli/lint/) for the full command reference.
+
+## Analyze change impact
+
+Run `impact` to see which downstream models are affected by a change:
+
+```bash
+dbt-forge impact stg_orders            # downstream tree for one model
+dbt-forge impact --diff                # detect changes from git diff
+dbt-forge impact --diff --pr           # markdown for PR descriptions
+```
+
+See [`impact`](/docs/cli/impact/) for output examples and options.
+
+## Estimate query costs
+
+Run `cost` to identify expensive models from warehouse usage data:
+
+```bash
+dbt-forge cost                         # top 10 models, last 30 days
+dbt-forge cost --days 7 --top 20       # custom range
+dbt-forge cost --report                # markdown report
+```
+
+Supports BigQuery, Snowflake, and Databricks. Includes materialization suggestions.
+
+See [`cost`](/docs/cli/cost/) for supported warehouses and output details.
+
+## Generate data contracts
+
+Run `contracts generate` to create dbt data contracts from warehouse column types:
+
+```bash
+dbt-forge contracts generate orders           # single model
+dbt-forge contracts generate --all-public     # all public models
+dbt-forge contracts generate --dry-run        # preview
+```
+
+Adds `contract: { enforced: true }`, `data_type`, and `not_null` tests. Preserves
+existing descriptions and tests.
+
+See [`contracts`](/docs/cli/contracts/) for the full command reference.
+
+## Track model changes
+
+Run `changelog generate` to detect breaking schema changes between git refs:
+
+```bash
+dbt-forge changelog generate                          # latest tag to HEAD
+dbt-forge changelog generate --from v1.0 --to v2.0
+dbt-forge changelog generate --format json            # machine-readable
+dbt-forge changelog generate --breaking-only          # breaking only
+```
+
+See [`changelog`](/docs/cli/changelog/) for change classification details.
+
 ## Generate documentation with AI
 
 Generate model and column descriptions using an LLM:
