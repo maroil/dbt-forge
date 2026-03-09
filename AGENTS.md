@@ -15,7 +15,7 @@ All CLI development happens inside `cli/`.
 cd cli
 uv sync --all-groups                    # install all deps
 uv run ruff check .                     # lint (E, F, I rules; 100-char lines)
-uv run pytest -m "not integration"      # unit tests (~205 tests, fast)
+uv run pytest -m "not integration"      # unit tests (~483 tests, fast)
 uv run pytest -m integration -v         # integration tests (requires dbt + DuckDB)
 uv run pytest tests/test_doctor.py::TestNamingConventions::test_passes  # single test
 uv build && uvx twine check dist/*      # build + validate
@@ -25,7 +25,7 @@ Commit messages must follow Conventional Commits (`feat:`, `fix:`, `docs:`, `ref
 
 ## Architecture
 
-**Entry point:** `cli/src/dbt_forge/main.py` - Typer app exposing `init`, `add`, `doctor`, `status`, `update`, `migrate`, `docs`, `preset validate` commands.
+**Entry point:** `cli/src/dbt_forge/main.py` - Typer app exposing `init`, `add`, `doctor`, `status`, `update`, `migrate`, `docs`, `lint`, `impact`, `cost`, `contracts`, `changelog`, `preset validate` commands.
 
 **Core flow for `init`:**
 1. `prompts/questions.py` - `gather_config()` builds a `ProjectConfig` dataclass (single source of truth for all config)
@@ -43,6 +43,18 @@ Commit messages must follow Conventional Commits (`feat:`, `fix:`, `docs:`, `ref
 **`migrate`** (`cli/migrate.py`): Converts legacy SQL scripts into a dbt project. Uses `sql_parser.py` for regex-based SQL parsing, dependency graph construction, and `ref()`/`source()` substitution.
 
 **`docs generate`** (`cli/docs_cmd.py`): AI-assisted documentation using `llm/` providers (Claude, OpenAI, Ollama). Uses `docs.py` for YAML scanning and update.
+
+**`lint`** (`cli/lint.py`): 6 architectural lint rules using `ref_graph.py` for DAG analysis and `lint_config.py` for configurable thresholds. Rules: fan-out, source-to-mart, complexity, duplicate logic, circular deps, YAML-SQL drift.
+
+**`impact`** (`cli/impact.py`): Downstream impact analysis using `ref_graph.py`. Computes blast radius, builds Rich trees, detects untested models, renders PR markdown.
+
+**`cost`** (`cli/cost_cmd.py`): Query cost estimation connecting to warehouses via `introspect/`. Uses `cost.py` for `QueryStat`/`CostReport` dataclasses and materialization suggestions.
+
+**`contracts generate`** (`cli/contracts_cmd.py`): Data contract generation using `contracts.py` for YAML updates and `introspect/` for column type discovery.
+
+**`changelog generate`** (`cli/changelog_cmd.py`): Model change detection using `changelog.py` for git diff parsing and column comparison.
+
+**`ref_graph.py`**: Shared dependency graph builder. Parses `ref()`/`source()` calls, builds bidirectional upstream/downstream maps, supports BFS traversal and DFS cycle detection.
 
 **`init --mesh`**: Multi-project dbt Mesh scaffolding via `mesh.py`. Generates interconnected sub-projects with access controls, contracts, and cross-project dependencies.
 

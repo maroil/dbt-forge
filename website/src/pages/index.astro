@@ -7,7 +7,7 @@ const issuesUrl = `${repoUrl}/issues`;
 const siteUrl = 'https://dbt-forge.marou.one';
 const pageTitle = 'dbt Project Scaffold and Template CLI for Teams';
 const pageDescription =
-  'dbt-forge is a Python CLI for dbt project scaffolding, project templates, SQL-to-dbt migration, health checks, and team standards.';
+  'dbt-forge is a Python CLI for dbt project scaffolding, project templates, SQL-to-dbt migration, linting, impact analysis, cost estimation, data contracts, and health checks.';
 
 const adapters = ['BigQuery', 'Snowflake', 'PostgreSQL', 'DuckDB', 'Databricks', 'Redshift', 'Trino', 'Spark'];
 
@@ -26,8 +26,8 @@ const features = [
   },
   {
     eyebrow: 'How it grows',
-    title: 'Migrate SQL, introspect warehouses, generate docs, and add components.',
-    body: 'Use `migrate` to convert legacy SQL to dbt. Use `add source --from-database` to scaffold from real warehouse metadata. Use `docs generate` for AI-assisted documentation. Run `doctor` to validate best practices.',
+    title: 'Lint, analyze impact, estimate costs, generate contracts, and track changes.',
+    body: 'Use `lint` for architectural checks, `impact` for blast radius analysis, `cost` for warehouse spend, `contracts generate` for data contracts, and `changelog generate` to track breaking changes. Plus `migrate`, `docs generate`, and `doctor`.',
     icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`
   },
 ];
@@ -65,9 +65,15 @@ const workflow = [
   },
   {
     step: '06',
+    label: 'Analyze',
+    command: 'dbt-forge lint --ci && dbt-forge impact --diff',
+    body: 'Lint architecture, measure blast radius, estimate costs, and generate contracts.',
+  },
+  {
+    step: '07',
     label: 'Maintain',
     command: 'dbt-forge doctor && dbt-forge status',
-    body: 'Validate best practices and review project health.',
+    body: 'Validate best practices, review project health, and track model changes.',
   },
 ];
 
@@ -111,6 +117,10 @@ const jsonLd = [
       'migrate SQL to dbt',
       'dbt CLI',
       'dbt mesh setup',
+      'dbt lint',
+      'dbt impact analysis',
+      'dbt data contracts',
+      'dbt query cost',
     ],
   },
 ];
@@ -148,7 +158,7 @@ const jsonLd = [
       <section class="hero">
         <div class="hero-badge">dbt project scaffold CLI</div>
         <h1>Scaffold a dbt project<br><span class="highlight">with a repeatable template for teams.</span></h1>
-        <p class="subtitle"><code>dbt-forge</code> is a Python CLI for dbt project scaffolding, dbt project templates, SQL-to-dbt migration, and health checks. It helps teams start faster without rebuilding the same folders, profiles, starter models, and setup files for every new project.</p>
+        <p class="subtitle"><code>dbt-forge</code> is a Python CLI for dbt project scaffolding, architectural linting, impact analysis, cost estimation, data contracts, and health checks. It helps teams start faster and maintain quality without rebuilding the same folders, profiles, starter models, and setup files for every new project.</p>
 
         <div class="terminal-glass">
           <div class="term-header">
@@ -221,7 +231,8 @@ const jsonLd = [
           <p>
             Start with <a href="/docs/getting-started/">Getting started</a>, then use
             {' '}<a href="/docs/cli/init/">init</a>, <a href="/docs/cli/add/">add</a>,
-            {' '}<a href="/docs/cli/migrate/">migrate</a>, and <a href="/docs/cli/doctor/">doctor</a>
+            {' '}<a href="/docs/cli/lint/">lint</a>, <a href="/docs/cli/impact/">impact</a>,
+            {' '}<a href="/docs/cli/cost/">cost</a>, and <a href="/docs/cli/doctor/">doctor</a>
             {' '}to build and maintain a project. The more detailed guides live in the docs.
           </p>
         </div>

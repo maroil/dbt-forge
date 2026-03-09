@@ -8,7 +8,14 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ### Added
 
-- Nothing yet.
+- `dbt-forge lint` command — 6 architectural lint rules for dbt projects. Checks DAG fan-out (models with too many downstream dependents), source-to-mart violations (marts referencing sources directly), model complexity (CTE/join/line counts), duplicate logic (identical CTE bodies across models), circular dependencies, and YAML-SQL column drift. Supports `--rule` to run a single rule, `--ci` for exit code 1 on warnings, and `--config` for custom thresholds via `.dbt-forge-lint.yml`.
+- `dbt-forge impact` command — downstream impact analysis for model changes. Shows a Rich tree of all affected downstream models colored by depth (direct vs transitive). Computes blast radius (percentage of project affected), counts untested impacted models. Supports `--diff` to auto-detect changed models from `git diff`, `--base` for custom base ref, and `--pr` for markdown output suitable for PR descriptions.
+- `dbt-forge cost` command — query cost estimation from warehouse usage data. Connects via `profiles.yml` to BigQuery (`INFORMATION_SCHEMA.JOBS`), Snowflake (`QUERY_HISTORY`), or Databricks (`system.billing.usage`). Shows top N most expensive models, total estimated cost, and materialization suggestions (view→table for hot views, table→incremental for large scans, table→view for rarely queried). Flags: `--days`, `--top`, `--report` (markdown), `--target`.
+- `dbt-forge contracts generate` command — generates dbt data contracts (v1.5+) by introspecting warehouse column types. Adds `contract: { enforced: true }` to model config, sets `data_type` on each column, adds `not_null` tests for non-nullable columns. Preserves existing descriptions and tests. Supports `--all-public` to generate contracts for all public-access models, `--dry-run`, `--yes` (auto-accept), and `--target`.
+- `dbt-forge changelog generate` command — detects model changes between git refs by parsing `git diff` for added/deleted/modified SQL files and comparing YAML column definitions. Classifies changes as breaking (column removal, type change, model deletion) or non-breaking (additions, modifications). Auto-detects the latest git tag as `--from` default. Outputs markdown or JSON via `--format`. Supports `--breaking-only` and `-o` to write to file.
+- `ref_graph` module — shared dependency graph builder for lint and impact commands. Parses `ref()` and `source()` calls via regex, builds bidirectional upstream/downstream maps, supports BFS traversal, DFS cycle detection, and model complexity computation (CTE/join/line counts).
+- `lint_config` module — configuration loader for `.dbt-forge-lint.yml` with thresholds for fan-out, CTE count, join count, line count, and disabled rules.
+- 158 new tests covering all new features (483 total unit tests passing).
 
 ## [0.4.0] - 2026-03-09
 

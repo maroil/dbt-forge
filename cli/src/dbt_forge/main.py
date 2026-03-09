@@ -8,7 +8,9 @@ from rich.text import Text
 
 from dbt_forge.cli.add import add_app
 from dbt_forge.cli.doctor import run_doctor
+from dbt_forge.cli.impact import run_impact
 from dbt_forge.cli.init import init_command
+from dbt_forge.cli.lint import run_lint
 from dbt_forge.cli.migrate import run_migrate
 from dbt_forge.cli.status import run_status
 from dbt_forge.cli.update import run_update
@@ -76,6 +78,19 @@ class HelpGroup(typer.core.TyperGroup):
         console.print(
             "  [green]$[/green] dbt-forge docs generate [bold]--provider[/bold] ollama  Local LLM"
         )
+        console.print()
+        console.print("[bold cyan]Analysis:[/bold cyan]")
+        console.print()
+        console.print("  [green]$[/green] dbt-forge impact stg_orders    Impact analysis")
+        console.print("  [green]$[/green] dbt-forge impact [bold]--diff[/bold]       Git changes")
+        console.print("  [green]$[/green] dbt-forge lint                 Lint project")
+        console.print("  [green]$[/green] dbt-forge lint [bold]--ci[/bold]           CI mode")
+        console.print("  [green]$[/green] dbt-forge cost [bold]--days 7[/bold]        Query costs")
+        console.print()
+        console.print("[bold cyan]Contracts & Changelog:[/bold cyan]")
+        console.print()
+        console.print("  [green]$[/green] dbt-forge contracts generate orders  Data contracts")
+        console.print("  [green]$[/green] dbt-forge changelog generate          Model changes")
         console.print()
         console.print("[bold cyan]Maintenance:[/bold cyan]")
         console.print()
@@ -268,6 +283,54 @@ def migrate(
     run_migrate(sql_dir=sql_dir, output_dir=output_dir, dry_run=dry_run)
 
 
+@app.command()
+def impact(
+    model: str = typer.Argument(None, help="Model to analyze downstream impact for."),
+    diff: bool = typer.Option(False, "--diff", help="Detect changed models from git diff."),
+    base: str = typer.Option("main", "--base", help="Base git ref for diff comparison."),
+    pr: bool = typer.Option(False, "--pr", help="Output markdown for PR descriptions."),
+) -> None:
+    """Analyze downstream impact of model changes."""
+    run_impact(model=model, diff=diff, base=base, pr=pr)
+
+
+@app.command()
+def lint(
+    rule: str = typer.Option(None, "--rule", "-r", help="Run a specific rule only."),
+    ci: bool = typer.Option(False, "--ci", help="Exit 1 on warnings."),
+    config: str = typer.Option(None, "--config", help="Path to lint config YAML."),
+) -> None:
+    """Lint dbt project structure for architectural issues."""
+    run_lint(rule=rule, ci=ci, config_path=config)
+
+
+@app.command()
+def cost(
+    days: int = typer.Option(30, "--days", help="Number of days to analyze."),
+    top: int = typer.Option(10, "--top", help="Number of top models to show."),
+    report: bool = typer.Option(False, "--report", help="Output markdown report."),
+    target: str = typer.Option("dev", "--target", help="dbt target/profile to use."),
+) -> None:
+    """Estimate query costs from warehouse usage data."""
+    from dbt_forge.cli.cost_cmd import run_cost
+
+    run_cost(days=days, top=top, report=report, target=target)
+
+
+changelog_app = typer.Typer(
+    name="changelog",
+    help="Track and communicate model changes.",
+    no_args_is_help=True,
+)
+app.add_typer(changelog_app, name="changelog")
+
+contracts_app = typer.Typer(
+    name="contracts",
+    help="Generate and manage dbt data contracts.",
+    no_args_is_help=True,
+)
+app.add_typer(contracts_app, name="contracts")
+
 preset_app = typer.Typer(
     name="preset",
     help="Manage dbt-forge presets.",
@@ -302,6 +365,50 @@ def docs_generate(
         provider_key=provider,
         auto_accept=auto_accept,
         delay=delay,
+    )
+
+
+@changelog_app.command("generate")
+def changelog_generate(
+    from_ref: str = typer.Option(None, "--from", help="Starting git ref (default: latest tag)."),
+    to_ref: str = typer.Option("HEAD", "--to", help="Ending git ref."),
+    format: str = typer.Option("markdown", "--format", help="Output format: markdown or json."),
+    breaking_only: bool = typer.Option(
+        False, "--breaking-only", help="Show only breaking changes."
+    ),
+    output: str = typer.Option(None, "-o", "--output", help="Write to file instead of stdout."),
+) -> None:
+    """Generate a changelog of model changes between git refs."""
+    from dbt_forge.cli.changelog_cmd import run_changelog_generate
+
+    run_changelog_generate(
+        from_ref=from_ref,
+        to_ref=to_ref,
+        format=format,
+        breaking_only=breaking_only,
+        output=output,
+    )
+
+
+@contracts_app.command("generate")
+def contracts_generate(
+    model: str = typer.Argument(None, help="Model to generate contract for."),
+    all_public: bool = typer.Option(
+        False, "--all-public", help="Generate contracts for all public models."
+    ),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview without writing."),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Auto-accept all contracts."),
+    target: str = typer.Option("dev", "--target", help="dbt target/profile to use."),
+) -> None:
+    """Generate data contracts with enforced column types."""
+    from dbt_forge.cli.contracts_cmd import run_contracts_generate
+
+    run_contracts_generate(
+        model=model,
+        all_public=all_public,
+        dry_run=dry_run,
+        auto_accept=yes,
+        target=target,
     )
 
 

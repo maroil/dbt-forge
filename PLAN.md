@@ -380,7 +380,35 @@ Converting legacy SQL projects (stored procedures, scripts, views) to dbt is a m
 
 ---
 
-### 4.4 Interactive TUI Workbench
+### 4.4 Analysis & Governance Tools
+
+Lint, impact analysis, cost estimation, data contracts, and model changelogs — tools that transform dbt-forge from a scaffolding CLI into a daily-use development companion.
+
+**Scope:**
+- `dbt-forge lint` — 6 architectural lint rules (fan-out, source-to-mart, complexity, duplicate logic, circular deps, YAML-SQL drift) with configurable thresholds via `.dbt-forge-lint.yml`
+- `dbt-forge impact` — downstream impact analysis with blast radius, untested model detection, git diff integration, and PR markdown output
+- `dbt-forge cost` — query cost estimation from BigQuery, Snowflake, or Databricks usage data with materialization suggestions
+- `dbt-forge contracts generate` — auto-generate dbt data contracts (v1.5+) by introspecting warehouse column types, with `--all-public` and interactive review
+- `dbt-forge changelog generate` — detect breaking/non-breaking model changes between git refs, output markdown or JSON
+- `ref_graph.py` — shared dependency graph builder for lint and impact commands
+
+**Checklist:**
+- [x] Create `ref_graph.py` (parse refs, build graph, BFS, cycle detection, complexity)
+- [x] Create `cli/lint.py` with 6 lint rules
+- [x] Create `lint_config.py` for `.dbt-forge-lint.yml` configuration
+- [x] Create `cli/impact.py` (blast radius, Rich tree, PR markdown, git diff)
+- [x] Create `cost.py` (QueryStat, CostReport, materialization suggestions)
+- [x] Create `cli/cost_cmd.py` (connect, render table/report)
+- [x] Create `contracts.py` (ContractColumn, generate_contract, find_public_models)
+- [x] Create `cli/contracts_cmd.py` (interactive review, warehouse connection)
+- [x] Create `changelog.py` (ModelChange, column diff, git change detection)
+- [x] Create `cli/changelog_cmd.py` (tag detection, format output)
+- [x] Register all commands in `main.py`
+- [x] Add 158 tests covering all new features (483 total)
+
+---
+
+### 4.5 Interactive TUI Workbench
 
 A terminal UI provides a visual, interactive way to manage dbt projects without leaving the terminal. More discoverable than remembering CLI flags.
 

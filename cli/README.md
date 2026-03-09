@@ -9,10 +9,17 @@ The project is currently in its `0.4.x` alpha phase.
 - `src/`-packaged Python CLI built on Typer and Rich
 - Interactive or default-driven project generation
 - Adapter templates for BigQuery, Snowflake, PostgreSQL, DuckDB, Databricks, Redshift, Trino, and Spark
-- 11 `add` subcommands for extending an existing dbt project: mart, source, snapshot, seed, exposure, macro, pre-commit, ci, model, test, package
+- 13 `add` subcommands for extending an existing dbt project: mart, source, snapshot, seed, exposure, macro, pre-commit, ci, model, test, package, project, source --from-database
 - `doctor` command with 10 project health checks, `--fix` auto-repair, and `--ci` mode
+- `lint` command with 6 architectural rules: fan-out, source-to-mart, complexity, duplicate logic, circular deps, YAML-SQL drift
+- `impact` command — downstream impact analysis with blast radius, untested model detection, and PR markdown output
+- `cost` command — query cost estimation from BigQuery, Snowflake, or Databricks usage data with materialization suggestions
+- `contracts generate` command — auto-generate dbt data contracts by introspecting warehouse column types
+- `changelog generate` command — detect breaking and non-breaking model changes between git refs
 - `status` command — Rich terminal dashboard showing model counts by layer, test/doc coverage, sources, and packages
 - `update` command — re-apply dbt-forge templates with unified diffs and per-file accept/skip
+- `migrate` command — convert legacy SQL scripts into a dbt project with ref() and source()
+- `docs generate` command — AI-assisted documentation via Claude, OpenAI, or Ollama
 - Custom presets via `--preset` flag — YAML files with defaults and locked fields for team standardization
 - `add model` auto-detects existing sources from YAML files for staging layer selection
 - `add test` supports schema tests (column-level in `.yml`) in addition to data and unit tests
@@ -72,6 +79,30 @@ dbt-forge doctor --ci
 dbt-forge doctor --check naming-conventions
 ```
 
+Lint project structure and analyze impact:
+
+```bash
+dbt-forge lint
+dbt-forge lint --rule fan-out --ci
+dbt-forge impact stg_orders
+dbt-forge impact --diff --pr
+```
+
+Estimate query costs and generate contracts:
+
+```bash
+dbt-forge cost --days 7 --top 20
+dbt-forge contracts generate orders
+dbt-forge contracts generate --all-public --dry-run
+```
+
+Track model changes:
+
+```bash
+dbt-forge changelog generate
+dbt-forge changelog generate --from v1.0 --format json
+```
+
 View project stats and update templates:
 
 ```bash
@@ -100,7 +131,7 @@ cd cli
 uv sync --all-groups
 uv run pre-commit install --hook-type commit-msg
 uv run ruff check .
-uv run pytest -m "not integration"   # unit tests only (~205 tests)
+uv run pytest -m "not integration"   # unit tests only (~483 tests)
 uv run pytest -m integration -v      # integration tests with DuckDB (~32 tests)
 uv run pytest                        # all tests
 uv build

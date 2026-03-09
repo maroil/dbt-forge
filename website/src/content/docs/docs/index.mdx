@@ -3,7 +3,7 @@ title: dbt-forge docs
 description: Install dbt-forge, scaffold a dbt project, and use the core CLI guides.
 template: splash
 hero:
-  tagline: Python CLI for scaffolding dbt projects, running health checks, generating models and tests, updating templates, and enforcing team standards with presets.
+  tagline: Python CLI for scaffolding dbt projects, linting architecture, analyzing impact, estimating costs, generating contracts, running health checks, and enforcing team standards.
   actions:
     - text: Getting started
       link: /docs/getting-started/
@@ -20,9 +20,11 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 with models, tests, and CI pipelines, validates project health, and keeps generated files
 up to date as templates improve.
 
-Use `init` to create a project. Use `add` to extend it. Use `doctor` to validate best
-practices. Use `status` for a project overview. Use `update` to re-apply templates.
-Use `--preset` to enforce team standards.
+Use `init` to create a project. Use `add` to extend it. Use `lint` for architectural
+checks. Use `impact` for blast radius analysis. Use `cost` for warehouse spend
+insights. Use `contracts generate` for data contracts. Use `changelog generate` to
+track breaking changes. Use `doctor` to validate best practices. Use `status` for
+a project overview. Use `update` to re-apply templates.
 
 ## Start here
 
@@ -31,7 +33,7 @@ Use `--preset` to enforce team standards.
     Install the CLI, scaffold a dbt project, inspect the generated structure, and run the next commands.
   </Card>
   <Card title="CLI reference" icon="seti:terminal">
-    Use the `init`, `add`, `doctor`, `status`, `update`, and `preset` reference pages for command syntax, flags, and generated files.
+    Use the `init`, `add`, `lint`, `impact`, `cost`, `contracts`, `changelog`, `doctor`, `status`, `update`, and `preset` reference pages for command syntax, flags, and generated files.
   </Card>
   <Card title="Project structure" icon="seti:folder">
     See the directories and files created by the scaffold and what each part of the dbt project is for.
@@ -68,6 +70,11 @@ Use `--preset` to enforce team standards.
 - Use [dbt Mesh project setup](/docs/guides/dbt-mesh-project-setup/) when you are planning a multi-project dbt Mesh scaffold.
 - Use [init](/docs/cli/init/) when you are creating a new dbt project.
 - Use [add](/docs/cli/add/) when you are extending an existing dbt project with new components.
+- Use [lint](/docs/cli/lint/) when you want to check for architectural issues (fan-out, complexity, drift).
+- Use [impact](/docs/cli/impact/) when you want to see which downstream models are affected by a change.
+- Use [cost](/docs/cli/cost/) when you want to find expensive queries and get materialization suggestions.
+- Use [contracts](/docs/cli/contracts/) when you want to generate dbt data contracts from warehouse column types.
+- Use [changelog](/docs/cli/changelog/) when you want to detect breaking schema changes between git refs.
 - Use [doctor](/docs/cli/doctor/) when you want to validate project health and best practices.
 - Use [status](/docs/cli/status/) when you want a quick overview of model counts, test coverage, and packages.
 - Use [update](/docs/cli/update/) when you want to re-apply dbt-forge templates after upgrading.
