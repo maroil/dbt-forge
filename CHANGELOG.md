@@ -8,6 +8,12 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ### Added
 
+- Nothing yet.
+
+## [0.4.0] - 2026-03-09
+
+### Added
+
 - `dbt-forge migrate` command — converts legacy SQL scripts into a dbt project. Parses `CREATE TABLE/VIEW` statements, builds a dependency graph, detects sources, assigns models to staging/intermediate/marts layers, and replaces raw table references with `ref()` and `source()`. Generates source YAML, model YAML, and a migration report. Supports `--dry-run` to preview without writing.
 - `dbt-forge add source --from-database` flag — introspects a live warehouse to generate source YAML and staging models from real table metadata. Reads connection config from `profiles.yml`, presents interactive schema and table selection, and fetches column names and types. Supports all 8 adapters via optional dependencies (`pip install dbt-forge[snowflake]`, etc.). Use `--target` to select a non-default profile target.
 - `dbt-forge init --mesh` flag — scaffolds a dbt Mesh (multi-project) setup with multiple interconnected sub-projects. Each sub-project gets its own `dbt_project.yml`, `dependencies.yml` (for cross-project refs), group definitions, and models with access controls (staging=protected, intermediate=private, marts=public). Public models automatically get `contract: { enforced: true }`. Includes a root `Makefile` for orchestrated builds. Supports a preset layout (staging → transform → marts) or custom sub-project definitions.

@@ -55,9 +55,9 @@ separately on Vercel and is not a separately versioned release artifact.
 From the repository root:
 
 ```bash
-python3 scripts/release_assistant.py prepare 0.3.1
-python3 scripts/release_assistant.py verify 0.3.1
-python3 scripts/release_assistant.py publish 0.3.1 --confirm
+python3 scripts/release_assistant.py prepare 0.4.0
+python3 scripts/release_assistant.py verify 0.4.0
+python3 scripts/release_assistant.py publish 0.4.0 --confirm
 ```
 
 `prepare` stages the version and changelog updates. `verify` is the release gate and requires a

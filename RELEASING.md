@@ -1,15 +1,15 @@
 # Releasing `dbt-forge`
 
-This project is preparing the Python CLI package release `dbt-forge` version `0.3.1`.
+This project is preparing the Python CLI package release `dbt-forge` version `0.4.0`.
 
 ## Release assistant
 
 Run these commands from the repository root:
 
 ```bash
-python3 scripts/release_assistant.py prepare 0.3.1
-python3 scripts/release_assistant.py verify 0.3.1
-python3 scripts/release_assistant.py publish 0.3.1 --confirm
+python3 scripts/release_assistant.py prepare 0.4.0
+python3 scripts/release_assistant.py verify 0.4.0
+python3 scripts/release_assistant.py publish 0.4.0 --confirm
 ```
 
 `prepare` stages the version and changelog updates. `verify` is the release gate and fails on a
@@ -27,13 +27,13 @@ confirmation, then creates and pushes the release tag and GitHub Release.
 
 ## Verified prerequisites
 
-Verified on 2026-03-08 from the local environment:
+Verified on 2026-03-09 from the local environment:
 
 - GitHub repo: [`maroil/dbt-forge`](https://github.com/maroil/dbt-forge)
 - Repository visibility: public
 - Default branch: `main`
 - GitHub environments present: `pypi`, `testpypi`
-- Current package version in source: `0.3.1`
+- Current package version in source: `0.4.0`
 
 ## Manual prerequisites
 
@@ -50,7 +50,7 @@ These cannot be fully verified from the repo alone and must be confirmed before 
 
 ## Release candidate checks
 
-Run `python3 scripts/release_assistant.py verify 0.3.1` on the exact commit that will become
+Run `python3 scripts/release_assistant.py verify 0.4.0` on the exact commit that will become
 the release candidate. It performs these checks:
 
 - clean worktree and `main` branch alignment with `origin/main`
@@ -83,8 +83,8 @@ Only runtime or intentional release-environment findings should block the packag
 
 1. Finalize `CHANGELOG.md` and release-facing docs.
 2. Review the `prepare` diff, commit it, and merge it to clean `main`.
-3. Run `python3 scripts/release_assistant.py verify 0.3.1`.
-4. Run `python3 scripts/release_assistant.py publish 0.3.1 --confirm`.
-5. Let the script create and push tag `v0.3.1`.
+3. Run `python3 scripts/release_assistant.py verify 0.4.0`.
+4. Run `python3 scripts/release_assistant.py publish 0.4.0 --confirm`.
+5. Let the script create and push tag `v0.4.0`.
 6. Let GitHub Actions publish to PyPI from the tag.
-7. Create the GitHub Release using the `0.3.1` changelog entry.
+7. Create the GitHub Release using the `0.4.0` changelog entry.

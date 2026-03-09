@@ -81,9 +81,9 @@ pnpm build
 ## Release checklist
 
 ```bash
-python3 scripts/release_assistant.py prepare 0.3.1
-python3 scripts/release_assistant.py verify 0.3.1
-python3 scripts/release_assistant.py publish 0.3.1 --confirm
+python3 scripts/release_assistant.py prepare 0.4.0
+python3 scripts/release_assistant.py verify 0.4.0
+python3 scripts/release_assistant.py publish 0.4.0 --confirm
 ```
 
 `prepare` updates release metadata, `verify` is the clean-`main` gate, and `publish` handles the

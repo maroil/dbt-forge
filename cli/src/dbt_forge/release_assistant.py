@@ -120,11 +120,11 @@ def update_cli_readme(content: str, version: str) -> str:
 
 
 def update_website_getting_started(content: str, version: str) -> str:
-    """Update the website quickstart alpha track to match the release series."""
+    """Update the website quickstart release series copy."""
     return _replace_once(
         content,
-        r"This guide covers the current `\d+\.\d+\.x` alpha\.",
-        f"This guide covers the current `{version.rsplit('.', 1)[0]}.x` alpha.",
+        r"This guide covers the\s+current `\d+\.\d+\.x` (?:alpha|release)\.",
+        f"This guide covers the\ncurrent `{version.rsplit('.', 1)[0]}.x` release.",
         file_label="website/src/content/docs/docs/getting-started.md",
     )
 
@@ -270,12 +270,12 @@ def extract_releasing_target(content: str) -> str:
 
 def extract_website_getting_started_track(content: str) -> str:
     match = re.search(
-        r"This guide covers the current `(\d+\.\d+)\.x` alpha\.",
+        r"This guide covers the\s+current `(\d+\.\d+)\.x` (?:alpha|release)\.",
         content,
     )
     if not match:
         raise ReleaseAssistantError(
-            "Could not parse alpha track from website/src/content/docs/docs/getting-started.md."
+            "Could not parse release series from website/src/content/docs/docs/getting-started.md."
         )
     return match.group(1)
 

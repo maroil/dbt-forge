@@ -162,12 +162,12 @@ def test_update_root_readme_is_noop_without_release_commands() -> None:
     assert updated == content
 
 
-def test_update_website_getting_started_updates_alpha_track() -> None:
+def test_update_website_getting_started_updates_release_series() -> None:
     content = "This guide covers the current `0.1.x` alpha.\n"
 
     updated = release_assistant.update_website_getting_started(content, "0.2.3")
 
-    assert "This guide covers the current `0.2.x` alpha." in updated
+    assert "This guide covers the\ncurrent `0.2.x` release." in updated
 
 
 def test_prepare_release_updates_all_release_files(tmp_path: Path) -> None:
@@ -185,7 +185,7 @@ def test_prepare_release_updates_all_release_files(tmp_path: Path) -> None:
         in (repo_root / "RELEASING.md").read_text()
     )
     assert (
-        "This guide covers the current `0.2.x` alpha."
+        "This guide covers the\ncurrent `0.2.x` release."
         in (
             repo_root / "website" / "src" / "content" / "docs" / "docs" / "getting-started.md"
         ).read_text()
