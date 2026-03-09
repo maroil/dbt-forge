@@ -178,14 +178,18 @@ def test_prepare_release_updates_all_release_files(tmp_path: Path) -> None:
     )
 
     assert repo_root / "README.md" in changed
-    assert '0.2.0' in (repo_root / "cli" / "src" / "dbt_forge" / "__init__.py").read_text()
+    assert "0.2.0" in (repo_root / "cli" / "src" / "dbt_forge" / "__init__.py").read_text()
     assert "## [0.2.0] - 2026-03-09" in (repo_root / "CHANGELOG.md").read_text()
-    assert "python3 scripts/release_assistant.py publish 0.2.0 --confirm" in (
-        repo_root / "RELEASING.md"
-    ).read_text()
-    assert "This guide covers the current `0.2.x` alpha." in (
-        repo_root / "website" / "src" / "content" / "docs" / "docs" / "getting-started.md"
-    ).read_text()
+    assert (
+        "python3 scripts/release_assistant.py publish 0.2.0 --confirm"
+        in (repo_root / "RELEASING.md").read_text()
+    )
+    assert (
+        "This guide covers the current `0.2.x` alpha."
+        in (
+            repo_root / "website" / "src" / "content" / "docs" / "docs" / "getting-started.md"
+        ).read_text()
+    )
 
 
 def test_verify_release_fails_on_dirty_worktree(tmp_path: Path) -> None:
@@ -252,9 +256,7 @@ def test_verify_release_uses_temp_dist_and_target_wheel(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     repo_root = _repo_fixture(tmp_path)
-    release_assistant.prepare_release(
-        "0.2.0", repo_root=repo_root, today=date(2026, 3, 9)
-    )
+    release_assistant.prepare_release("0.2.0", repo_root=repo_root, today=date(2026, 3, 9))
     _write(
         repo_root / "cli" / "dist" / "dbt_forge-0.1.1-py3-none-any.whl",
         "stale wheel",

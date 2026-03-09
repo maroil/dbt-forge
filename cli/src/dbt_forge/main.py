@@ -9,6 +9,7 @@ from rich.text import Text
 from dbt_forge.cli.add import add_app
 from dbt_forge.cli.doctor import run_doctor
 from dbt_forge.cli.init import init_command
+from dbt_forge.cli.migrate import run_migrate
 from dbt_forge.cli.status import run_status
 from dbt_forge.cli.update import run_update
 
@@ -53,6 +54,28 @@ class HelpGroup(typer.core.TyperGroup):
         console.print("  [green]$[/green] dbt-forge doctor [bold]--fix[/bold]             Auto-fix")
         console.print("  [green]$[/green] dbt-forge doctor [bold]--ci[/bold]               CI mode")
         console.print("  [green]$[/green] dbt-forge status                     Stats dashboard")
+        console.print()
+        console.print("[bold cyan]Migration:[/bold cyan]")
+        console.print()
+        console.print("  [green]$[/green] dbt-forge migrate ./sql/          Convert SQL to dbt")
+        console.print("  [green]$[/green] dbt-forge migrate ./sql/ [bold]--dry-run[/bold] Preview")
+        console.print()
+        console.print("[bold cyan]Multi-project (Mesh):[/bold cyan]")
+        console.print()
+        console.print(
+            "  [green]$[/green] dbt-forge init my-mesh [bold]--mesh[/bold]     Mesh setup"
+        )
+        console.print("  [green]$[/green] dbt-forge add project analytics  Add sub-project")
+        console.print()
+        console.print("[bold cyan]Documentation:[/bold cyan]")
+        console.print()
+        console.print("  [green]$[/green] dbt-forge docs generate                AI docs")
+        console.print(
+            "  [green]$[/green] dbt-forge docs generate [bold]-m[/bold] stg_orders  Single model"
+        )
+        console.print(
+            "  [green]$[/green] dbt-forge docs generate [bold]--provider[/bold] ollama  Local LLM"
+        )
         console.print()
         console.print("[bold cyan]Maintenance:[/bold cyan]")
         console.print()
@@ -129,6 +152,11 @@ def init(
         "-p",
         help="Path or URL to a preset YAML file.",
     ),
+    mesh: bool = typer.Option(
+        False,
+        "--mesh",
+        help="Create a multi-project dbt Mesh setup.",
+    ),
 ) -> None:
     """Scaffold a new production-ready dbt project.
 
@@ -138,9 +166,21 @@ def init(
     """
     _print_banner()
 
+    if mesh:
+        from dbt_forge.cli.init import init_mesh_command
+
+        init_mesh_command(
+            project_name=project_name,
+            use_defaults=defaults,
+            output_dir=output_dir,
+            dry_run=dry_run,
+        )
+        return
+
     preset_config = None
     if preset:
         from dbt_forge.presets import load_preset, validate_preset
+
         preset_config = load_preset(preset)
         errors = validate_preset(preset_config)
         if errors:
@@ -206,12 +246,63 @@ def update(
     run_update(dry_run=dry_run)
 
 
+@app.command()
+def migrate(
+    sql_dir: str = typer.Argument(
+        ...,
+        help="Directory containing SQL files to migrate.",
+    ),
+    output_dir: str = typer.Option(
+        ".",
+        "--output",
+        "-o",
+        help="Output directory for the dbt project.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Preview migration without writing files.",
+    ),
+) -> None:
+    """Convert legacy SQL scripts into a dbt project with ref() and source()."""
+    run_migrate(sql_dir=sql_dir, output_dir=output_dir, dry_run=dry_run)
+
+
 preset_app = typer.Typer(
     name="preset",
     help="Manage dbt-forge presets.",
     no_args_is_help=True,
 )
 app.add_typer(preset_app, name="preset")
+
+docs_app = typer.Typer(
+    name="docs",
+    help="AI-assisted documentation generation.",
+    no_args_is_help=True,
+)
+app.add_typer(docs_app, name="docs")
+
+
+@docs_app.command("generate")
+def docs_generate(
+    model: str = typer.Option(
+        None, "--model", "-m", help="Generate docs for a specific model only."
+    ),
+    provider: str = typer.Option(None, "--provider", help="LLM provider: claude, openai, ollama."),
+    auto_accept: bool = typer.Option(
+        False, "--yes", "-y", help="Auto-accept all generated descriptions."
+    ),
+    delay: float = typer.Option(1.0, "--delay", help="Delay (seconds) between API calls."),
+) -> None:
+    """Generate model and column descriptions using an LLM."""
+    from dbt_forge.cli.docs_cmd import run_docs_generate
+
+    run_docs_generate(
+        model=model,
+        provider_key=provider,
+        auto_accept=auto_accept,
+        delay=delay,
+    )
 
 
 @preset_app.command("validate")
@@ -220,6 +311,7 @@ def preset_validate(
 ) -> None:
     """Validate a preset file."""
     from dbt_forge.presets import load_preset, validate_preset
+
     try:
         preset_config = load_preset(path)
     except Exception as e:

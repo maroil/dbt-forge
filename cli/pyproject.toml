@@ -40,6 +40,18 @@ dependencies = [
     "typer>=0.12",
 ]
 
+[project.optional-dependencies]
+snowflake = ["snowflake-connector-python>=3.0"]
+bigquery = ["google-cloud-bigquery>=3.0"]
+postgres = ["psycopg2-binary>=2.9"]
+duckdb = ["duckdb>=1.0"]
+databricks = ["databricks-sql-connector>=3.0"]
+redshift = ["psycopg2-binary>=2.9"]
+trino = ["trino>=0.320"]
+spark = ["pyhive[hive]>=0.7"]
+claude = ["anthropic>=0.30"]
+openai = ["openai>=1.30"]
+
 [project.scripts]
 dbt-forge = "dbt_forge.main:app"
 

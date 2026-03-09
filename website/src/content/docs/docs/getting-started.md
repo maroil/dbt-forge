@@ -4,7 +4,8 @@ description: Install dbt-forge, scaffold a dbt project, and run the first local 
 ---
 
 `dbt-forge` is a Python CLI for scaffolding dbt projects, extending them with new
-components, and validating project health. This guide covers the current `0.3.x` alpha.
+components, migrating legacy SQL, and validating project health. This guide covers the
+current `0.4.x` release.
 
 ## Supported Python
 
@@ -55,6 +56,12 @@ Use a preset to enforce team standards:
 
 ```bash
 dbt-forge init my_dbt_project --preset company-standard.yml
+```
+
+Scaffold a multi-project dbt Mesh setup:
+
+```bash
+dbt-forge init my_mesh --mesh
 ```
 
 See [`init`](/docs/cli/init/) for the full command reference and [`preset`](/docs/cli/preset/)
@@ -136,6 +143,18 @@ dbt-forge add pre-commit            # pre-commit hooks + editorconfig
 dbt-forge add package dbt-utils     # add a dbt package
 ```
 
+Generate sources from live warehouse metadata:
+
+```bash
+dbt-forge add source raw_data --from-database
+```
+
+Add a sub-project to a dbt Mesh:
+
+```bash
+dbt-forge add project analytics
+```
+
 See [`add`](/docs/cli/add/) for the full command reference.
 
 ## Check project health
@@ -177,3 +196,35 @@ dbt-forge update                        # interactively accept/skip each change
 The command reads the `.dbt-forge.yml` manifest created during `init`, re-renders
 templates with the current version, and shows a diff for each changed file.
 See [`update`](/docs/cli/update/) for the full workflow.
+
+## Migrate legacy SQL
+
+Convert a directory of SQL scripts into a dbt project:
+
+```bash
+dbt-forge migrate ./legacy_sql/
+dbt-forge migrate ./legacy_sql/ --dry-run   # preview without writing
+```
+
+The command parses `CREATE TABLE/VIEW` statements, builds a dependency graph, and
+generates dbt models with `ref()` and `source()` replacing raw table references. Each
+model is assigned to staging, intermediate, or marts based on its dependencies. A
+migration report summarizes the results.
+
+See [`migrate`](/docs/cli/migrate/) for the full command reference.
+
+## Generate documentation with AI
+
+Generate model and column descriptions using an LLM:
+
+```bash
+dbt-forge docs generate                      # all undocumented models
+dbt-forge docs generate --model stg_orders   # single model
+dbt-forge docs generate --provider ollama    # use local Ollama
+```
+
+Supports Claude (Anthropic), OpenAI, and Ollama. The command reads model SQL, sends it
+to the LLM, and presents generated descriptions for interactive review before updating
+YAML files. Existing descriptions are preserved.
+
+See [`docs generate`](/docs/cli/docs/) for the full command reference.

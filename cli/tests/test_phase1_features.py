@@ -30,6 +30,7 @@ def _config(**kwargs) -> ProjectConfig:
 # 1.1 Pre-commit + Linting
 # ---------------------------------------------------------------------------
 
+
 class TestPreCommit:
     def test_pre_commit_config_created_when_requested(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -113,6 +114,7 @@ class TestAddPreCommitCommand:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["pre-commit"])
                 assert result.exit_code == 0, result.output
@@ -128,6 +130,7 @@ class TestAddPreCommitCommand:
 # 1.2 add ci
 # ---------------------------------------------------------------------------
 
+
 class TestAddCi:
     def test_add_ci_github(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -141,6 +144,7 @@ class TestAddCi:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["ci", "github"])
                 assert result.exit_code == 0, result.output
@@ -164,6 +168,7 @@ class TestAddCi:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["ci", "gitlab"])
                 assert result.exit_code == 0, result.output
@@ -184,6 +189,7 @@ class TestAddCi:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["ci", "bitbucket"])
                 assert result.exit_code == 0, result.output
@@ -206,6 +212,7 @@ class TestAddCi:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["ci", "github"])
                 assert result.exit_code == 0
@@ -226,6 +233,7 @@ class TestAddCi:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["ci", "jenkins"])
                 assert result.exit_code != 0
@@ -236,6 +244,7 @@ class TestAddCi:
 # ---------------------------------------------------------------------------
 # 1.3 Environment Config
 # ---------------------------------------------------------------------------
+
 
 class TestEnvConfig:
     def test_env_example_created_when_requested(self):
@@ -282,6 +291,7 @@ class TestEnvConfig:
 # 1.4 CODEOWNERS
 # ---------------------------------------------------------------------------
 
+
 class TestCodeowners:
     def test_codeowners_created_when_team_set(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -315,6 +325,7 @@ class TestCodeowners:
 # Config defaults
 # ---------------------------------------------------------------------------
 
+
 class TestNewConfigFields:
     def test_new_fields_default_false(self):
         c = _config()
@@ -324,9 +335,16 @@ class TestNewConfigFields:
 
     def test_new_fields_can_be_set(self):
         c = ProjectConfig(
-            project_name="p", adapter="BigQuery", marts=[], packages=[],
-            add_examples=True, add_sqlfluff=True, ci_providers=[],
-            add_pre_commit=True, add_env_config=True, team_owner="@team",
+            project_name="p",
+            adapter="BigQuery",
+            marts=[],
+            packages=[],
+            add_examples=True,
+            add_sqlfluff=True,
+            ci_providers=[],
+            add_pre_commit=True,
+            add_env_config=True,
+            team_owner="@team",
         )
         assert c.add_pre_commit is True
         assert c.add_env_config is True

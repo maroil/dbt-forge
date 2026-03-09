@@ -1,0 +1,4 @@
+projects:
+{% for dep in upstream_deps %}
+  - name: {{ dep }}
+{% endfor %}

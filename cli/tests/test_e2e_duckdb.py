@@ -14,9 +14,7 @@ pytestmark = pytest.mark.integration
 
 def _assert_ok(result, label="command"):
     """Assert subprocess exited 0, with readable error on failure."""
-    assert result.returncode == 0, (
-        f"{label} failed:\n{result.stdout}\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"{label} failed:\n{result.stdout}\n{result.stderr}"
 
 
 # ── 3A: Init & Build ────────────────────────────────────────────────
@@ -44,9 +42,7 @@ class TestInitAndBuild:
             "finance_orders",
             "marketing_orders",
         ]:
-            assert model in result.stdout, (
-                f"Model {model} not in dbt run output"
-            )
+            assert model in result.stdout, f"Model {model} not in dbt run output"
 
     def test_dbt_test(self, e2e_project_dir: Path):
         _assert_ok(run_dbt(e2e_project_dir, "test"), "dbt test")
@@ -60,8 +56,7 @@ class TestInitAndBuild:
         conn = duckdb.connect(db_path, read_only=True)
         try:
             rows = conn.execute(
-                "SELECT * FROM main_finance.finance_orders"
-                " ORDER BY order_id"
+                "SELECT * FROM main_finance.finance_orders ORDER BY order_id"
             ).fetchall()
             columns = [desc[0] for desc in conn.description]
         finally:
@@ -101,7 +96,10 @@ class TestAddCommands:
         assert (e2e_project_dir / inter / "int_analytics__orders_enriched.sql").exists()
 
         result = run_dbt(
-            e2e_project_dir, "run", "--select", "+analytics_orders",
+            e2e_project_dir,
+            "run",
+            "--select",
+            "+analytics_orders",
         )
         _assert_ok(result, "dbt run analytics")
 
@@ -125,7 +123,10 @@ class TestAddCommands:
 
         # compile validates SQL/YAML without needing a real table
         result = run_dbt(
-            e2e_project_dir, "compile", "--select", "stg_payments__records",
+            e2e_project_dir,
+            "compile",
+            "--select",
+            "stg_payments__records",
         )
         _assert_ok(result, "dbt compile payments")
 
@@ -141,7 +142,10 @@ class TestAddCommands:
         # Use a model name that actually exists in the project
         _assert_ok(
             run_forge(
-                "add", "exposure", "finance_orders", cwd=e2e_project_dir,
+                "add",
+                "exposure",
+                "finance_orders",
+                cwd=e2e_project_dir,
             ),
             "add exposure",
         )
@@ -154,7 +158,10 @@ class TestAddCommands:
     def test_add_package_and_install(self, e2e_project_dir: Path):
         _assert_ok(
             run_forge(
-                "add", "package", "dbt-audit-helper", cwd=e2e_project_dir,
+                "add",
+                "package",
+                "dbt-audit-helper",
+                cwd=e2e_project_dir,
             ),
             "add package",
         )
@@ -211,13 +218,12 @@ class TestDoctor:
         bad.write_text("SELECT 1")
         try:
             result = run_forge(
-                "doctor", "--check", "naming-conventions",
+                "doctor",
+                "--check",
+                "naming-conventions",
                 cwd=e2e_project_dir,
             )
-            failed = (
-                result.returncode != 0
-                or "fail" in result.stdout.lower()
-            )
+            failed = result.returncode != 0 or "fail" in result.stdout.lower()
             assert failed, "doctor should catch naming violation"
         finally:
             bad.unlink(missing_ok=True)
@@ -227,13 +233,12 @@ class TestDoctor:
         undoc.write_text("SELECT 1 AS id")
         try:
             result = run_forge(
-                "doctor", "--check", "schema-coverage",
+                "doctor",
+                "--check",
+                "schema-coverage",
                 cwd=e2e_project_dir,
             )
-            failed = (
-                result.returncode != 0
-                or "fail" in result.stdout.lower()
-            )
+            failed = result.returncode != 0 or "fail" in result.stdout.lower()
             assert failed, "doctor should catch missing schema"
         finally:
             undoc.unlink(missing_ok=True)
@@ -307,8 +312,14 @@ class TestUpdate:
 @pytest.mark.parametrize(
     "adapter",
     [
-        "BigQuery", "Snowflake", "PostgreSQL", "DuckDB",
-        "Databricks", "Redshift", "Trino", "Spark",
+        "BigQuery",
+        "Snowflake",
+        "PostgreSQL",
+        "DuckDB",
+        "Databricks",
+        "Redshift",
+        "Trino",
+        "Spark",
     ],
 )
 def test_adapter_generates_valid_yaml(adapter: str, tmp_path: Path):

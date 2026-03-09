@@ -1,0 +1,32 @@
+# {{ mesh_name }}
+
+A dbt Mesh project with multiple interconnected sub-projects.
+
+## Sub-Projects
+
+{% for sp in sub_projects %}
+- **{{ sp.name }}**{% if sp.purpose %} — {{ sp.purpose }}{% endif %}
+{% if sp.upstream_deps %}  (depends on: {{ sp.upstream_deps | join(', ') }}){% endif %}
+{% endfor %}
+
+## Getting Started
+
+```bash
+# Install dependencies for all sub-projects
+make deps
+
+# Run all sub-projects in dependency order
+make build
+
+# Run a specific sub-project
+cd {{ sub_projects[0].name if sub_projects else 'my_project' }} && dbt run
+```
+
+## Architecture
+
+This project uses [dbt Mesh](https://docs.getdbt.com/best-practices/how-we-mesh/mesh-1-intro)
+to organize models across multiple projects with explicit contracts and access controls.
+
+- **Public** models (marts) are accessible to downstream projects via `{{ '{{' }} ref('project', 'model') {{ '}}' }}`
+- **Protected** models (staging) are accessible within the same project only
+- **Private** models (intermediate) are not accessible outside their group

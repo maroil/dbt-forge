@@ -7,11 +7,18 @@
 
 ### Key modules in `cli/src/dbt_forge/`
 
-- `main.py` — Typer app with top-level commands: `init`, `doctor`, `status`, `update`, `preset`
-- `cli/add.py` — all `add` subcommands (mart, source, model, test, package, etc.)
+- `main.py` — Typer app with top-level commands: `init`, `doctor`, `status`, `update`, `migrate`, `docs`, `preset`
+- `cli/add.py` — all `add` subcommands (mart, source, model, test, package, project, etc.)
+- `cli/migrate.py` — legacy SQL migration command
+- `cli/docs_cmd.py` — AI-assisted documentation generation command
 - `cli/doctor.py` — project health checks
 - `cli/status.py` — project stats dashboard
 - `cli/update.py` — template update lifecycle
+- `sql_parser.py` — regex-based SQL parsing, dependency graph, topological sort
+- `mesh.py` — dbt Mesh multi-project scaffolding
+- `docs.py` — model documentation scanning and YAML update utilities
+- `introspect/` — warehouse introspection (abstract base, 8 adapter connectors, profile reader)
+- `llm/` — LLM provider abstraction (Claude, OpenAI, Ollama)
 - `scanner.py` — shared project scanning utilities (models, sources, packages)
 - `manifest.py` — `.dbt-forge.yml` manifest for update tracking
 - `presets.py` — preset loading, validation, and application

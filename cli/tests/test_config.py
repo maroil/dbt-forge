@@ -61,8 +61,12 @@ def test_dbt_adapter_package_spark():
 
 def test_ci_provider_properties():
     c = ProjectConfig(
-        project_name="p", adapter="BigQuery", marts=[], packages=[],
-        add_examples=True, add_sqlfluff=True,
+        project_name="p",
+        adapter="BigQuery",
+        marts=[],
+        packages=[],
+        add_examples=True,
+        add_sqlfluff=True,
         ci_providers=["GitHub Actions", "GitLab CI"],
     )
     assert c.add_github_actions is True
@@ -72,8 +76,12 @@ def test_ci_provider_properties():
 
 def test_empty_ci_providers():
     c = ProjectConfig(
-        project_name="p", adapter="BigQuery", marts=[], packages=[],
-        add_examples=True, add_sqlfluff=True,
+        project_name="p",
+        adapter="BigQuery",
+        marts=[],
+        packages=[],
+        add_examples=True,
+        add_sqlfluff=True,
         ci_providers=[],
     )
     assert c.add_github_actions is False
@@ -91,8 +99,12 @@ def test_new_optional_fields_default_false():
 
 def test_new_optional_fields_can_be_set():
     c = ProjectConfig(
-        project_name="p", adapter="BigQuery", marts=[], packages=[],
-        add_examples=True, add_sqlfluff=True,
+        project_name="p",
+        adapter="BigQuery",
+        marts=[],
+        packages=[],
+        add_examples=True,
+        add_sqlfluff=True,
         ci_providers=[],
         add_snapshot=True,
         add_seed=True,

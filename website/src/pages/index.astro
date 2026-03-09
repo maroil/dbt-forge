@@ -16,13 +16,13 @@ const features = [
   {
     eyebrow: 'What it generates',
     title: 'Start with a structure that matches dbt work.',
-    body: 'The scaffold includes staging, intermediate, marts, tests, macros, adapter-aware profiles, and optional tooling like SQLFluff, pre-commit, and CI pipelines.',
+    body: 'The scaffold includes staging, intermediate, marts, tests, macros, adapter-aware profiles, and optional tooling like SQLFluff, pre-commit, and CI pipelines. Use --mesh for multi-project setups with access controls and contracts.',
     icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>`
   },
   {
     eyebrow: 'How it grows',
-    title: 'Add models, tests, packages, and CI config as the project evolves.',
-    body: 'Use 11 `add` subcommands to scaffold new components. Run `doctor` to validate best practices. Run `status` for a project overview. Run `update` to re-apply templates after upgrading.',
+    title: 'Migrate SQL, introspect warehouses, generate docs, and add components.',
+    body: 'Use `migrate` to convert legacy SQL to dbt. Use `add source --from-database` to scaffold from real warehouse metadata. Use `docs generate` for AI-assisted documentation. Run `doctor` to validate best practices.',
     icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`
   },
 ];
@@ -30,27 +30,39 @@ const features = [
 const workflow = [
   {
     step: '01',
-    label: 'Install',
-    command: 'uv tool install dbt-forge',
-    body: 'Install the CLI.',
+    label: 'Scaffold',
+    command: 'dbt-forge init analytics_core --defaults',
+    body: 'Scaffold a single project or a multi-project Mesh with --mesh.',
   },
   {
     step: '02',
-    label: 'Initialize',
-    command: 'dbt-forge init analytics_core --defaults',
-    body: 'Scaffold a new dbt project.',
+    label: 'Migrate',
+    command: 'dbt-forge migrate ./legacy_sql/',
+    body: 'Convert existing SQL scripts into dbt models with ref() and source().',
   },
   {
     step: '03',
-    label: 'Grow',
-    command: 'dbt-forge add model users',
-    body: 'Add models, tests, and packages.',
+    label: 'Introspect',
+    command: 'dbt-forge add source raw --from-database',
+    body: 'Generate sources and staging models from live warehouse metadata.',
   },
   {
     step: '04',
+    label: 'Extend',
+    command: 'dbt-forge add model users',
+    body: 'Add models, tests, packages, CI, and sub-projects as the project grows.',
+  },
+  {
+    step: '05',
+    label: 'Document',
+    command: 'dbt-forge docs generate',
+    body: 'Generate model and column descriptions using Claude, OpenAI, or Ollama.',
+  },
+  {
+    step: '06',
     label: 'Maintain',
     command: 'dbt-forge doctor && dbt-forge status',
-    body: 'Validate best practices and review project stats.',
+    body: 'Validate best practices and review project health.',
   },
 ];
 ---
@@ -138,7 +150,7 @@ const workflow = [
       <section class="workflow-section">
         <div class="workflow-header">
           <span class="workflow-kicker">Supported workflows</span>
-          <h2>Use prompts when exploring, or defaults when you need repeatable output.</h2>
+          <h2>From first scaffold to multi-project meshes, migration, and AI docs.</h2>
         </div>
 
         <div class="cards workflow-cards">

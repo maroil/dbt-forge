@@ -1,0 +1,29 @@
+# Migration Report
+
+## Summary
+- **SQL files scanned**: {{ files_scanned }}
+- **Models generated**: {{ models_generated }}
+- **Sources detected**: {{ sources_detected }}
+
+## Models
+
+| Model | Layer | Original File |
+|-------|-------|---------------|
+{% for model in models %}
+| {{ model.name }} | {{ model.layer }} | {{ model.original_file }} |
+{% endfor %}
+
+## Sources
+
+{% for source_name, tables in sources.items() %}
+### {{ source_name }}
+{% for table in tables %}
+- {{ table }}
+{% endfor %}
+
+{% endfor %}
+
+## Dependency Order
+{% for name in dependency_order %}
+{{ loop.index }}. {{ name }}
+{% endfor %}

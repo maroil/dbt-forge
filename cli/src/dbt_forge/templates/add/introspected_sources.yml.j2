@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: {{ source_name }}
+    schema: {{ schema }}
+    tables:
+{% for table in tables %}
+      - name: {{ table.table_name }}
+{% if table.comment %}
+        description: "{{ table.comment }}"
+{% endif %}
+        columns:
+{% for col in table.columns %}
+          - name: {{ col.name }}
+            data_type: {{ col.data_type }}
+{% if col.comment %}
+            description: "{{ col.comment }}"
+{% endif %}
+{% if not col.is_nullable %}
+            tests:
+              - not_null
+{% endif %}
+{% endfor %}
+{% endfor %}

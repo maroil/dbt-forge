@@ -9,15 +9,32 @@ from pathlib import Path
 import yaml
 
 VALID_FIELDS = {
-    "adapter", "marts", "packages", "add_examples", "add_sqlfluff",
-    "ci_providers", "add_unit_tests", "add_metricflow", "add_snapshot",
-    "add_seed", "add_exposure", "add_macro", "add_pre_commit",
-    "add_env_config", "team_owner",
+    "adapter",
+    "marts",
+    "packages",
+    "add_examples",
+    "add_sqlfluff",
+    "ci_providers",
+    "add_unit_tests",
+    "add_metricflow",
+    "add_snapshot",
+    "add_seed",
+    "add_exposure",
+    "add_macro",
+    "add_pre_commit",
+    "add_env_config",
+    "team_owner",
 }
 
 VALID_ADAPTERS = {
-    "BigQuery", "Snowflake", "PostgreSQL", "DuckDB",
-    "Databricks", "Redshift", "Trino", "Spark",
+    "BigQuery",
+    "Snowflake",
+    "PostgreSQL",
+    "DuckDB",
+    "Databricks",
+    "Redshift",
+    "Trino",
+    "Spark",
 }
 
 VALID_CI_PROVIDERS = {"GitHub Actions", "GitLab CI", "Bitbucket Pipelines"}

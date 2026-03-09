@@ -12,6 +12,7 @@ already in place and you want to scaffold a new component without creating files
 # Scaffold components
 dbt-forge add mart NAME
 dbt-forge add source NAME
+dbt-forge add source NAME --from-database    # introspect warehouse
 dbt-forge add snapshot NAME
 dbt-forge add seed NAME
 dbt-forge add exposure NAME
@@ -25,6 +26,7 @@ dbt-forge add package [NAME]
 
 # Tooling
 dbt-forge add pre-commit
+dbt-forge add project NAME                   # add sub-project to a dbt Mesh
 ```
 
 ## Project detection
@@ -53,13 +55,50 @@ Scaffolds:
 
 ```bash
 dbt-forge add source salesforce
+dbt-forge add source raw --from-database
+dbt-forge add source raw --from-database --target prod
 ```
 
-Scaffolds:
+### Default mode
+
+Scaffolds stub files:
 
 - `models/staging/salesforce/_salesforce__sources.yml` — source definition with a sample table
 - `models/staging/salesforce/_salesforce__models.yml` — YAML entry for the staging model
 - `models/staging/salesforce/stg_salesforce__records.sql` — staging model referencing the source
+
+### `--from-database` mode
+
+Introspects a live warehouse to generate source YAML and staging models from real table
+metadata. The flow:
+
+1. Reads `profiles.yml` to detect the adapter and connection config
+2. Connects to the warehouse
+3. Lists schemas — presents a selection prompt
+4. Lists tables in the selected schema — presents a multi-select prompt
+5. Fetches column metadata (name, type, nullability) for each selected table
+6. Generates `_<source>__sources.yml` with real column types and `not_null` tests for non-nullable columns
+7. Generates `stg_<source>__<table>.sql` per table with explicit column listing
+
+Use `--target` to select a non-default profile target (defaults to `dev`).
+
+#### Optional adapter dependencies
+
+The introspection feature requires the database driver for your adapter. Install the
+corresponding extra:
+
+```bash
+pip install dbt-forge[snowflake]
+pip install dbt-forge[bigquery]
+pip install dbt-forge[postgres]
+pip install dbt-forge[duckdb]
+pip install dbt-forge[databricks]
+pip install dbt-forge[redshift]
+pip install dbt-forge[trino]
+pip install dbt-forge[spark]
+```
+
+If the driver is not installed, the command exits with instructions.
 
 ## `add snapshot`
 
@@ -336,6 +375,33 @@ Scaffolds:
 - `.sqlfluffignore` — excludes `target/`, `dbt_packages/`, `logs/` (only if `.sqlfluff` exists)
 
 After running, activate the hooks with `pre-commit install`.
+
+---
+
+## `add project`
+
+```bash
+dbt-forge add project analytics
+dbt-forge add project analytics --purpose marts
+```
+
+Adds a new sub-project to an existing dbt Mesh setup. Must be run from inside a mesh
+project (a directory containing a `Makefile` and sub-directories with `dbt_project.yml`).
+
+The command:
+
+1. **Detects** the mesh root by walking up from the current directory
+2. **Lists** existing sub-projects
+3. **Prompts** for upstream dependencies (multi-select from existing sub-projects)
+4. **Generates** the sub-project with:
+   - `dbt_project.yml`
+   - `dependencies.yml` (if upstream deps selected)
+   - `models/_groups.yml` with group definition
+   - Example models with access levels based on the `--purpose` flag
+   - `profiles/profiles.yml` stub
+   - Empty scaffold directories (macros, tests, seeds, snapshots, analyses)
+
+The adapter is auto-detected from the first existing sub-project's profile.
 
 ---
 

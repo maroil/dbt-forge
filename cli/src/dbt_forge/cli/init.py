@@ -60,6 +60,58 @@ def init_command(
     _print_next_steps(config)
 
 
+def init_mesh_command(
+    project_name: str | None,
+    use_defaults: bool,
+    output_dir: str,
+    dry_run: bool = False,
+) -> None:
+    """Scaffold a dbt Mesh multi-project setup."""
+    import shutil
+
+    from dbt_forge.mesh import MeshProjectConfig, SubProjectConfig, generate_mesh_project
+    from dbt_forge.prompts.questions import gather_mesh_config
+
+    if use_defaults:
+        name = project_name or "my_dbt_mesh"
+        config = MeshProjectConfig(
+            name=name,
+            adapter="DuckDB",
+            adapter_key="duckdb",
+            dbt_adapter_package="dbt-duckdb",
+            sub_projects=[
+                SubProjectConfig(name="staging", purpose="staging"),
+                SubProjectConfig(
+                    name="transform", purpose="intermediate", upstream_deps=["staging"]
+                ),
+                SubProjectConfig(name="marts", purpose="marts", upstream_deps=["transform"]),
+            ],
+            output_dir=output_dir,
+        )
+    else:
+        config = gather_mesh_config(project_name=project_name, output_dir=output_dir)
+
+    console.print()
+
+    if dry_run:
+        paths = generate_mesh_project(config)
+        base = Path(output_dir) / config.name
+        console.print(f"  [yellow]dry-run[/yellow]  {len(paths)} files would be written.")
+        # Clean up the generated files in dry-run
+        if base.exists():
+            shutil.rmtree(base)
+        console.print()
+        return
+
+    written = generate_mesh_project(config)
+    project_path = Path(output_dir) / config.name
+
+    console.print(f"  [green]\u2714[/green]  Created mesh project [bold]{project_path}/[/bold]")
+    console.print(f"  [green]\u2714[/green]  {len(config.sub_projects)} sub-projects")
+    console.print(f"  [green]\u2714[/green]  {len(written)} files written")
+    console.print()
+
+
 def _run_dry(config: ProjectConfig, output_dir: str) -> None:
     """Show a Rich tree of files that would be written without writing anything."""
     paths = generate_project(config, dry_run=True)
@@ -78,9 +130,7 @@ def _run_dry(config: ProjectConfig, output_dir: str) -> None:
             return tree
         parent = get_node(directory.parent)
         if directory not in dir_nodes:
-            dir_nodes[directory] = parent.add(
-                f"[bold blue]{directory.name}/[/bold blue]"
-            )
+            dir_nodes[directory] = parent.add(f"[bold blue]{directory.name}/[/bold blue]")
         return dir_nodes[directory]
 
     for path in sorted(paths):

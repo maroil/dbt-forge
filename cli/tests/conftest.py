@@ -16,7 +16,9 @@ import pytest
 
 
 def run_dbt(
-    project_dir: Path, *args: str, env_override: dict | None = None,
+    project_dir: Path,
+    *args: str,
+    env_override: dict | None = None,
 ) -> subprocess.CompletedProcess:
     """Run ``dbt <args>`` as a subprocess inside *project_dir*."""
     env = os.environ.copy()
@@ -77,10 +79,7 @@ def e2e_project_dir():
         # Patch source YAML: remove database line (DuckDB doesn't use it)
         sources_yml = project_dir / "models/staging/example_source/_example_source__sources.yml"
         content = sources_yml.read_text()
-        lines = [
-            line for line in content.splitlines(keepends=True)
-            if "database:" not in line
-        ]
+        lines = [line for line in content.splitlines(keepends=True) if "database:" not in line]
         sources_yml.write_text("".join(lines))
 
         # Seed DuckDB with raw source data

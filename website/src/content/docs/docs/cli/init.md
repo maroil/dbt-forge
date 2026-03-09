@@ -9,7 +9,7 @@ starting structure instead of building folders and setup files by hand.
 ## Command
 
 ```bash
-dbt-forge init [PROJECT_NAME] [--defaults] [--output PATH] [--dry-run] [--preset PATH]
+dbt-forge init [PROJECT_NAME] [--defaults] [--output PATH] [--dry-run] [--preset PATH] [--mesh]
 ```
 
 ## What it does
@@ -83,6 +83,37 @@ scaffolding. See [preset](/docs/cli/preset/) for the file format.
 When combined with `--defaults`, preset values are applied but no prompts are shown.
 When used interactively, locked fields are skipped and default fields pre-populate
 the prompt selections.
+
+### `--mesh`
+
+Scaffold a dbt Mesh (multi-project) setup instead of a single project. Creates
+multiple interconnected sub-projects, each with its own `dbt_project.yml`, models with
+access controls, and `dependencies.yml` for cross-project references.
+
+```bash
+dbt-forge init my_mesh --mesh
+dbt-forge init my_mesh --mesh --defaults   # preset: staging → transform → marts
+```
+
+When used interactively, prompts for:
+
+- Project name and adapter
+- Sub-project setup: preset layout (staging → transform → marts) or custom definitions
+- Per sub-project: name, purpose, upstream dependencies
+
+Each sub-project gets:
+
+- `dbt_project.yml` — project configuration
+- `models/_groups.yml` — group definition for access control
+- `dependencies.yml` — cross-project refs (if upstream deps exist)
+- Example models with access levels: staging=`protected`, intermediate=`private`, marts=`public`
+- Public models get `contract: { enforced: true }`
+- `profiles/profiles.yml` — adapter-aware connection stub
+
+The mesh root gets a `README.md` and a `Makefile` for orchestrated `deps`, `build`,
+`test`, and `clean` across all sub-projects.
+
+After scaffolding, add new sub-projects with `dbt-forge add project`.
 
 ## Interactive prompts
 

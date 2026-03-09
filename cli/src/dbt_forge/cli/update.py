@@ -128,11 +128,13 @@ def run_update(dry_run: bool = False) -> None:
         action = questionary.select(
             f"Apply changes to {rel}?",
             choices=["accept", "skip"],
-            style=questionary.Style([
-                ("qmark", "fg:#00d7ff bold"),
-                ("question", "bold"),
-                ("pointer", "fg:#00d7ff bold"),
-            ]),
+            style=questionary.Style(
+                [
+                    ("qmark", "fg:#00d7ff bold"),
+                    ("question", "bold"),
+                    ("pointer", "fg:#00d7ff bold"),
+                ]
+            ),
         ).ask()
         if action == "accept":
             (root / rel).write_text(new)
@@ -145,11 +147,13 @@ def run_update(dry_run: bool = False) -> None:
         action = questionary.select(
             f"Create new file {rel}?",
             choices=["accept", "skip"],
-            style=questionary.Style([
-                ("qmark", "fg:#00d7ff bold"),
-                ("question", "bold"),
-                ("pointer", "fg:#00d7ff bold"),
-            ]),
+            style=questionary.Style(
+                [
+                    ("qmark", "fg:#00d7ff bold"),
+                    ("question", "bold"),
+                    ("pointer", "fg:#00d7ff bold"),
+                ]
+            ),
         ).ask()
         if action == "accept":
             dest = root / rel

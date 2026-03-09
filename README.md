@@ -22,9 +22,13 @@ Starting a new dbt project means creating dozens of files, configuring profiles,
 
 - **One command** to scaffold a complete, production-ready dbt project
 - **8 database adapters** supported out of the box
-- **11 `add` subcommands** to extend projects after init
+- **13 `add` subcommands** to extend projects after init
 - **10 health checks** via `doctor` to keep your project clean
 - **Team presets** to enforce standards across projects
+- **SQL migration** — convert legacy SQL scripts into a dbt project with `ref()` and `source()`
+- **Warehouse introspection** — generate sources and staging models from live database metadata
+- **dbt Mesh** — scaffold multi-project setups with access controls and contracts
+- **AI documentation** — generate model and column descriptions using Claude, OpenAI, or Ollama
 
 ## Installation
 
@@ -55,6 +59,9 @@ dbt-forge init my_project --defaults --dry-run
 
 # Use a team preset
 dbt-forge init my_project --preset company-standard.yml
+
+# Scaffold a multi-project dbt Mesh setup
+dbt-forge init my_mesh --mesh
 ```
 
 <details>
@@ -96,6 +103,7 @@ my_project/
 
 ```bash
 dbt-forge init [PROJECT_NAME] [--defaults] [--dry-run] [--preset FILE] [--output DIR]
+dbt-forge init my_mesh --mesh      # multi-project dbt Mesh setup
 ```
 
 ### `add` — Extend an existing project
@@ -106,6 +114,7 @@ Run from inside a dbt project directory:
 # Structural components
 dbt-forge add mart finance
 dbt-forge add source salesforce
+dbt-forge add source raw --from-database   # introspect warehouse for real metadata
 dbt-forge add snapshot orders
 dbt-forge add seed dim_country
 dbt-forge add exposure weekly_revenue
@@ -119,6 +128,22 @@ dbt-forge add package dbt-utils    # curated registry of 20 packages
 # Tooling
 dbt-forge add ci github            # also: gitlab, bitbucket
 dbt-forge add pre-commit           # hooks + .editorconfig
+dbt-forge add project analytics    # add sub-project to a dbt Mesh
+```
+
+### `migrate` — Convert legacy SQL to dbt
+
+```bash
+dbt-forge migrate ./legacy_sql/              # convert SQL scripts to dbt models
+dbt-forge migrate ./legacy_sql/ --dry-run    # preview without writing
+```
+
+### `docs` — AI-assisted documentation
+
+```bash
+dbt-forge docs generate                      # generate docs for all undocumented models
+dbt-forge docs generate --model stg_orders   # single model
+dbt-forge docs generate --provider ollama    # use local Ollama
 ```
 
 ### `doctor` — Health checks

@@ -25,20 +25,28 @@ Commit messages must follow Conventional Commits (`feat:`, `fix:`, `docs:`, `ref
 
 ## Architecture
 
-**Entry point:** `cli/src/dbt_forge/main.py` - Typer app exposing `init`, `add`, `doctor`, `status`, `update`, `preset validate` commands.
+**Entry point:** `cli/src/dbt_forge/main.py` - Typer app exposing `init`, `add`, `doctor`, `status`, `update`, `migrate`, `docs`, `preset validate` commands.
 
 **Core flow for `init`:**
 1. `prompts/questions.py` - `gather_config()` builds a `ProjectConfig` dataclass (single source of truth for all config)
 2. `generator/project.py` - `generate_project(config)` orchestrates file creation, conditionally writing files based on config flags
 3. `generator/renderer.py` - `render_template()` renders `.j2` templates with Jinja2 (`StrictUndefined`, `trim_blocks`, `lstrip_blocks`)
 
-**`add` subcommands** (`cli/add.py`): 11 post-init scaffolding commands. Each finds the project root via `_find_project_root()` (walks up to `dbt_project.yml`), renders a template, and writes it.
+**`add` subcommands** (`cli/add.py`): 13 post-init scaffolding commands. Each finds the project root via `_find_project_root()` (walks up to `dbt_project.yml`), renders a template, and writes it. Includes `add source --from-database` for warehouse introspection and `add project` for mesh sub-projects.
 
 **`doctor`** (`cli/doctor.py`): 10 health checks on existing dbt projects. Supports `--fix` (auto-gen stubs), `--ci` (exit 1 on fail), `--check <name>`.
 
 **`status`** (`cli/status.py`): Rich dashboard using `scanner.py` utilities.
 
 **`update`** (`cli/update.py`): Re-applies templates by comparing hashes in `.dbt-forge.yml` manifest (`manifest.py`).
+
+**`migrate`** (`cli/migrate.py`): Converts legacy SQL scripts into a dbt project. Uses `sql_parser.py` for regex-based SQL parsing, dependency graph construction, and `ref()`/`source()` substitution.
+
+**`docs generate`** (`cli/docs_cmd.py`): AI-assisted documentation using `llm/` providers (Claude, OpenAI, Ollama). Uses `docs.py` for YAML scanning and update.
+
+**`init --mesh`**: Multi-project dbt Mesh scaffolding via `mesh.py`. Generates interconnected sub-projects with access controls, contracts, and cross-project dependencies.
+
+**`introspect/`**: Warehouse introspection package with abstract `WarehouseIntrospector`, 8 adapter connectors, and `profile_reader` for `profiles.yml` parsing.
 
 **`presets.py`**: Load/validate/apply preset YAML files (local or HTTPS) that pre-configure `ProjectConfig`.
 

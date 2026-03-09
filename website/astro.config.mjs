@@ -31,6 +31,8 @@ export default defineConfig({
 					items: [
 						{ label: 'init', slug: 'docs/cli/init' },
 						{ label: 'add', slug: 'docs/cli/add' },
+						{ label: 'migrate', slug: 'docs/cli/migrate' },
+						{ label: 'docs generate', slug: 'docs/cli/docs' },
 						{ label: 'doctor', slug: 'docs/cli/doctor' },
 						{ label: 'status', slug: 'docs/cli/status' },
 						{ label: 'update', slug: 'docs/cli/update' },
