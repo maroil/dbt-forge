@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: {{ model_name }}
+    description: "Migrated from {{ original_file }}"
+{% if columns %}
+    columns:
+{% for col in columns %}
+      - name: {{ col.name }}
+        data_type: {{ col.data_type }}
+{% endfor %}
+{% endif %}

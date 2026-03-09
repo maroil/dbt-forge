@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: {{ model_name }}
+    description: "Example {{ layer }} model for {{ project_name }}"
+    config:
+      group: {{ group_name }}
+    access: {{ access }}
+{% if contract_enforced %}
+    contract:
+      enforced: true
+{% endif %}
+    columns:
+      - name: id
+        data_type: integer
+        description: "Primary key"
+{% if contract_enforced %}
+        tests:
+          - unique
+          - not_null
+{% endif %}
+      - name: name
+        data_type: varchar
+        description: "Example name column"

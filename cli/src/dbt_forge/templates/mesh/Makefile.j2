@@ -1,0 +1,28 @@
+.PHONY: deps build test clean
+
+# Sub-projects in dependency order
+PROJECTS = {% for sp in sub_projects %}{{ sp.name }}{{ " " if not loop.last else "" }}{% endfor %}
+
+
+deps:
+	@for project in $(PROJECTS); do \
+		echo "Installing deps for $$project..."; \
+		cd $$project && dbt deps && cd ..; \
+	done
+
+build:
+	@for project in $(PROJECTS); do \
+		echo "Building $$project..."; \
+		cd $$project && dbt run && cd ..; \
+	done
+
+test:
+	@for project in $(PROJECTS); do \
+		echo "Testing $$project..."; \
+		cd $$project && dbt test && cd ..; \
+	done
+
+clean:
+	@for project in $(PROJECTS); do \
+		cd $$project && dbt clean && cd ..; \
+	done

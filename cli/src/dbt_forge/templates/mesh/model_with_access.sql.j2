@@ -1,0 +1,9 @@
+{{ '{{' }}
+  config(
+    materialized='{{ "view" if layer == "staging" else "table" if layer == "marts" else "ephemeral" }}'
+  )
+{{ '}}' }}
+
+select
+    1 as id,
+    'example' as name

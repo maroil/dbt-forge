@@ -8,7 +8,18 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ### Added
 
-- Nothing yet.
+- `dbt-forge migrate` command — converts legacy SQL scripts into a dbt project. Parses `CREATE TABLE/VIEW` statements, builds a dependency graph, detects sources, assigns models to staging/intermediate/marts layers, and replaces raw table references with `ref()` and `source()`. Generates source YAML, model YAML, and a migration report. Supports `--dry-run` to preview without writing.
+- `dbt-forge add source --from-database` flag — introspects a live warehouse to generate source YAML and staging models from real table metadata. Reads connection config from `profiles.yml`, presents interactive schema and table selection, and fetches column names and types. Supports all 8 adapters via optional dependencies (`pip install dbt-forge[snowflake]`, etc.). Use `--target` to select a non-default profile target.
+- `dbt-forge init --mesh` flag — scaffolds a dbt Mesh (multi-project) setup with multiple interconnected sub-projects. Each sub-project gets its own `dbt_project.yml`, `dependencies.yml` (for cross-project refs), group definitions, and models with access controls (staging=protected, intermediate=private, marts=public). Public models automatically get `contract: { enforced: true }`. Includes a root `Makefile` for orchestrated builds. Supports a preset layout (staging → transform → marts) or custom sub-project definitions.
+- `dbt-forge add project` command — adds a new sub-project to an existing dbt Mesh setup. Detects the mesh root, lists existing sub-projects, and prompts for upstream dependencies. Generates the sub-project with proper `dependencies.yml` wiring.
+- `dbt-forge docs generate` command — uses an LLM to generate model and column descriptions for undocumented models. Scans YAML files for missing descriptions, reads the corresponding SQL, sends context to the LLM, and presents results for interactive review (accept/skip). Supports three providers: Claude (Anthropic), OpenAI, and Ollama (local, no extra deps). Preserves existing descriptions. Flags: `--model` (single model), `--provider`, `--yes` (auto-accept), `--delay` (rate limiting).
+- `sql_parser` module — regex-based SQL parsing with `CREATE` statement extraction, `FROM`/`JOIN` table reference detection (excluding CTEs), dependency graph construction, topological sort (Kahn's algorithm with cycle handling), layer detection heuristic, and `ref()`/`source()` substitution.
+- `introspect` package — `WarehouseIntrospector` abstract base class with 8 adapter implementations (DuckDB, PostgreSQL, Snowflake, BigQuery, Databricks, Redshift, Trino, Spark). Includes `profile_reader` module for parsing `profiles.yml` with `{{ env_var() }}` resolution.
+- `mesh` module — `MeshProjectConfig` and `SubProjectConfig` dataclasses, mesh project generation with access control defaults and contract enforcement.
+- `llm` package — `LLMProvider` abstraction with `ClaudeProvider`, `OpenAIProvider`, and `OllamaProvider`. Includes prompt engineering for dbt model documentation and JSON response parsing.
+- `docs` module — utilities for finding models with missing descriptions, reading model SQL, and updating YAML files with generated descriptions while preserving existing content.
+- Optional dependency groups in `pyproject.toml`: `snowflake`, `bigquery`, `postgres`, `duckdb`, `databricks`, `redshift`, `trino`, `spark`, `claude`, `openai`.
+- 96 new tests covering all new features (335 total).
 
 ## [0.3.1] - 2026-03-08
 

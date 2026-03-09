@@ -81,6 +81,129 @@ def _write(dest: Path, content: str) -> None:
     console.print(f"  [green]✔[/green]  {dest}")
 
 
+@add_app.command("project")
+def add_project(
+    name: str = typer.Argument(..., help="Name of the sub-project to add."),
+    purpose: str = typer.Option(
+        "", "--purpose", help="Purpose (staging, transform, marts)."
+    ),
+) -> None:
+    """Add a new sub-project to a dbt Mesh setup."""
+    mesh_root = _find_mesh_root()
+
+    # Detect existing sub-projects
+    existing = _find_existing_sub_projects(mesh_root)
+
+    if not existing:
+        console.print(
+            "[red]Error:[/red] No existing sub-projects found. Is this a mesh project?"
+        )
+        sys.exit(1)
+
+    # Select upstream deps interactively
+    upstream: list[str] = []
+    if existing:
+        selected = questionary.checkbox(
+            f"Upstream dependencies for '{name}':",
+            choices=[questionary.Choice(p, value=p) for p in existing],
+            style=_style(),
+        ).ask()
+        if selected is None:
+            console.print("\n[dim]Aborted.[/dim]")
+            return
+        upstream = selected
+
+    # Detect adapter from first sub-project
+    first_sp = mesh_root / existing[0]
+    adapter_key = _read_adapter_from_profiles(first_sp)
+
+    from dbt_forge.mesh import SubProjectConfig, generate_sub_project_standalone
+
+    sp = SubProjectConfig(name=name, purpose=purpose, upstream_deps=upstream)
+
+    console.print()
+    console.print(
+        f"  Adding sub-project [bold cyan]{name}[/bold cyan]"
+        f" to mesh [bold]{mesh_root.name}[/bold]"
+    )
+    console.print()
+
+    adapter_display = {
+        "bigquery": "BigQuery",
+        "snowflake": "Snowflake",
+        "postgres": "PostgreSQL",
+        "duckdb": "DuckDB",
+        "databricks": "Databricks",
+        "redshift": "Redshift",
+        "trino": "Trino",
+        "spark": "Spark",
+    }
+
+    written = generate_sub_project_standalone(
+        mesh_root=mesh_root,
+        sp=sp,
+        adapter=adapter_display.get(adapter_key, adapter_key),
+        adapter_key=adapter_key,
+        dbt_adapter_package=_adapter_key_to_package(adapter_key),
+    )
+
+    console.print(
+        f"  [green]\u2714[/green]  Created {len(written)} files"
+        f" in [bold]{mesh_root / name}[/bold]"
+    )
+    console.print()
+
+
+def _find_mesh_root() -> Path:
+    """Find the mesh root directory.
+
+    Looks for a directory containing a Makefile with sub-project dirs.
+    """
+    current = Path.cwd()
+    # Check if current dir is a mesh root
+    if _is_mesh_root(current):
+        return current
+    # Check parents
+    for directory in current.parents:
+        if _is_mesh_root(directory):
+            return directory
+    # If we're in a sub-project, go up one level
+    if (current / "dbt_project.yml").exists():
+        parent = current.parent
+        if _is_mesh_root(parent):
+            return parent
+    console.print(
+        "[red]Error:[/red] No mesh project root found.\n"
+        "Run [cyan]dbt-forge add project[/cyan] from inside a mesh project."
+    )
+    sys.exit(1)
+
+
+def _is_mesh_root(path: Path) -> bool:
+    """Check if a directory is a mesh root."""
+    if not path.is_dir():
+        return False
+    # Has Makefile and at least one sub-dir with dbt_project.yml
+    has_makefile = (path / "Makefile").exists()
+    has_sub_projects = any(
+        (d / "dbt_project.yml").exists()
+        for d in path.iterdir()
+        if d.is_dir() and not d.name.startswith(".")
+    )
+    return has_makefile and has_sub_projects
+
+
+def _find_existing_sub_projects(mesh_root: Path) -> list[str]:
+    """Find existing sub-project names in a mesh."""
+    return sorted(
+        [
+            d.name
+            for d in mesh_root.iterdir()
+            if d.is_dir() and (d / "dbt_project.yml").exists()
+        ]
+    )
+
+
 @add_app.command("mart")
 def add_mart(
     name: str = typer.Argument(..., help="Name of the mart to scaffold (e.g. 'finance')."),
@@ -121,10 +244,20 @@ def add_mart(
 @add_app.command("source")
 def add_source(
     name: str = typer.Argument(..., help="Name of the source to scaffold (e.g. 'salesforce')."),
+    from_database: bool = typer.Option(
+        False, "--from-database", help="Introspect warehouse to generate source from real tables."
+    ),
+    target: Optional[str] = typer.Option(
+        None, "--target", "-t", help="Target name from profiles.yml (default: dev)."
+    ),
 ) -> None:
     """Scaffold a new staging source inside an existing dbt project."""
     project_root = _find_project_root()
     project_name = _read_project_name(project_root)
+
+    if from_database:
+        _add_source_from_database(project_root, project_name, name, target)
+        return
 
     ctx = {"source_name": name, "project_name": project_name}
 
@@ -153,6 +286,109 @@ def add_source(
     console.print(
         f"  [dim]Source [bold]{name}[/bold] scaffolded. "
         "Update the source YAML to match your actual warehouse tables.[/dim]"
+    )
+    console.print()
+
+
+def _add_source_from_database(
+    project_root: Path, project_name: str, source_name: str, target: str | None
+) -> None:
+    """Introspect warehouse and generate source YAML + staging models."""
+    from dbt_forge.introspect.connectors import get_introspector
+    from dbt_forge.introspect.profile_reader import read_profile
+
+    # Read profile
+    try:
+        adapter_type, config = read_profile(project_root, target)
+    except (FileNotFoundError, ValueError) as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
+
+    console.print(f"  Connecting to [bold cyan]{adapter_type}[/bold cyan]...")
+
+    try:
+        introspector = get_introspector(adapter_type, **config)
+    except (ValueError, ImportError) as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
+
+    with introspector:
+        # List schemas
+        schemas = introspector.list_schemas()
+        if not schemas:
+            console.print("[red]Error:[/red] No schemas found.")
+            sys.exit(1)
+
+        schema = questionary.select(
+            "Select schema:",
+            choices=schemas,
+            style=_style(),
+        ).ask()
+        if schema is None:
+            console.print("\n[dim]Aborted.[/dim]")
+            return
+
+        # List tables
+        tables = introspector.list_tables(schema)
+        if not tables:
+            console.print(f"[red]Error:[/red] No tables found in schema '{schema}'.")
+            sys.exit(1)
+
+        table_names = [t.table_name for t in tables]
+        selected = questionary.checkbox(
+            "Select tables:",
+            choices=[questionary.Choice(t, value=t) for t in table_names],
+            style=_style(),
+            validate=lambda v: True if v else "Select at least one table.",
+        ).ask()
+        if selected is None:
+            console.print("\n[dim]Aborted.[/dim]")
+            return
+
+        # Fetch column metadata
+        table_metadata = []
+        for table_name in selected:
+            columns = introspector.get_columns(schema, table_name)
+            tm = next(t for t in tables if t.table_name == table_name)
+            tm.columns = columns
+            table_metadata.append(tm)
+
+    # Generate files
+    staging_dir = project_root / f"models/staging/{source_name}"
+
+    console.print()
+    console.print(
+        f"  Adding source [bold cyan]{source_name}[/bold cyan] from "
+        f"[bold]{schema}[/bold] ({len(table_metadata)} tables)"
+    )
+    console.print()
+
+    # Source YAML
+    _write(
+        staging_dir / f"_{source_name}__sources.yml",
+        render_template("add/introspected_sources.yml.j2", {
+            "source_name": source_name,
+            "schema": schema,
+            "tables": table_metadata,
+        }),
+    )
+
+    # Staging models
+    for tm in table_metadata:
+        model_name = f"stg_{source_name}__{tm.table_name}"
+        _write(
+            staging_dir / f"{model_name}.sql",
+            render_template("add/introspected_stg_model.sql.j2", {
+                "source_name": source_name,
+                "table_name": tm.table_name,
+                "columns": tm.columns,
+            }),
+        )
+
+    console.print()
+    console.print(
+        f"  [dim]Source [bold]{source_name}[/bold] scaffolded from warehouse. "
+        f"{len(table_metadata)} staging models generated.[/dim]"
     )
     console.print()
 

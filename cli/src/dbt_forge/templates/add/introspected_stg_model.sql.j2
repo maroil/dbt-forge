@@ -1,0 +1,18 @@
+with source as (
+
+    select * from {{ '{{' }} source('{{ source_name }}', '{{ table_name }}') {{ '}}' }}
+
+),
+
+renamed as (
+
+    select
+{% for col in columns %}
+        {{ col.name }}{{ "," if not loop.last else "" }}
+{% endfor %}
+
+    from source
+
+)
+
+select * from renamed
