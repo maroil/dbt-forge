@@ -27,6 +27,22 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'Guides',
+					items: [
+						{ label: 'dbt project template', slug: 'docs/guides/dbt-project-template' },
+						{
+							label: 'How to scaffold a dbt project',
+							slug: 'docs/guides/how-to-scaffold-a-dbt-project',
+						},
+						{ label: 'Migrate SQL to dbt', slug: 'docs/guides/migrate-sql-to-dbt' },
+						{
+							label: 'dbt project best practices',
+							slug: 'docs/guides/dbt-project-best-practices',
+						},
+						{ label: 'dbt Mesh project setup', slug: 'docs/guides/dbt-mesh-project-setup' },
+					],
+				},
+				{
 					label: 'CLI reference',
 					items: [
 						{ label: 'init', slug: 'docs/cli/init' },

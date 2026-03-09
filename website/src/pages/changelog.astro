@@ -1,14 +1,18 @@
 ---
 const target = 'https://github.com/maroil/dbt-forge/blob/main/CHANGELOG.md';
+import SeoHead from '../components/SeoHead.astro';
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
+    <SeoHead
+      title="Redirecting to the changelog"
+      description="Redirect to the dbt-forge changelog on GitHub."
+      path="/changelog/"
+      robots="noindex,follow"
+    />
     <meta http-equiv="refresh" content={`0;url=${target}`} />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Redirecting to the changelog</title>
   </head>
   <body>
     <p>Redirecting to the <a href={target}>changelog</a>…</p>

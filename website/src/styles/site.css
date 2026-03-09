@@ -479,6 +479,25 @@ header.header {
   font-size: 1.05rem;
 }
 
+.forge-home .workflow-header p {
+  color: #94a3b8;
+  line-height: 1.7;
+  max-width: 860px;
+  margin: 1rem auto 0 auto;
+  font-size: 1.05rem;
+}
+
+.forge-home .workflow-header a,
+.forge-home .link-card a {
+  color: #7dd3fc;
+  text-decoration: none;
+}
+
+.forge-home .workflow-header a:hover,
+.forge-home .link-card a:hover {
+  color: #bae6fd;
+}
+
 .forge-home .workflow-section {
   margin-bottom: 6rem;
 }
@@ -508,6 +527,15 @@ header.header {
 .forge-home .workflow-card {
   display: flex;
   flex-direction: column;
+}
+
+.forge-home .guide-cards {
+  gap: 1.5rem;
+  margin-bottom: 0;
+}
+
+.forge-home .guide-card {
+  padding: 2rem;
 }
 
 .forge-home .step-num {
@@ -540,9 +568,15 @@ header.header {
     justify-content: center;
     flex-wrap: wrap;
   }
+
+  .forge-home .cards {
+    grid-template-columns: 1fr;
+  }
+
   .forge-home .hero {
     margin-top: 3rem;
   }
+
   .forge-home .term-body {
     font-size: 0.9rem;
     padding: 1.5rem;

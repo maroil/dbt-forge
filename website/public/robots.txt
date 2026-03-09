@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dbt-forge.marou.one/sitemap-index.xml

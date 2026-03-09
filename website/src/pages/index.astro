@@ -1,8 +1,13 @@
 ---
 import '../styles/site.css';
+import SeoHead from '../components/SeoHead.astro';
 
 const repoUrl = 'https://github.com/maroil/dbt-forge';
 const issuesUrl = `${repoUrl}/issues`;
+const siteUrl = 'https://dbt-forge.marou.one';
+const pageTitle = 'dbt Project Scaffold and Template CLI for Teams';
+const pageDescription =
+  'dbt-forge is a Python CLI for dbt project scaffolding, project templates, SQL-to-dbt migration, health checks, and team standards.';
 
 const adapters = ['BigQuery', 'Snowflake', 'PostgreSQL', 'DuckDB', 'Databricks', 'Redshift', 'Trino', 'Spark'];
 
@@ -65,17 +70,60 @@ const workflow = [
     body: 'Validate best practices and review project health.',
   },
 ];
+
+const guideLinks = [
+  {
+    title: 'dbt project template',
+    href: '/docs/guides/dbt-project-template/',
+    body: 'What a practical dbt template should include and how dbt-forge scaffolds it.',
+  },
+  {
+    title: 'How to scaffold a dbt project',
+    href: '/docs/guides/how-to-scaffold-a-dbt-project/',
+    body: 'The shortest path from installation to a repeatable dbt project scaffold.',
+  },
+  {
+    title: 'Migrate SQL to dbt',
+    href: '/docs/guides/migrate-sql-to-dbt/',
+    body: 'Turn legacy SQL scripts into dbt models with ref() and source().',
+  },
+  {
+    title: 'dbt project best practices',
+    href: '/docs/guides/dbt-project-best-practices/',
+    body: 'Structure, naming, tests, packages, and health checks for maintainable dbt projects.',
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'dbt-forge',
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'macOS, Linux, Windows',
+    description: pageDescription,
+    url: siteUrl,
+    softwareVersion: '0.4.x',
+    codeRepository: repoUrl,
+    keywords: [
+      'dbt project scaffold',
+      'dbt project template',
+      'migrate SQL to dbt',
+      'dbt CLI',
+      'dbt mesh setup',
+    ],
+  },
+];
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>dbt-forge | Scaffold dbt projects with a consistent starting structure</title>
-    <meta
-      name="description"
-      content="dbt-forge is a Python CLI for scaffolding dbt projects with a consistent starting structure, adapter-aware profiles, health checks, template updates, and team presets."
+    <SeoHead
+      title={pageTitle}
+      description={pageDescription}
+      path="/"
+      jsonLd={jsonLd}
     />
   </head>
   <body class="forge-home">
@@ -98,9 +146,9 @@ const workflow = [
 
     <main class="container">
       <section class="hero">
-        <div class="hero-badge">Python CLI for dbt projects</div>
-        <h1>Scaffold a dbt project<br><span class="highlight">with a consistent starting structure.</span></h1>
-        <p class="subtitle"><code>dbt-forge</code> is for teams that want a working dbt project without rebuilding the same folders, profiles, starter models, and setup files for every new project.</p>
+        <div class="hero-badge">dbt project scaffold CLI</div>
+        <h1>Scaffold a dbt project<br><span class="highlight">with a repeatable template for teams.</span></h1>
+        <p class="subtitle"><code>dbt-forge</code> is a Python CLI for dbt project scaffolding, dbt project templates, SQL-to-dbt migration, and health checks. It helps teams start faster without rebuilding the same folders, profiles, starter models, and setup files for every new project.</p>
 
         <div class="terminal-glass">
           <div class="term-header">
@@ -132,7 +180,7 @@ const workflow = [
         <div class="workflow-header">
           <span class="workflow-kicker">Why teams use it</span>
           <h2>Avoid hand-built setup and inconsistent dbt project layouts.</h2>
-          <p><code>dbt-forge</code> gives you a narrow starting point: a dbt project structure, adapter-aware profiles, starter models, and optional tooling that can be reused across projects.</p>
+          <p><code>dbt-forge</code> gives you a repeatable dbt project scaffold with adapter-aware profiles, starter models, a clear project structure, and optional tooling that can be reused across projects.</p>
         </div>
 
         <div class="cards">
@@ -151,6 +199,7 @@ const workflow = [
         <div class="workflow-header">
           <span class="workflow-kicker">Supported workflows</span>
           <h2>From first scaffold to multi-project meshes, migration, and AI docs.</h2>
+          <p>Use the same CLI to initialize a dbt project, migrate legacy SQL to dbt, introspect warehouse metadata, validate best practices, and keep templates updated over time.</p>
         </div>
 
         <div class="cards workflow-cards">
@@ -160,6 +209,28 @@ const workflow = [
               <h3>{item.label}</h3>
               <code class="command-box">{item.command}</code>
               <p>{item.body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="workflow-section">
+        <div class="workflow-header">
+          <span class="workflow-kicker">Keep reading</span>
+          <h2>Go deeper in the docs without bloating the homepage.</h2>
+          <p>
+            Start with <a href="/docs/getting-started/">Getting started</a>, then use
+            {' '}<a href="/docs/cli/init/">init</a>, <a href="/docs/cli/add/">add</a>,
+            {' '}<a href="/docs/cli/migrate/">migrate</a>, and <a href="/docs/cli/doctor/">doctor</a>
+            {' '}to build and maintain a project. The more detailed guides live in the docs.
+          </p>
+        </div>
+
+        <div class="cards guide-cards">
+          {guideLinks.map((guide) => (
+            <article class="glass-card guide-card link-card">
+              <h3><a href={guide.href}>{guide.title}</a></h3>
+              <p>{guide.body}</p>
             </article>
           ))}
         </div>
