@@ -18,8 +18,14 @@ from dbt_forge.generator.project import generate_project
 from dbt_forge.prompts.questions import ProjectConfig
 
 ALL_ADAPTERS = [
-    "BigQuery", "Snowflake", "PostgreSQL", "DuckDB", "Databricks",
-    "Redshift", "Trino", "Spark",
+    "BigQuery",
+    "Snowflake",
+    "PostgreSQL",
+    "DuckDB",
+    "Databricks",
+    "Redshift",
+    "Trino",
+    "Spark",
 ]
 ALL_MARTS = ["finance", "marketing", "operations", "product", "engineering"]
 
@@ -41,6 +47,7 @@ def _config(**kwargs) -> ProjectConfig:
 # ---------------------------------------------------------------------------
 # Model name uniqueness — the most critical check
 # ---------------------------------------------------------------------------
+
 
 class TestModelNameUniqueness:
     def test_no_duplicate_model_names_two_marts(self):
@@ -102,6 +109,7 @@ def _assert_no_duplicate_model_names(base: Path) -> None:
 # YAML validity — generated YAML must parse without errors
 # ---------------------------------------------------------------------------
 
+
 class TestYamlValidity:
     def test_all_yaml_files_are_valid(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -128,7 +136,8 @@ class TestYamlValidity:
             config = _config(output_dir=tmpdir)
             generate_project(config)
             sources_yml = (
-                Path(tmpdir) / "test_project"
+                Path(tmpdir)
+                / "test_project"
                 / "models/staging/example_source/_example_source__sources.yml"
             )
             data = yaml.safe_load(sources_yml.read_text())
@@ -145,9 +154,7 @@ class TestYamlValidity:
         with tempfile.TemporaryDirectory() as tmpdir:
             config = _config(output_dir=tmpdir)
             generate_project(config)
-            data = yaml.safe_load(
-                (Path(tmpdir) / "test_project" / "dbt_project.yml").read_text()
-            )
+            data = yaml.safe_load((Path(tmpdir) / "test_project" / "dbt_project.yml").read_text())
             for key in ("name", "version", "profile", "model-paths"):
                 assert key in data, f"dbt_project.yml missing required key: {key}"
 
@@ -163,9 +170,7 @@ class TestYamlValidity:
         with tempfile.TemporaryDirectory() as tmpdir:
             config = _config(output_dir=tmpdir)
             generate_project(config)
-            data = yaml.safe_load(
-                (Path(tmpdir) / "test_project" / "selectors.yml").read_text()
-            )
+            data = yaml.safe_load((Path(tmpdir) / "test_project" / "selectors.yml").read_text())
             assert "selectors" in data
             assert isinstance(data["selectors"], list)
             assert len(data["selectors"]) > 0
@@ -174,9 +179,7 @@ class TestYamlValidity:
         with tempfile.TemporaryDirectory() as tmpdir:
             config = _config(output_dir=tmpdir, add_unit_tests=True)
             generate_project(config)
-            unit_test = (
-                Path(tmpdir) / "test_project" / "tests" / "unit" / "test_stg_example.yml"
-            )
+            unit_test = Path(tmpdir) / "test_project" / "tests" / "unit" / "test_stg_example.yml"
             data = yaml.safe_load(unit_test.read_text())
             assert "unit_tests" in data
             assert len(data["unit_tests"]) > 0
@@ -206,6 +209,7 @@ def _assert_yaml_model_names_match_sql(base: Path) -> None:
 # ---------------------------------------------------------------------------
 # .env and profiles-dir
 # ---------------------------------------------------------------------------
+
 
 class TestEnvAndProfiles:
     def test_env_file_generated(self):
@@ -241,6 +245,7 @@ class TestEnvAndProfiles:
 # All adapters generate valid profiles
 # ---------------------------------------------------------------------------
 
+
 class TestAdapterProfiles:
     @pytest.mark.parametrize("adapter", ALL_ADAPTERS)
     def test_profile_is_valid_yaml(self, adapter: str):
@@ -271,6 +276,7 @@ class TestAdapterProfiles:
 # ---------------------------------------------------------------------------
 # CI providers
 # ---------------------------------------------------------------------------
+
 
 class TestCIProviders:
     def test_github_actions_is_valid_yaml(self):
@@ -311,14 +317,13 @@ class TestCIProviders:
 # Packages
 # ---------------------------------------------------------------------------
 
+
 class TestPackages:
     def test_packages_yml_is_valid_yaml(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             config = _config(output_dir=tmpdir)
             generate_project(config)
-            data = yaml.safe_load(
-                (Path(tmpdir) / "test_project" / "packages.yml").read_text()
-            )
+            data = yaml.safe_load((Path(tmpdir) / "test_project" / "packages.yml").read_text())
             assert "packages" in data
 
     def test_no_deprecated_calogica_package(self):
@@ -336,6 +341,7 @@ class TestPackages:
 # ---------------------------------------------------------------------------
 # New init-time optional components
 # ---------------------------------------------------------------------------
+
 
 class TestInitSnapshot:
     def test_snapshot_generated_when_opted_in(self):
@@ -433,8 +439,6 @@ class TestInitMacro:
         with tempfile.TemporaryDirectory() as tmpdir:
             config = _config(output_dir=tmpdir, add_macro=True)
             generate_project(config)
-            content = (
-                Path(tmpdir) / "test_project" / "macros" / "example_macro.sql"
-            ).read_text()
+            content = (Path(tmpdir) / "test_project" / "macros" / "example_macro.sql").read_text()
             assert "macro" in content
             assert "endmacro" in content

@@ -83,10 +83,14 @@ class TestTestCoverage:
             untested.write_text("SELECT 1")
             # Add YAML but no tests
             yml = root / "models" / "marts" / "finance" / "_no_tests_model__models.yml"
-            yml.write_text(yaml.dump({
-                "version": 2,
-                "models": [{"name": "no_tests_model", "columns": []}],
-            }))
+            yml.write_text(
+                yaml.dump(
+                    {
+                        "version": 2,
+                        "models": [{"name": "no_tests_model", "columns": []}],
+                    }
+                )
+            )
             result = check_test_coverage(root)
             assert not result.passed
 
@@ -118,9 +122,7 @@ class TestPackagesPinned:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = _generate_project(tmpdir)
             pkg = root / "packages.yml"
-            pkg.write_text(yaml.dump({
-                "packages": [{"package": "dbt-labs/dbt_utils"}]
-            }))
+            pkg.write_text(yaml.dump({"packages": [{"package": "dbt-labs/dbt_utils"}]}))
             result = check_packages_pinned(root)
             assert not result.passed
 
@@ -137,9 +139,9 @@ class TestSourceFreshness:
             root = _generate_project(tmpdir)
             src = root / "models" / "staging" / "no_fresh" / "_no_fresh__sources.yml"
             src.parent.mkdir(parents=True, exist_ok=True)
-            src.write_text(yaml.dump({
-                "sources": [{"name": "no_fresh", "tables": [{"name": "t1"}]}]
-            }))
+            src.write_text(
+                yaml.dump({"sources": [{"name": "no_fresh", "tables": [{"name": "t1"}]}]})
+            )
             result = check_source_freshness(root)
             assert not result.passed
 
@@ -155,9 +157,7 @@ class TestOrphanedYml:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = _generate_project(tmpdir)
             yml = root / "models" / "marts" / "finance" / "_orphan__models.yml"
-            yml.write_text(yaml.dump({
-                "models": [{"name": "ghost_model"}]
-            }))
+            yml.write_text(yaml.dump({"models": [{"name": "ghost_model"}]}))
             result = check_orphaned_yml(root)
             assert not result.passed
 
@@ -202,9 +202,9 @@ class TestDisabledModels:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = _generate_project(tmpdir)
             yml = root / "models" / "marts" / "finance" / "_disabled__models.yml"
-            yml.write_text(yaml.dump({
-                "models": [{"name": "old_model", "config": {"enabled": False}}]
-            }))
+            yml.write_text(
+                yaml.dump({"models": [{"name": "old_model", "config": {"enabled": False}}]})
+            )
             result = check_disabled_models(root)
             assert not result.passed
 
@@ -233,6 +233,7 @@ class TestDoctorCli:
                 from typer.testing import CliRunner
 
                 from dbt_forge.main import app
+
                 runner = CliRunner()
                 result = runner.invoke(app, ["doctor"])
                 assert result.exit_code == 0, result.output
@@ -249,6 +250,7 @@ class TestDoctorCli:
                 from typer.testing import CliRunner
 
                 from dbt_forge.main import app
+
                 runner = CliRunner()
                 result = runner.invoke(app, ["doctor", "--check", "gitignore"])
                 assert result.exit_code == 0, result.output
@@ -268,6 +270,7 @@ class TestDoctorCli:
                 from typer.testing import CliRunner
 
                 from dbt_forge.main import app
+
                 runner = CliRunner()
                 result = runner.invoke(app, ["doctor", "--fix"])
                 assert result.exit_code == 0, result.output

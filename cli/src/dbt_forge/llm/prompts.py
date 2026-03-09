@@ -1,4 +1,5 @@
 """Prompt engineering for LLM description generation."""
+
 from __future__ import annotations
 
 import json
@@ -29,31 +30,33 @@ def build_description_prompt(
     ]
 
     if existing_descriptions:
-        parts.extend([
-            "",
-            "Existing descriptions (only fill in missing ones):",
-            json.dumps(existing_descriptions, indent=2),
-        ])
+        parts.extend(
+            [
+                "",
+                "Existing descriptions (only fill in missing ones):",
+                json.dumps(existing_descriptions, indent=2),
+            ]
+        )
 
-    parts.extend([
-        "",
-        "Respond with ONLY a JSON object in this exact format (no markdown, no backticks):",
-        "{",
-        '  "model_description": "One-sentence description of what this model does",',
-        '  "columns": {',
-        '    "column_name": "Description of what this column represents"',
-        "  }",
-        "}",
-        "",
-        "Include ALL columns listed above. Be specific and concise.",
-    ])
+    parts.extend(
+        [
+            "",
+            "Respond with ONLY a JSON object in this exact format (no markdown, no backticks):",
+            "{",
+            '  "model_description": "One-sentence description of what this model does",',
+            '  "columns": {',
+            '    "column_name": "Description of what this column represents"',
+            "  }",
+            "}",
+            "",
+            "Include ALL columns listed above. Be specific and concise.",
+        ]
+    )
 
     return "\n".join(parts)
 
 
-def parse_description_response(
-    model_name: str, response_text: str
-) -> GeneratedDescription:
+def parse_description_response(model_name: str, response_text: str) -> GeneratedDescription:
     """Parse LLM response into a GeneratedDescription."""
     # Try to extract JSON from the response
     text = response_text.strip()

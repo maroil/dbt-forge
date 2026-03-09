@@ -20,6 +20,7 @@ from dbt_forge.sql_parser import (
 # parse_create_statement
 # ---------------------------------------------------------------------------
 
+
 class TestParseCreateStatement:
     def test_simple_create_table(self) -> None:
         sql = "CREATE TABLE orders AS SELECT * FROM raw.orders"
@@ -86,6 +87,7 @@ class TestParseCreateStatement:
 # ---------------------------------------------------------------------------
 # extract_table_references
 # ---------------------------------------------------------------------------
+
 
 class TestExtractTableReferences:
     def test_simple_from(self) -> None:
@@ -166,6 +168,7 @@ class TestExtractTableReferences:
 # parse_sql_file
 # ---------------------------------------------------------------------------
 
+
 class TestParseSqlFile:
     def test_parse_file(self, tmp_path: Path) -> None:
         sql_file = tmp_path / "test.sql"
@@ -179,6 +182,7 @@ class TestParseSqlFile:
 # ---------------------------------------------------------------------------
 # build_dependency_graph
 # ---------------------------------------------------------------------------
+
 
 class TestBuildDependencyGraph:
     def test_basic_graph(self, tmp_path: Path) -> None:
@@ -207,6 +211,7 @@ class TestBuildDependencyGraph:
 # ---------------------------------------------------------------------------
 # topological_sort
 # ---------------------------------------------------------------------------
+
 
 class TestTopologicalSort:
     def test_linear_chain(self) -> None:
@@ -244,6 +249,7 @@ class TestTopologicalSort:
 # detect_layer
 # ---------------------------------------------------------------------------
 
+
 class TestDetectLayer:
     def test_staging_no_internal_deps(self) -> None:
         graph = DependencyGraph(
@@ -271,6 +277,7 @@ class TestDetectLayer:
 # ---------------------------------------------------------------------------
 # replace_refs_in_sql
 # ---------------------------------------------------------------------------
+
 
 class TestReplaceRefsInSql:
     def test_replace_ref(self) -> None:

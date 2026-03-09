@@ -137,6 +137,7 @@ def gather_config(
     If *preset* is provided (a PresetConfig), locked fields are skipped and
     default fields override questionary defaults.
     """
+
     # Helper to check preset
     def _is_locked(field: str) -> bool:
         return preset is not None and field in getattr(preset, "locked", [])
@@ -195,8 +196,7 @@ def gather_config(
         preset_marts = _preset_default("marts", None)
         default_marts = set(preset_marts) if preset_marts else {"finance", "marketing"}
         mart_choices = [
-            questionary.Choice(title=m, value=m, checked=(m in default_marts))
-            for m in MARTS
+            questionary.Choice(title=m, value=m, checked=(m in default_marts)) for m in MARTS
         ]
         marts = questionary.checkbox(
             "Which marts/departments to scaffold? (space to select)",
@@ -435,12 +435,8 @@ def gather_mesh_config(
     setup_style = questionary.select(
         "Sub-project setup:",
         choices=[
-            questionary.Choice(
-                "Preset: staging \u2192 transform \u2192 marts", value="preset"
-            ),
-            questionary.Choice(
-                "Custom: define sub-projects manually", value="custom"
-            ),
+            questionary.Choice("Preset: staging \u2192 transform \u2192 marts", value="preset"),
+            questionary.Choice("Custom: define sub-projects manually", value="custom"),
         ],
         style=_style(),
     ).ask()
@@ -451,12 +447,8 @@ def gather_mesh_config(
     if setup_style == "preset":
         sub_projects = [
             SubProjectConfig(name="staging", purpose="staging"),
-            SubProjectConfig(
-                name="transform", purpose="intermediate", upstream_deps=["staging"]
-            ),
-            SubProjectConfig(
-                name="marts", purpose="marts", upstream_deps=["transform"]
-            ),
+            SubProjectConfig(name="transform", purpose="intermediate", upstream_deps=["staging"]),
+            SubProjectConfig(name="marts", purpose="marts", upstream_deps=["transform"]),
         ]
     else:
         while True:
@@ -485,9 +477,7 @@ def gather_mesh_config(
                 existing_names = [sp.name for sp in sub_projects]
                 selected_deps = questionary.checkbox(
                     f"Upstream dependencies for '{sp_name}':",
-                    choices=[
-                        questionary.Choice(n, value=n) for n in existing_names
-                    ],
+                    choices=[questionary.Choice(n, value=n) for n in existing_names],
                     style=_style(),
                 ).ask()
                 if selected_deps is None:

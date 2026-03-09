@@ -36,6 +36,7 @@ def _scaffold_project(tmpdir: str) -> Path:
 # add mart
 # ---------------------------------------------------------------------------
 
+
 class TestAddMart:
     def test_add_mart_creates_expected_files(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -46,6 +47,7 @@ class TestAddMart:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["mart", "operations"])
                 assert result.exit_code == 0, result.output
@@ -59,7 +61,10 @@ class TestAddMart:
                 project_root / "models" / "marts" / "operations" / "__operations__models.yml"
             ).exists()
             assert (
-                project_root / "models" / "intermediate" / "operations"
+                project_root
+                / "models"
+                / "intermediate"
+                / "operations"
                 / "int_operations__orders_enriched.sql"
             ).exists()
 
@@ -72,6 +77,7 @@ class TestAddMart:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 runner.invoke(add_app, ["mart", "product"])
             finally:
@@ -95,6 +101,7 @@ class TestAddMart:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 runner.invoke(add_app, ["mart", "finance"])
             finally:
@@ -108,6 +115,7 @@ class TestAddMart:
 # add source
 # ---------------------------------------------------------------------------
 
+
 class TestAddSource:
     def test_add_source_creates_expected_files(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -118,6 +126,7 @@ class TestAddSource:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["source", "salesforce"])
                 assert result.exit_code == 0, result.output
@@ -138,6 +147,7 @@ class TestAddSource:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 runner.invoke(add_app, ["source", "stripe"])
             finally:
@@ -156,6 +166,7 @@ class TestAddSource:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["source", "hubspot"])
             finally:
@@ -169,6 +180,7 @@ class TestAddSource:
 # add snapshot
 # ---------------------------------------------------------------------------
 
+
 class TestAddSnapshot:
     def test_add_snapshot_creates_file(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -179,6 +191,7 @@ class TestAddSnapshot:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["snapshot", "orders"])
                 assert result.exit_code == 0, result.output
@@ -196,6 +209,7 @@ class TestAddSnapshot:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 runner.invoke(add_app, ["snapshot", "customers"])
                 target = project_root / "snapshots" / "customers.sql"
@@ -213,6 +227,7 @@ class TestAddSnapshot:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["snapshot", "orders"])
             finally:
@@ -225,6 +240,7 @@ class TestAddSnapshot:
 # add seed
 # ---------------------------------------------------------------------------
 
+
 class TestAddSeed:
     def test_add_seed_creates_files(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -235,6 +251,7 @@ class TestAddSeed:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["seed", "dim_country"])
                 assert result.exit_code == 0, result.output
@@ -253,6 +270,7 @@ class TestAddSeed:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 runner.invoke(add_app, ["seed", "dim_region"])
             finally:
@@ -272,6 +290,7 @@ class TestAddSeed:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 runner.invoke(add_app, ["seed", "dim_status"])
                 target = project_root / "seeds" / "dim_status.csv"
@@ -286,6 +305,7 @@ class TestAddSeed:
 # add exposure
 # ---------------------------------------------------------------------------
 
+
 class TestAddExposure:
     def test_add_exposure_creates_file(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -296,15 +316,14 @@ class TestAddExposure:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["exposure", "weekly_revenue"])
                 assert result.exit_code == 0, result.output
             finally:
                 os.chdir(old_cwd)
 
-            assert (
-                project_root / "models" / "marts" / "__weekly_revenue__exposures.yml"
-            ).exists()
+            assert (project_root / "models" / "marts" / "__weekly_revenue__exposures.yml").exists()
 
     def test_add_exposure_yml_is_valid_yaml(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -315,6 +334,7 @@ class TestAddExposure:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 runner.invoke(add_app, ["exposure", "sales_report"])
             finally:
@@ -334,6 +354,7 @@ class TestAddExposure:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 runner.invoke(add_app, ["exposure", "daily_summary"])
                 target = project_root / "models" / "marts" / "__daily_summary__exposures.yml"
@@ -348,6 +369,7 @@ class TestAddExposure:
 # add macro
 # ---------------------------------------------------------------------------
 
+
 class TestAddMacro:
     def test_add_macro_creates_file(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -358,6 +380,7 @@ class TestAddMacro:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["macro", "cents_to_dollars"])
                 assert result.exit_code == 0, result.output
@@ -375,6 +398,7 @@ class TestAddMacro:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 runner.invoke(add_app, ["macro", "my_util"])
             finally:
@@ -393,6 +417,7 @@ class TestAddMacro:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 runner.invoke(add_app, ["macro", "my_helper"])
                 target = project_root / "macros" / "my_helper.sql"

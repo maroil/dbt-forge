@@ -183,6 +183,7 @@ def generate_project(
     # Write manifest for update lifecycle
     if not dry_run:
         from dbt_forge.manifest import write_manifest
+
         write_manifest(base, config, written)
 
     return written

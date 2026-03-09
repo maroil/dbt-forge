@@ -60,12 +60,8 @@ class TestRunMigrate:
         out_dir = tmp_path / "output"
         out_dir.mkdir()
 
-        (sql_dir / "stg.sql").write_text(
-            "CREATE TABLE stg_users AS SELECT * FROM raw.users"
-        )
-        (sql_dir / "mart.sql").write_text(
-            "CREATE TABLE dim_users AS SELECT * FROM stg_users"
-        )
+        (sql_dir / "stg.sql").write_text("CREATE TABLE stg_users AS SELECT * FROM raw.users")
+        (sql_dir / "mart.sql").write_text("CREATE TABLE dim_users AS SELECT * FROM stg_users")
 
         run_migrate(sql_dir=str(sql_dir), output_dir=str(out_dir))
 
@@ -82,9 +78,7 @@ class TestRunMigrate:
         out_dir = tmp_path / "output"
         out_dir.mkdir()
 
-        (sql_dir / "test.sql").write_text(
-            "CREATE TABLE orders AS SELECT * FROM raw.orders"
-        )
+        (sql_dir / "test.sql").write_text("CREATE TABLE orders AS SELECT * FROM raw.orders")
 
         run_migrate(sql_dir=str(sql_dir), output_dir=str(out_dir), dry_run=True)
 
@@ -132,15 +126,11 @@ class TestRunMigrate:
         out_dir = tmp_path / "output"
         out_dir.mkdir()
 
-        (sql_dir / "01_stg.sql").write_text(
-            "CREATE TABLE stg_events AS SELECT * FROM raw.events"
-        )
+        (sql_dir / "01_stg.sql").write_text("CREATE TABLE stg_events AS SELECT * FROM raw.events")
         (sql_dir / "02_int.sql").write_text(
             "CREATE TABLE int_events AS SELECT * FROM stg_events WHERE active = true"
         )
-        (sql_dir / "03_mart.sql").write_text(
-            "CREATE TABLE dim_events AS SELECT * FROM int_events"
-        )
+        (sql_dir / "03_mart.sql").write_text("CREATE TABLE dim_events AS SELECT * FROM int_events")
 
         run_migrate(sql_dir=str(sql_dir), output_dir=str(out_dir))
 
@@ -157,11 +147,13 @@ class TestRunMigrate:
         out_dir = tmp_path / "output"
         out_dir.mkdir()
 
-        (sql_dir / "model.sql").write_text(dedent("""\
+        (sql_dir / "model.sql").write_text(
+            dedent("""\
             CREATE TABLE analytics.user_agg AS
             SELECT * FROM warehouse.users
             JOIN warehouse.orders ON users.id = orders.user_id
-        """))
+        """)
+        )
 
         run_migrate(sql_dir=str(sql_dir), output_dir=str(out_dir))
 
@@ -196,9 +188,7 @@ class TestRunMigrate:
         out_dir = tmp_path / "output"
         out_dir.mkdir()
 
-        (sql_dir / "stg.sql").write_text(
-            "CREATE TABLE stg_users AS SELECT * FROM raw_db.users"
-        )
+        (sql_dir / "stg.sql").write_text("CREATE TABLE stg_users AS SELECT * FROM raw_db.users")
 
         run_migrate(sql_dir=str(sql_dir), output_dir=str(out_dir))
 

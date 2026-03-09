@@ -37,6 +37,7 @@ def _scaffold(tmpdir: str, **kwargs) -> Path:
 # A1: README env config section
 # ---------------------------------------------------------------------------
 
+
 class TestReadmeEnvSection:
     def test_readme_contains_env_section_when_enabled(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -56,24 +57,31 @@ class TestReadmeEnvSection:
 # A2: Source auto-detection
 # ---------------------------------------------------------------------------
 
+
 class TestScanSources:
     def test_scan_sources_finds_sources(self):
         from dbt_forge.cli.add import _scan_sources
+
         with tempfile.TemporaryDirectory() as tmpdir:
             models_dir = Path(tmpdir) / "models" / "staging" / "stripe"
             models_dir.mkdir(parents=True)
             sources_yml = models_dir / "_stripe__sources.yml"
-            sources_yml.write_text(yaml.dump({
-                "version": 2,
-                "sources": [
-                    {"name": "stripe", "tables": [{"name": "payments"}]},
-                ],
-            }))
+            sources_yml.write_text(
+                yaml.dump(
+                    {
+                        "version": 2,
+                        "sources": [
+                            {"name": "stripe", "tables": [{"name": "payments"}]},
+                        ],
+                    }
+                )
+            )
             result = _scan_sources(Path(tmpdir))
             assert result == ["stripe"]
 
     def test_scan_sources_empty_when_no_sources(self):
         from dbt_forge.cli.add import _scan_sources
+
         with tempfile.TemporaryDirectory() as tmpdir:
             (Path(tmpdir) / "models").mkdir()
             result = _scan_sources(Path(tmpdir))
@@ -81,15 +89,20 @@ class TestScanSources:
 
     def test_scan_sources_deduplicates(self):
         from dbt_forge.cli.add import _scan_sources
+
         with tempfile.TemporaryDirectory() as tmpdir:
             models_dir = Path(tmpdir) / "models" / "staging"
             models_dir.mkdir(parents=True)
             for i in range(2):
                 f = models_dir / f"_sources_{i}.yml"
-                f.write_text(yaml.dump({
-                    "version": 2,
-                    "sources": [{"name": "mydb"}],
-                }))
+                f.write_text(
+                    yaml.dump(
+                        {
+                            "version": 2,
+                            "sources": [{"name": "mydb"}],
+                        }
+                    )
+                )
             result = _scan_sources(Path(tmpdir))
             assert result == ["mydb"]
 
@@ -98,28 +111,37 @@ class TestScanSources:
 # A3: Schema test + _find_model_columns
 # ---------------------------------------------------------------------------
 
+
 class TestFindModelColumns:
     def test_finds_columns_from_yml(self):
         from dbt_forge.cli.add import _find_model_columns
+
         with tempfile.TemporaryDirectory() as tmpdir:
             models_dir = Path(tmpdir) / "models" / "staging"
             models_dir.mkdir(parents=True)
             yml = models_dir / "_stg_orders__models.yml"
-            yml.write_text(yaml.dump({
-                "version": 2,
-                "models": [{
-                    "name": "stg_orders",
-                    "columns": [
-                        {"name": "id", "description": "PK"},
-                        {"name": "amount", "description": "Total"},
-                    ],
-                }],
-            }))
+            yml.write_text(
+                yaml.dump(
+                    {
+                        "version": 2,
+                        "models": [
+                            {
+                                "name": "stg_orders",
+                                "columns": [
+                                    {"name": "id", "description": "PK"},
+                                    {"name": "amount", "description": "Total"},
+                                ],
+                            }
+                        ],
+                    }
+                )
+            )
             result = _find_model_columns(Path(tmpdir), "stg_orders")
             assert result == ["id", "amount"]
 
     def test_returns_empty_when_no_model(self):
         from dbt_forge.cli.add import _find_model_columns
+
         with tempfile.TemporaryDirectory() as tmpdir:
             (Path(tmpdir) / "models").mkdir()
             result = _find_model_columns(Path(tmpdir), "nonexistent")
@@ -129,13 +151,15 @@ class TestFindModelColumns:
 class TestSchemaTestTemplate:
     def test_renders_schema_test(self):
         from dbt_forge.generator.renderer import render_template
+
         ctx = {
             "model_name": "stg_orders",
             "columns": [
                 {"name": "id", "tests": ["unique", "not_null"]},
-                {"name": "status", "tests": [
-                    {"accepted_values": {"values": ["active", "inactive"]}}
-                ]},
+                {
+                    "name": "status",
+                    "tests": [{"accepted_values": {"values": ["active", "inactive"]}}],
+                },
             ],
         }
         content = render_template("add/test_schema.yml.j2", ctx)
@@ -155,6 +179,7 @@ class TestSchemaTestTemplate:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 with patch("dbt_forge.cli.add.questionary") as mock_q:
                     mock_q.Style = lambda x: None
@@ -163,19 +188,15 @@ class TestSchemaTestTemplate:
                     # Then: checkbox for tests per column
                     select_returns = iter(["schema"])
                     text_returns = iter(["id,amount"])
-                    checkbox_returns = iter([
-                        ["unique", "not_null"],  # tests for id
-                        ["not_null"],  # tests for amount
-                    ])
-                    mock_q.select.return_value.ask.side_effect = (
-                        lambda: next(select_returns)
+                    checkbox_returns = iter(
+                        [
+                            ["unique", "not_null"],  # tests for id
+                            ["not_null"],  # tests for amount
+                        ]
                     )
-                    mock_q.text.return_value.ask.side_effect = (
-                        lambda: next(text_returns)
-                    )
-                    mock_q.checkbox.return_value.ask.side_effect = (
-                        lambda: next(checkbox_returns)
-                    )
+                    mock_q.select.return_value.ask.side_effect = lambda: next(select_returns)
+                    mock_q.text.return_value.ask.side_effect = lambda: next(text_returns)
+                    mock_q.checkbox.return_value.ask.side_effect = lambda: next(checkbox_returns)
                     mock_q.Choice = lambda title="", value="", checked=False: value
                     result = runner.invoke(add_app, ["test", "stg_orders"])
                     assert result.exit_code == 0, result.output
@@ -192,6 +213,7 @@ class TestSchemaTestTemplate:
 # A4: Package config generation
 # ---------------------------------------------------------------------------
 
+
 class TestPackageConfig:
     def test_elementary_adds_vars(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -202,15 +224,14 @@ class TestPackageConfig:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["package", "elementary"])
                 assert result.exit_code == 0, result.output
             finally:
                 os.chdir(old_cwd)
 
-            dbt_project = yaml.safe_load(
-                (project_root / "dbt_project.yml").read_text()
-            )
+            dbt_project = yaml.safe_load((project_root / "dbt_project.yml").read_text())
             assert "vars" in dbt_project
             assert "elementary" in dbt_project["vars"]
             assert dbt_project["vars"]["elementary"]["edr_cli_run"] == "true"
@@ -225,6 +246,7 @@ class TestPackageConfig:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["package", "dbt-codegen"])
                 assert result.exit_code == 0, result.output
@@ -241,9 +263,11 @@ class TestPackageConfig:
 # B1: Scanner module
 # ---------------------------------------------------------------------------
 
+
 class TestScanner:
     def test_count_models_by_layer(self):
         from dbt_forge.scanner import count_models_by_layer
+
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = _scaffold(tmpdir)
             counts = count_models_by_layer(project_root)
@@ -253,6 +277,7 @@ class TestScanner:
 
     def test_parse_sources(self):
         from dbt_forge.scanner import parse_sources
+
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = _scaffold(tmpdir)
             sources = parse_sources(project_root)
@@ -261,6 +286,7 @@ class TestScanner:
 
     def test_parse_packages(self):
         from dbt_forge.scanner import parse_packages
+
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = _scaffold(tmpdir)
             packages = parse_packages(project_root)
@@ -273,6 +299,7 @@ class TestScanner:
 # B2: Status command
 # ---------------------------------------------------------------------------
 
+
 class TestStatus:
     def test_status_runs(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -283,6 +310,7 @@ class TestStatus:
                 from typer.testing import CliRunner
 
                 from dbt_forge.main import app
+
                 runner = CliRunner()
                 result = runner.invoke(app, ["status"])
                 assert result.exit_code == 0, result.output
@@ -294,6 +322,7 @@ class TestStatus:
 # ---------------------------------------------------------------------------
 # B3: Manifest + Update
 # ---------------------------------------------------------------------------
+
 
 class TestManifest:
     def test_manifest_created_on_generate(self):
@@ -307,6 +336,7 @@ class TestManifest:
             dict_to_config,
             read_manifest,
         )
+
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = _scaffold(tmpdir)
             manifest = read_manifest(project_root)
@@ -330,6 +360,7 @@ class TestManifest:
                 from typer.testing import CliRunner
 
                 from dbt_forge.main import app
+
                 runner = CliRunner()
                 result = runner.invoke(app, ["update", "--dry-run"])
                 assert result.exit_code == 0, result.output
@@ -350,6 +381,7 @@ class TestManifest:
                 from typer.testing import CliRunner
 
                 from dbt_forge.main import app
+
                 runner = CliRunner()
                 result = runner.invoke(app, ["update", "--dry-run"])
                 assert result.exit_code == 0, result.output
@@ -367,6 +399,7 @@ class TestManifest:
                 from typer.testing import CliRunner
 
                 from dbt_forge.main import app
+
                 runner = CliRunner()
                 result = runner.invoke(app, ["update", "--dry-run"])
                 assert result.exit_code == 0
@@ -379,9 +412,11 @@ class TestManifest:
 # B4: Presets
 # ---------------------------------------------------------------------------
 
+
 class TestPresets:
     def test_load_preset_from_string(self):
         from dbt_forge.presets import PresetConfig, validate_preset
+
         preset = PresetConfig(
             name="Test",
             description="A test preset",
@@ -393,6 +428,7 @@ class TestPresets:
 
     def test_validate_unknown_field(self):
         from dbt_forge.presets import PresetConfig, validate_preset
+
         preset = PresetConfig(
             defaults={"nonexistent_field": True},
             locked=[],
@@ -402,6 +438,7 @@ class TestPresets:
 
     def test_validate_locked_without_default(self):
         from dbt_forge.presets import PresetConfig, validate_preset
+
         preset = PresetConfig(
             defaults={},
             locked=["adapter"],
@@ -411,6 +448,7 @@ class TestPresets:
 
     def test_validate_invalid_adapter(self):
         from dbt_forge.presets import PresetConfig, validate_preset
+
         preset = PresetConfig(
             defaults={"adapter": "MySQL"},
             locked=[],
@@ -420,18 +458,23 @@ class TestPresets:
 
     def test_load_preset_from_file(self):
         from dbt_forge.presets import load_preset
+
         with tempfile.TemporaryDirectory() as tmpdir:
             preset_path = Path(tmpdir) / "preset.yml"
-            preset_path.write_text(yaml.dump({
-                "name": "Company Standard",
-                "description": "Standard config",
-                "defaults": {
-                    "adapter": "Snowflake",
-                    "marts": ["finance"],
-                    "add_sqlfluff": True,
-                },
-                "locked": ["adapter"],
-            }))
+            preset_path.write_text(
+                yaml.dump(
+                    {
+                        "name": "Company Standard",
+                        "description": "Standard config",
+                        "defaults": {
+                            "adapter": "Snowflake",
+                            "marts": ["finance"],
+                            "add_sqlfluff": True,
+                        },
+                        "locked": ["adapter"],
+                    }
+                )
+            )
             preset = load_preset(str(preset_path))
             assert preset.name == "Company Standard"
             assert preset.defaults["adapter"] == "Snowflake"
@@ -440,14 +483,19 @@ class TestPresets:
     def test_preset_validate_command(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             preset_path = Path(tmpdir) / "preset.yml"
-            preset_path.write_text(yaml.dump({
-                "name": "Valid Preset",
-                "defaults": {"adapter": "BigQuery"},
-                "locked": ["adapter"],
-            }))
+            preset_path.write_text(
+                yaml.dump(
+                    {
+                        "name": "Valid Preset",
+                        "defaults": {"adapter": "BigQuery"},
+                        "locked": ["adapter"],
+                    }
+                )
+            )
             from typer.testing import CliRunner
 
             from dbt_forge.main import app
+
             runner = CliRunner()
             result = runner.invoke(app, ["preset", "validate", str(preset_path)])
             assert result.exit_code == 0, result.output
@@ -456,13 +504,18 @@ class TestPresets:
     def test_preset_validate_command_fails_on_errors(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             preset_path = Path(tmpdir) / "preset.yml"
-            preset_path.write_text(yaml.dump({
-                "name": "Bad Preset",
-                "defaults": {"nonexistent": True},
-            }))
+            preset_path.write_text(
+                yaml.dump(
+                    {
+                        "name": "Bad Preset",
+                        "defaults": {"nonexistent": True},
+                    }
+                )
+            )
             from typer.testing import CliRunner
 
             from dbt_forge.main import app
+
             runner = CliRunner()
             result = runner.invoke(app, ["preset", "validate", str(preset_path)])
             assert result.exit_code != 0
@@ -482,8 +535,11 @@ class TestPresets:
                 "add_env_config": False,
             },
             locked=[
-                "adapter", "add_sqlfluff", "ci_providers",
-                "add_pre_commit", "add_env_config",
+                "adapter",
+                "add_sqlfluff",
+                "ci_providers",
+                "add_pre_commit",
+                "add_env_config",
             ],
         )
 

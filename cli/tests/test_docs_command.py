@@ -1,4 +1,5 @@
 """Tests for AI docs generate command."""
+
 from __future__ import annotations
 
 import tempfile
@@ -92,9 +93,7 @@ class TestFindModelsNeedingDocs:
                     }
                 ],
             }
-            (models / "_models.yml").write_text(
-                yaml.dump(yml, default_flow_style=False)
-            )
+            (models / "_models.yml").write_text(yaml.dump(yml, default_flow_style=False))
             results = find_models_needing_docs(root)
             assert len(results) == 0
 
@@ -247,10 +246,9 @@ class TestRunDocsGenerate:
             provider = MockProvider()
 
             # Patch to avoid project root detection and provider selection
-            with patch(
-                "dbt_forge.cli.add._find_project_root", return_value=root
-            ), patch(
-                "dbt_forge.cli.docs_cmd._select_provider", return_value=provider
+            with (
+                patch("dbt_forge.cli.add._find_project_root", return_value=root),
+                patch("dbt_forge.cli.docs_cmd._select_provider", return_value=provider),
             ):
                 from dbt_forge.cli.docs_cmd import run_docs_generate
 
@@ -273,10 +271,9 @@ class TestRunDocsGenerate:
             root = _create_test_project(tmpdir)
             provider = MockProvider()
 
-            with patch(
-                "dbt_forge.cli.add._find_project_root", return_value=root
-            ), patch(
-                "dbt_forge.cli.docs_cmd._select_provider", return_value=provider
+            with (
+                patch("dbt_forge.cli.add._find_project_root", return_value=root),
+                patch("dbt_forge.cli.docs_cmd._select_provider", return_value=provider),
             ):
                 from dbt_forge.cli.docs_cmd import run_docs_generate
 
@@ -290,10 +287,9 @@ class TestRunDocsGenerate:
             root = _create_test_project(tmpdir)
             provider = MockProvider()
 
-            with patch(
-                "dbt_forge.cli.add._find_project_root", return_value=root
-            ), patch(
-                "dbt_forge.cli.docs_cmd._select_provider", return_value=provider
+            with (
+                patch("dbt_forge.cli.add._find_project_root", return_value=root),
+                patch("dbt_forge.cli.docs_cmd._select_provider", return_value=provider),
             ):
                 from dbt_forge.cli.docs_cmd import run_docs_generate
 
@@ -319,15 +315,12 @@ class TestRunDocsGenerate:
                     }
                 ],
             }
-            (models / "_models.yml").write_text(
-                yaml.dump(yml, default_flow_style=False)
-            )
+            (models / "_models.yml").write_text(yaml.dump(yml, default_flow_style=False))
 
             provider = MockProvider()
-            with patch(
-                "dbt_forge.cli.add._find_project_root", return_value=root
-            ), patch(
-                "dbt_forge.cli.docs_cmd._select_provider", return_value=provider
+            with (
+                patch("dbt_forge.cli.add._find_project_root", return_value=root),
+                patch("dbt_forge.cli.docs_cmd._select_provider", return_value=provider),
             ):
                 from dbt_forge.cli.docs_cmd import run_docs_generate
 
@@ -353,10 +346,9 @@ class TestRunDocsGenerate:
             root = _create_test_project(tmpdir)
             provider = FailingProvider()
 
-            with patch(
-                "dbt_forge.cli.add._find_project_root", return_value=root
-            ), patch(
-                "dbt_forge.cli.docs_cmd._select_provider", return_value=provider
+            with (
+                patch("dbt_forge.cli.add._find_project_root", return_value=root),
+                patch("dbt_forge.cli.docs_cmd._select_provider", return_value=provider),
             ):
                 from dbt_forge.cli.docs_cmd import run_docs_generate
 
@@ -393,15 +385,12 @@ class TestRunDocsGenerate:
                     },
                 ],
             }
-            (models / "_models.yml").write_text(
-                yaml.dump(yml, default_flow_style=False)
-            )
+            (models / "_models.yml").write_text(yaml.dump(yml, default_flow_style=False))
 
             provider = MockProvider()
-            with patch(
-                "dbt_forge.cli.add._find_project_root", return_value=root
-            ), patch(
-                "dbt_forge.cli.docs_cmd._select_provider", return_value=provider
+            with (
+                patch("dbt_forge.cli.add._find_project_root", return_value=root),
+                patch("dbt_forge.cli.docs_cmd._select_provider", return_value=provider),
             ):
                 from dbt_forge.cli.docs_cmd import run_docs_generate
 

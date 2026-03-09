@@ -92,31 +92,118 @@ _COLUMN_DEF_RE = re.compile(
 )
 
 # SQL keywords that should NOT be treated as column names
-_SQL_KEYWORDS = frozenset({
-    "select", "from", "where", "and", "or", "not", "in", "on", "as",
-    "join", "inner", "left", "right", "outer", "cross", "full", "group",
-    "order", "by", "having", "limit", "offset", "union", "all", "insert",
-    "into", "values", "update", "set", "delete", "create", "drop",
-    "alter", "table", "view", "index", "primary", "key", "foreign",
-    "references", "constraint", "default", "null", "unique", "check",
-    "if", "exists", "temp", "temporary", "replace", "with", "case",
-    "when", "then", "else", "end", "cast", "is", "like", "between",
-    "distinct", "asc", "desc", "true", "false",
-})
+_SQL_KEYWORDS = frozenset(
+    {
+        "select",
+        "from",
+        "where",
+        "and",
+        "or",
+        "not",
+        "in",
+        "on",
+        "as",
+        "join",
+        "inner",
+        "left",
+        "right",
+        "outer",
+        "cross",
+        "full",
+        "group",
+        "order",
+        "by",
+        "having",
+        "limit",
+        "offset",
+        "union",
+        "all",
+        "insert",
+        "into",
+        "values",
+        "update",
+        "set",
+        "delete",
+        "create",
+        "drop",
+        "alter",
+        "table",
+        "view",
+        "index",
+        "primary",
+        "key",
+        "foreign",
+        "references",
+        "constraint",
+        "default",
+        "null",
+        "unique",
+        "check",
+        "if",
+        "exists",
+        "temp",
+        "temporary",
+        "replace",
+        "with",
+        "case",
+        "when",
+        "then",
+        "else",
+        "end",
+        "cast",
+        "is",
+        "like",
+        "between",
+        "distinct",
+        "asc",
+        "desc",
+        "true",
+        "false",
+    }
+)
 
 # Data type keywords to validate column parsing
-_DATA_TYPES = frozenset({
-    "int", "integer", "bigint", "smallint", "tinyint",
-    "float", "double", "real", "decimal", "numeric",
-    "varchar", "char", "character", "text", "string", "clob",
-    "boolean", "bool",
-    "date", "time", "timestamp", "datetime", "timestamptz",
-    "blob", "binary", "varbinary", "bytea",
-    "json", "jsonb", "xml",
-    "uuid", "serial", "bigserial",
-    "array", "map", "struct",
-    "number",
-})
+_DATA_TYPES = frozenset(
+    {
+        "int",
+        "integer",
+        "bigint",
+        "smallint",
+        "tinyint",
+        "float",
+        "double",
+        "real",
+        "decimal",
+        "numeric",
+        "varchar",
+        "char",
+        "character",
+        "text",
+        "string",
+        "clob",
+        "boolean",
+        "bool",
+        "date",
+        "time",
+        "timestamp",
+        "datetime",
+        "timestamptz",
+        "blob",
+        "binary",
+        "varbinary",
+        "bytea",
+        "json",
+        "jsonb",
+        "xml",
+        "uuid",
+        "serial",
+        "bigserial",
+        "array",
+        "map",
+        "struct",
+        "number",
+    }
+)
 
 
 def _parse_table_ref(raw: str) -> TableRef:
@@ -134,7 +221,7 @@ def _extract_cte_names(sql: str) -> set[str]:
     for m in _CTE_RE.finditer(sql):
         names.add(m.group(1).lower())
         # Find continuation CTEs after this WITH block
-        rest = sql[m.end():]
+        rest = sql[m.end() :]
         # Walk through balanced parens to find comma-separated CTEs
         for cm in _CTE_CONTINUATION_RE.finditer(rest):
             names.add(cm.group(1).lower())
@@ -151,7 +238,7 @@ def parse_create_statement(sql: str) -> list[CreateStatement]:
 
         # Try to extract column definitions for CREATE TABLE ... (col1 type1, ...)
         columns: list[ColumnDef] = []
-        after_name = sql[m.end():].lstrip()
+        after_name = sql[m.end() :].lstrip()
         if after_name.startswith("(") and kind == "TABLE":
             # Find matching closing paren
             depth = 0
@@ -175,12 +262,14 @@ def parse_create_statement(sql: str) -> list[CreateStatement]:
                         if col_name.lower() not in _SQL_KEYWORDS and type_base in _DATA_TYPES:
                             columns.append(ColumnDef(name=col_name, data_type=col_type))
 
-        results.append(CreateStatement(
-            table_ref=table_ref,
-            view_or_table=kind,
-            columns=columns,
-            raw_sql=sql,
-        ))
+        results.append(
+            CreateStatement(
+                table_ref=table_ref,
+                view_or_table=kind,
+                columns=columns,
+                raw_sql=sql,
+            )
+        )
     return results
 
 

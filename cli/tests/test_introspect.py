@@ -179,9 +179,7 @@ class TestIntrospectedTemplates:
             ColumnMetadata(name="name", data_type="VARCHAR", is_nullable=True),
         ]
         tables = [
-            TableMetadata(
-                schema_name="raw", table_name="users", table_type="TABLE", columns=cols
-            ),
+            TableMetadata(schema_name="raw", table_name="users", table_type="TABLE", columns=cols),
         ]
         result = render_template(
             "add/introspected_sources.yml.j2",

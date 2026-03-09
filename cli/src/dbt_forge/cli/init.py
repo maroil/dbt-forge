@@ -84,9 +84,7 @@ def init_mesh_command(
                 SubProjectConfig(
                     name="transform", purpose="intermediate", upstream_deps=["staging"]
                 ),
-                SubProjectConfig(
-                    name="marts", purpose="marts", upstream_deps=["transform"]
-                ),
+                SubProjectConfig(name="marts", purpose="marts", upstream_deps=["transform"]),
             ],
             output_dir=output_dir,
         )
@@ -98,9 +96,7 @@ def init_mesh_command(
     if dry_run:
         paths = generate_mesh_project(config)
         base = Path(output_dir) / config.name
-        console.print(
-            f"  [yellow]dry-run[/yellow]  {len(paths)} files would be written."
-        )
+        console.print(f"  [yellow]dry-run[/yellow]  {len(paths)} files would be written.")
         # Clean up the generated files in dry-run
         if base.exists():
             shutil.rmtree(base)
@@ -134,9 +130,7 @@ def _run_dry(config: ProjectConfig, output_dir: str) -> None:
             return tree
         parent = get_node(directory.parent)
         if directory not in dir_nodes:
-            dir_nodes[directory] = parent.add(
-                f"[bold blue]{directory.name}/[/bold blue]"
-            )
+            dir_nodes[directory] = parent.add(f"[bold blue]{directory.name}/[/bold blue]")
         return dir_nodes[directory]
 
     for path in sorted(paths):

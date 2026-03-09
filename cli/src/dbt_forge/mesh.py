@@ -1,4 +1,5 @@
 """dbt Mesh multi-project scaffolding."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -75,9 +76,7 @@ def generate_mesh_project(config: MeshProjectConfig) -> list[Path]:
     return written
 
 
-def _generate_sub_project(
-    base: Path, sp: SubProjectConfig, ctx: dict, written: list[Path]
-) -> None:
+def _generate_sub_project(base: Path, sp: SubProjectConfig, ctx: dict, written: list[Path]) -> None:
     """Generate a single sub-project within a mesh."""
     sp_dir = base / sp.name
 
@@ -160,11 +159,7 @@ def _purpose_to_layer(purpose: str) -> str | None:
         return "staging"
     if "transform" in purpose_lower or "intermediate" in purpose_lower:
         return "intermediate"
-    if (
-        "marts" in purpose_lower
-        or "analytics" in purpose_lower
-        or "reporting" in purpose_lower
-    ):
+    if "marts" in purpose_lower or "analytics" in purpose_lower or "reporting" in purpose_lower:
         return "marts"
     return None
 

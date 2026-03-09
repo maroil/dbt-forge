@@ -41,7 +41,7 @@ def _strip_create_prefix(sql: str) -> str:
     """Strip CREATE TABLE/VIEW ... AS prefix, leaving just the SELECT."""
     m = _CREATE_PREFIX_RE.search(sql)
     if m:
-        return sql[m.end():].strip().rstrip(";").strip()
+        return sql[m.end() :].strip().rstrip(";").strip()
     return sql.strip().rstrip(";").strip()
 
 
@@ -160,14 +160,16 @@ def run_migrate(
                 columns = cs.columns
                 break
 
-        models_info.append({
-            "name": model_name,
-            "layer": layer,
-            "node_key": node_key,
-            "original_file": str(pf.file_path),
-            "columns": columns,
-            "raw_sql": pf.raw_sql,
-        })
+        models_info.append(
+            {
+                "name": model_name,
+                "layer": layer,
+                "node_key": node_key,
+                "original_file": str(pf.file_path),
+                "columns": columns,
+                "raw_sql": pf.raw_sql,
+            }
+        )
 
     # Build source_map for ref replacement
     source_map: dict[str, tuple[str, str]] = {}
@@ -178,8 +180,9 @@ def run_migrate(
             source_map[table] = (schema, table)
 
     # Print summary
-    console.print(f"  Found [bold]{len(models_info)}[/bold] model(s), "
-                  f"[bold]{len(sources)}[/bold] source(s)")
+    console.print(
+        f"  Found [bold]{len(models_info)}[/bold] model(s), [bold]{len(sources)}[/bold] source(s)"
+    )
     console.print()
 
     # Show table
@@ -202,11 +205,14 @@ def run_migrate(
     # Generate source YAML files
     for schema, tables in sources.items():
         source_path = out_path / "models" / "staging" / schema / f"_{schema}__sources.yml"
-        content = render_template("migrate/source.yml.j2", {
-            "source_name": schema,
-            "schema": schema,
-            "tables": sorted(tables),
-        })
+        content = render_template(
+            "migrate/source.yml.j2",
+            {
+                "source_name": schema,
+                "schema": schema,
+                "tables": sorted(tables),
+            },
+        )
         _write_file(source_path, content)
         files_written.append(str(source_path))
 
@@ -228,32 +234,41 @@ def run_migrate(
         sql_body = _strip_create_prefix(model["raw_sql"])
         sql_body = replace_refs_in_sql(sql_body, ref_map, source_map)
 
-        sql_content = render_template("migrate/model.sql.j2", {
-            "sql_body": sql_body,
-        })
+        sql_content = render_template(
+            "migrate/model.sql.j2",
+            {
+                "sql_body": sql_body,
+            },
+        )
         sql_dest = sub_dir / f"{model_name}.sql"
         _write_file(sql_dest, sql_content)
         files_written.append(str(sql_dest))
 
         # Generate YAML
-        yml_content = render_template("migrate/model.yml.j2", {
-            "model_name": model_name,
-            "original_file": model["original_file"],
-            "columns": [{"name": c.name, "data_type": c.data_type} for c in model["columns"]],
-        })
+        yml_content = render_template(
+            "migrate/model.yml.j2",
+            {
+                "model_name": model_name,
+                "original_file": model["original_file"],
+                "columns": [{"name": c.name, "data_type": c.data_type} for c in model["columns"]],
+            },
+        )
         yml_dest = sub_dir / f"_{model_name}__models.yml"
         _write_file(yml_dest, yml_content)
         files_written.append(str(yml_dest))
 
     # Generate migration report
-    report_content = render_template("migrate/migration_report.md.j2", {
-        "files_scanned": len(sql_files),
-        "models_generated": len(models_info),
-        "sources_detected": len(sources),
-        "models": models_info,
-        "sources": {s: sorted(t) for s, t in sources.items()},
-        "dependency_order": dep_order,
-    })
+    report_content = render_template(
+        "migrate/migration_report.md.j2",
+        {
+            "files_scanned": len(sql_files),
+            "models_generated": len(models_info),
+            "sources_detected": len(sources),
+            "models": models_info,
+            "sources": {s: sorted(t) for s, t in sources.items()},
+            "dependency_order": dep_order,
+        },
+    )
     report_dest = out_path / "migration_report.md"
     _write_file(report_dest, report_content)
     files_written.append(str(report_dest))

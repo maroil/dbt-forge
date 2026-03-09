@@ -17,6 +17,7 @@ from dbt_forge.generator.renderer import render_template
 
 console = Console()
 
+
 class AddHelpGroup(typer.core.TyperGroup):
     """Custom group that appends usage examples after the default help."""
 
@@ -84,9 +85,7 @@ def _write(dest: Path, content: str) -> None:
 @add_app.command("project")
 def add_project(
     name: str = typer.Argument(..., help="Name of the sub-project to add."),
-    purpose: str = typer.Option(
-        "", "--purpose", help="Purpose (staging, transform, marts)."
-    ),
+    purpose: str = typer.Option("", "--purpose", help="Purpose (staging, transform, marts)."),
 ) -> None:
     """Add a new sub-project to a dbt Mesh setup."""
     mesh_root = _find_mesh_root()
@@ -95,9 +94,7 @@ def add_project(
     existing = _find_existing_sub_projects(mesh_root)
 
     if not existing:
-        console.print(
-            "[red]Error:[/red] No existing sub-projects found. Is this a mesh project?"
-        )
+        console.print("[red]Error:[/red] No existing sub-projects found. Is this a mesh project?")
         sys.exit(1)
 
     # Select upstream deps interactively
@@ -123,8 +120,7 @@ def add_project(
 
     console.print()
     console.print(
-        f"  Adding sub-project [bold cyan]{name}[/bold cyan]"
-        f" to mesh [bold]{mesh_root.name}[/bold]"
+        f"  Adding sub-project [bold cyan]{name}[/bold cyan] to mesh [bold]{mesh_root.name}[/bold]"
     )
     console.print()
 
@@ -148,8 +144,7 @@ def add_project(
     )
 
     console.print(
-        f"  [green]\u2714[/green]  Created {len(written)} files"
-        f" in [bold]{mesh_root / name}[/bold]"
+        f"  [green]\u2714[/green]  Created {len(written)} files in [bold]{mesh_root / name}[/bold]"
     )
     console.print()
 
@@ -196,11 +191,7 @@ def _is_mesh_root(path: Path) -> bool:
 def _find_existing_sub_projects(mesh_root: Path) -> list[str]:
     """Find existing sub-project names in a mesh."""
     return sorted(
-        [
-            d.name
-            for d in mesh_root.iterdir()
-            if d.is_dir() and (d / "dbt_project.yml").exists()
-        ]
+        [d.name for d in mesh_root.iterdir() if d.is_dir() and (d / "dbt_project.yml").exists()]
     )
 
 
@@ -366,11 +357,14 @@ def _add_source_from_database(
     # Source YAML
     _write(
         staging_dir / f"_{source_name}__sources.yml",
-        render_template("add/introspected_sources.yml.j2", {
-            "source_name": source_name,
-            "schema": schema,
-            "tables": table_metadata,
-        }),
+        render_template(
+            "add/introspected_sources.yml.j2",
+            {
+                "source_name": source_name,
+                "schema": schema,
+                "tables": table_metadata,
+            },
+        ),
     )
 
     # Staging models
@@ -378,11 +372,14 @@ def _add_source_from_database(
         model_name = f"stg_{source_name}__{tm.table_name}"
         _write(
             staging_dir / f"{model_name}.sql",
-            render_template("add/introspected_stg_model.sql.j2", {
-                "source_name": source_name,
-                "table_name": tm.table_name,
-                "columns": tm.columns,
-            }),
+            render_template(
+                "add/introspected_stg_model.sql.j2",
+                {
+                    "source_name": source_name,
+                    "table_name": tm.table_name,
+                    "columns": tm.columns,
+                },
+            ),
         )
 
     console.print()
@@ -511,8 +508,7 @@ def add_macro(
 
     console.print()
     console.print(
-        f"  [dim]Macro [bold]{name}[/bold] scaffolded. "
-        "Add your macro logic inside the block.[/dim]"
+        f"  [dim]Macro [bold]{name}[/bold] scaffolded. Add your macro logic inside the block.[/dim]"
     )
     console.print()
 
@@ -520,6 +516,7 @@ def add_macro(
 # ---------------------------------------------------------------------------
 # Helpers for new commands
 # ---------------------------------------------------------------------------
+
 
 def _read_adapter_from_profiles(project_root: Path) -> str:
     """Read the adapter type from profiles.yml. Returns adapter key like 'bigquery'."""
@@ -571,6 +568,7 @@ def _style() -> questionary.Style:
 # add pre-commit
 # ---------------------------------------------------------------------------
 
+
 @add_app.command("pre-commit")
 def add_pre_commit() -> None:
     """Scaffold pre-commit config, .editorconfig, and .sqlfluffignore."""
@@ -587,9 +585,7 @@ def add_pre_commit() -> None:
     }
 
     console.print()
-    console.print(
-        f"  Adding pre-commit config to [bold]{project_root.name}[/bold]"
-    )
+    console.print(f"  Adding pre-commit config to [bold]{project_root.name}[/bold]")
     console.print()
 
     _write(
@@ -608,8 +604,7 @@ def add_pre_commit() -> None:
 
     console.print()
     console.print(
-        "  [dim]Pre-commit configured. Run [bold]pre-commit install[/bold] "
-        "to activate hooks.[/dim]"
+        "  [dim]Pre-commit configured. Run [bold]pre-commit install[/bold] to activate hooks.[/dim]"
     )
     console.print()
 
@@ -659,15 +654,12 @@ def add_ci(
         selected = [provider_map[provider.lower()]]
     elif provider:
         console.print(
-            f"[red]Error:[/red] Unknown provider '{provider}'."
-            " Use: github, gitlab, bitbucket"
+            f"[red]Error:[/red] Unknown provider '{provider}'. Use: github, gitlab, bitbucket"
         )
         sys.exit(1)
     else:
         # Interactive prompt
-        choices = [
-            questionary.Choice(title=p, value=p) for p in CI_PROVIDERS
-        ]
+        choices = [questionary.Choice(title=p, value=p) for p in CI_PROVIDERS]
         selected = questionary.checkbox(
             "Select CI provider(s):",
             choices=choices,
@@ -680,10 +672,14 @@ def add_ci(
 
     # Adapter name mapping (profile type → display name for templates)
     adapter_display = {
-        "bigquery": "BigQuery", "snowflake": "Snowflake",
-        "postgres": "PostgreSQL", "duckdb": "DuckDB",
-        "databricks": "Databricks", "redshift": "Redshift",
-        "trino": "Trino", "spark": "Spark",
+        "bigquery": "BigQuery",
+        "snowflake": "Snowflake",
+        "postgres": "PostgreSQL",
+        "duckdb": "DuckDB",
+        "databricks": "Databricks",
+        "redshift": "Redshift",
+        "trino": "Trino",
+        "spark": "Spark",
     }
 
     ctx = {
@@ -695,9 +691,7 @@ def add_ci(
     }
 
     console.print()
-    console.print(
-        f"  Adding CI config to [bold]{project_root.name}[/bold]"
-    )
+    console.print(f"  Adding CI config to [bold]{project_root.name}[/bold]")
     console.print()
 
     for prov in selected:
@@ -718,6 +712,7 @@ def add_ci(
 # ---------------------------------------------------------------------------
 # add model
 # ---------------------------------------------------------------------------
+
 
 def _scan_sources(project_root: Path) -> list[str]:
     """Scan models directory for source YAML files and extract source names."""
@@ -865,11 +860,13 @@ def add_model(
                 console.print("\n[dim]Aborted.[/dim]")
                 return
 
-            columns.append({
-                "name": col_name.strip(),
-                "description": col_desc,
-                "tests": col_tests,
-            })
+            columns.append(
+                {
+                    "name": col_name.strip(),
+                    "description": col_desc,
+                    "tests": col_tests,
+                }
+            )
 
     # Determine model name and directory
     if layer == "staging":
@@ -925,6 +922,7 @@ def add_model(
 # add test
 # ---------------------------------------------------------------------------
 
+
 def _find_model_columns(project_root: Path, model_name: str) -> list[str]:
     """Scan YAML files for a model entry and return its column names."""
     models_dir = project_root / "models"
@@ -969,9 +967,7 @@ def add_test(
         return
 
     console.print()
-    console.print(
-        f"  Adding {test_type} test for [bold cyan]{model_name}[/bold cyan]"
-    )
+    console.print(f"  Adding {test_type} test for [bold cyan]{model_name}[/bold cyan]")
     console.print()
 
     if test_type == "data":
@@ -1037,9 +1033,7 @@ def add_test(
                         console.print("\n[dim]Aborted.[/dim]")
                         return
                     values = [v.strip() for v in vals.split(",") if v.strip()]
-                    resolved_tests.append({
-                        "accepted_values": {"values": values}
-                    })
+                    resolved_tests.append({"accepted_values": {"values": values}})
                 elif t == "relationships":
                     ref_model = questionary.text(
                         f"Relationships ref model for '{col}':",
@@ -1056,9 +1050,9 @@ def add_test(
                     if ref_field is None:
                         console.print("\n[dim]Aborted.[/dim]")
                         return
-                    resolved_tests.append({
-                        "relationships": {"to": f"ref('{ref_model}')", "field": ref_field}
-                    })
+                    resolved_tests.append(
+                        {"relationships": {"to": f"ref('{ref_model}')", "field": ref_field}}
+                    )
                 else:
                     resolved_tests.append(t)
             columns_data.append({"name": col, "tests": resolved_tests})
@@ -1108,10 +1102,14 @@ PACKAGE_REGISTRY: dict[str, dict] = {
     "dbt-project-evaluator": {
         "hub": "dbt-labs/dbt_project_evaluator",
         "version": [">=0.11.0", "<0.12.0"],
-        "config": {"vars": {"dbt_project_evaluator": {
-            "documentation_coverage_target": 100,
-            "test_coverage_target": 100,
-        }}},
+        "config": {
+            "vars": {
+                "dbt_project_evaluator": {
+                    "documentation_coverage_target": 100,
+                    "test_coverage_target": 100,
+                }
+            }
+        },
     },
     "dbt-meta-testing": {
         "hub": "tnightengale/dbt_meta_testing",
@@ -1177,9 +1175,7 @@ def add_package(
     name: Optional[str] = typer.Argument(
         None, help="Package name (e.g. 'dbt-utils'). Omit to browse."
     ),
-    list_packages: bool = typer.Option(
-        False, "--list", "-l", help="List all available packages."
-    ),
+    list_packages: bool = typer.Option(False, "--list", "-l", help="List all available packages."),
 ) -> None:
     """Add a dbt package to packages.yml with known-good version ranges."""
     project_root = _find_project_root()
@@ -1210,8 +1206,7 @@ def add_package(
 
     if name not in PACKAGE_REGISTRY:
         console.print(
-            f"[red]Error:[/red] Unknown package '{name}'."
-            " Use --list to see available packages."
+            f"[red]Error:[/red] Unknown package '{name}'. Use --list to see available packages."
         )
         console.print("[dim]For custom packages, add them manually to packages.yml.[/dim]")
         sys.exit(1)
@@ -1245,8 +1240,7 @@ def add_package(
 
     console.print()
     console.print(
-        f"  [green]\u2714[/green]  Added [bold]{name}[/bold]"
-        f" ({pkg_info['hub']}) to packages.yml"
+        f"  [green]\u2714[/green]  Added [bold]{name}[/bold] ({pkg_info['hub']}) to packages.yml"
     )
 
     # Apply package config (vars) to dbt_project.yml if needed
@@ -1272,9 +1266,7 @@ def add_package(
                     "  [yellow]warn[/yellow]  Could not parse dbt_project.yml to add config"
                 )
         else:
-            console.print(
-                "  [yellow]warn[/yellow]  No dbt_project.yml found — skipping config"
-            )
+            console.print("  [yellow]warn[/yellow]  No dbt_project.yml found — skipping config")
 
     console.print()
     console.print("  [dim]Run [bold]dbt deps[/bold] to install.[/dim]")

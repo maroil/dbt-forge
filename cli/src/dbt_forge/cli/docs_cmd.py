@@ -1,4 +1,5 @@
 """The ``docs generate`` command -- AI-assisted documentation generation."""
+
 from __future__ import annotations
 
 import sys
@@ -48,7 +49,8 @@ def run_docs_generate(
 
     if not models:
         console.print(
-            "  [green]\u2714[/green]  All models are fully documented!" if not model
+            "  [green]\u2714[/green]  All models are fully documented!"
+            if not model
             else f"  [yellow]No undocumented model found matching '{model}'.[/yellow]"
         )
         return
@@ -74,8 +76,7 @@ def run_docs_generate(
         existing = model_info["existing_descriptions"]
 
         console.print(
-            f"  [{i + 1}/{len(models)}] Generating docs for "
-            f"[bold cyan]{model_name}[/bold cyan]..."
+            f"  [{i + 1}/{len(models)}] Generating docs for [bold cyan]{model_name}[/bold cyan]..."
         )
 
         try:
@@ -139,9 +140,7 @@ def run_docs_generate(
 
         console.print()
 
-    console.print(
-        f"  [bold]Done.[/bold] {accepted} updated, {skipped} skipped."
-    )
+    console.print(f"  [bold]Done.[/bold] {accepted} updated, {skipped} skipped.")
     console.print()
 
 
@@ -173,9 +172,7 @@ def _select_provider(provider_key: str | None):
             sys.exit(1)
 
     # Multiple providers -- let user choose
-    choices = [
-        questionary.Choice(display, value=key) for key, display in available
-    ]
+    choices = [questionary.Choice(display, value=key) for key, display in available]
     selected = questionary.select(
         "Select LLM provider:",
         choices=choices,

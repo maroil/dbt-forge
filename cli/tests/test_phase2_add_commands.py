@@ -32,9 +32,11 @@ def _scaffold(tmpdir: str) -> Path:
 # add model (non-interactive — we test the template rendering directly)
 # ---------------------------------------------------------------------------
 
+
 class TestAddModelTemplates:
     def test_model_sql_renders_staging(self):
         from dbt_forge.generator.renderer import render_template
+
         ctx = {
             "model_name": "stg_stripe__payments",
             "name": "payments",
@@ -56,6 +58,7 @@ class TestAddModelTemplates:
 
     def test_model_sql_renders_incremental(self):
         from dbt_forge.generator.renderer import render_template
+
         ctx = {
             "model_name": "fct_orders",
             "name": "orders",
@@ -73,6 +76,7 @@ class TestAddModelTemplates:
 
     def test_model_yml_renders(self):
         from dbt_forge.generator.renderer import render_template
+
         ctx = {
             "model_name": "stg_stripe__payments",
             "materialization": "view",
@@ -92,6 +96,7 @@ class TestAddModelTemplates:
 # add test
 # ---------------------------------------------------------------------------
 
+
 class TestAddTest:
     def test_add_data_test(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -102,6 +107,7 @@ class TestAddTest:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 # Mock questionary to return "data"
                 with patch("dbt_forge.cli.add.questionary") as mock_q:
@@ -126,6 +132,7 @@ class TestAddTest:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 # Mock questionary to return "unit"
                 with patch("dbt_forge.cli.add.questionary") as mock_q:
@@ -147,6 +154,7 @@ class TestAddTest:
 # add package
 # ---------------------------------------------------------------------------
 
+
 class TestAddPackage:
     def test_add_known_package(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -157,6 +165,7 @@ class TestAddPackage:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["package", "dbt-codegen"])
                 assert result.exit_code == 0, result.output
@@ -176,6 +185,7 @@ class TestAddPackage:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 runner.invoke(add_app, ["package", "dbt-codegen"])
                 result = runner.invoke(add_app, ["package", "dbt-codegen"])
@@ -193,6 +203,7 @@ class TestAddPackage:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["package", "nonexistent-package"])
                 assert result.exit_code != 0
@@ -208,6 +219,7 @@ class TestAddPackage:
                 from typer.testing import CliRunner
 
                 from dbt_forge.cli.add import add_app
+
                 runner = CliRunner()
                 result = runner.invoke(add_app, ["package", "--list"])
                 assert result.exit_code == 0

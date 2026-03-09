@@ -1,4 +1,5 @@
 """LLM provider abstraction for doc generation."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

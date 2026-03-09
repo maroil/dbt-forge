@@ -1,4 +1,5 @@
 """Documentation utilities -- read/write model schema YAML."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -17,9 +18,7 @@ def find_models_needing_docs(project_root: Path) -> list[dict]:
         return []
 
     results = []
-    for yml_path in sorted(
-        list(models_dir.rglob("*.yml")) + list(models_dir.rglob("*.yaml"))
-    ):
+    for yml_path in sorted(list(models_dir.rglob("*.yml")) + list(models_dir.rglob("*.yaml"))):
         try:
             data = yaml.safe_load(yml_path.read_text())
         except yaml.YAMLError:
@@ -56,14 +55,16 @@ def find_models_needing_docs(project_root: Path) -> list[dict]:
             # Find corresponding SQL file
             sql_path = _find_sql_for_model(models_dir, model_name)
 
-            results.append({
-                "model_name": model_name,
-                "yml_path": yml_path,
-                "sql_path": sql_path,
-                "columns": col_names,
-                "existing_descriptions": existing,
-                "model_description": model_desc,
-            })
+            results.append(
+                {
+                    "model_name": model_name,
+                    "yml_path": yml_path,
+                    "sql_path": sql_path,
+                    "columns": col_names,
+                    "existing_descriptions": existing,
+                    "model_description": model_desc,
+                }
+            )
 
     return results
 

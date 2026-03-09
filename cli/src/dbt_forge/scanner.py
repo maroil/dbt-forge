@@ -126,10 +126,12 @@ def parse_sources(root: Path) -> list[dict]:
             if not isinstance(source, dict):
                 continue
             has_freshness = "freshness" in source or "freshness" in (source.get("config") or {})
-            sources.append({
-                "name": source.get("name", "unknown"),
-                "has_freshness": has_freshness,
-            })
+            sources.append(
+                {
+                    "name": source.get("name", "unknown"),
+                    "has_freshness": has_freshness,
+                }
+            )
     return sources
 
 

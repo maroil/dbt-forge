@@ -1,4 +1,5 @@
 """Tests for LLM provider abstraction."""
+
 from __future__ import annotations
 
 import json
@@ -43,13 +44,15 @@ class TestBuildPrompt:
 
 class TestParseResponse:
     def test_valid_json(self):
-        response = json.dumps({
-            "model_description": "Orders staging model",
-            "columns": {
-                "id": "Primary key",
-                "amount": "Order total",
-            },
-        })
+        response = json.dumps(
+            {
+                "model_description": "Orders staging model",
+                "columns": {
+                    "id": "Primary key",
+                    "amount": "Order total",
+                },
+            }
+        )
         result = parse_description_response("stg_orders", response)
         assert result.model_name == "stg_orders"
         assert result.model_description == "Orders staging model"
@@ -69,9 +72,9 @@ class TestParseResponse:
 
     def test_json_embedded_in_text(self):
         response = (
-            'Here are the descriptions:\n'
+            "Here are the descriptions:\n"
             '{"model_description": "Test model", "columns": {"id": "PK"}}\n'
-            'Done!'
+            "Done!"
         )
         result = parse_description_response("test", response)
         assert result.model_description == "Test model"

@@ -1,4 +1,5 @@
 """Tests for dbt Mesh multi-project scaffolding."""
+
 from __future__ import annotations
 
 import tempfile
@@ -28,9 +29,7 @@ class TestMeshGeneration:
                     purpose="intermediate",
                     upstream_deps=["staging"],
                 ),
-                SubProjectConfig(
-                    name="marts", purpose="marts", upstream_deps=["transform"]
-                ),
+                SubProjectConfig(name="marts", purpose="marts", upstream_deps=["transform"]),
             ],
             "output_dir": tmpdir,
         }
@@ -72,17 +71,13 @@ class TestMeshGeneration:
             base = Path(tmpdir) / "my_mesh"
 
             # Staging model should have "protected" access
-            staging_yml = list(
-                (base / "staging" / "models").rglob("*__models.yml")
-            )
+            staging_yml = list((base / "staging" / "models").rglob("*__models.yml"))
             assert staging_yml
             content = staging_yml[0].read_text()
             assert "access: protected" in content
 
             # Marts model should have "public" access
-            marts_yml = list(
-                (base / "marts" / "models").rglob("*__models.yml")
-            )
+            marts_yml = list((base / "marts" / "models").rglob("*__models.yml"))
             assert marts_yml
             content = marts_yml[0].read_text()
             assert "access: public" in content
@@ -93,9 +88,7 @@ class TestMeshGeneration:
             generate_mesh_project(config)
             base = Path(tmpdir) / "my_mesh"
 
-            marts_yml = list(
-                (base / "marts" / "models").rglob("*__models.yml")
-            )
+            marts_yml = list((base / "marts" / "models").rglob("*__models.yml"))
             assert marts_yml
             content = marts_yml[0].read_text()
             assert "enforced: true" in content
@@ -147,9 +140,7 @@ class TestMeshGeneration:
         with tempfile.TemporaryDirectory() as tmpdir:
             config = self._make_config(
                 tmpdir,
-                sub_projects=[
-                    SubProjectConfig(name="custom", purpose="general purpose")
-                ],
+                sub_projects=[SubProjectConfig(name="custom", purpose="general purpose")],
             )
             generate_mesh_project(config)
             base = Path(tmpdir) / "my_mesh" / "custom"
@@ -192,9 +183,7 @@ class TestAddSubProject:
             mesh_root = Path(tmpdir) / "my_mesh"
 
             # Now add a new sub-project
-            sp = SubProjectConfig(
-                name="analytics", purpose="marts", upstream_deps=["staging"]
-            )
+            sp = SubProjectConfig(name="analytics", purpose="marts", upstream_deps=["staging"])
             written = generate_sub_project_standalone(
                 mesh_root=mesh_root,
                 sp=sp,
@@ -205,9 +194,7 @@ class TestAddSubProject:
 
             assert (mesh_root / "analytics" / "dbt_project.yml").exists()
             assert (mesh_root / "analytics" / "dependencies.yml").exists()
-            dep_content = (
-                mesh_root / "analytics" / "dependencies.yml"
-            ).read_text()
+            dep_content = (mesh_root / "analytics" / "dependencies.yml").read_text()
             assert "staging" in dep_content
             assert len(written) > 5
 
@@ -226,9 +213,7 @@ class TestAddSubProject:
             generate_mesh_project(config)
             mesh_root = Path(tmpdir) / "my_mesh"
 
-            sp = SubProjectConfig(
-                name="standalone", purpose="", upstream_deps=[]
-            )
+            sp = SubProjectConfig(name="standalone", purpose="", upstream_deps=[])
             generate_sub_project_standalone(
                 mesh_root=mesh_root,
                 sp=sp,

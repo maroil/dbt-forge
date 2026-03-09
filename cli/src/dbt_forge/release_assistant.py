@@ -30,8 +30,7 @@ WEBSITE_GETTING_STARTED_FILE = (
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 UNRELEASED_STUB = "### Added\n\n- Nothing yet."
 RELEASE_NOTES_INTRO = (
-    "This project is preparing the Python CLI package release "
-    "`dbt-forge` version `{version}`."
+    "This project is preparing the Python CLI package release `dbt-forge` version `{version}`."
 )
 
 
@@ -132,13 +131,12 @@ def update_website_getting_started(content: str, version: str) -> str:
 
 def update_release_command_examples(content: str, version: str, *, file_label: str) -> str:
     """Refresh embedded release assistant examples in docs."""
+    cmd = "python3 scripts/release_assistant.py"
+    ver_re = r"[0-9]+\.[0-9]+\.[0-9]+"
     patterns = {
-        r"^python3 scripts/release_assistant.py prepare [0-9]+\.[0-9]+\.[0-9]+$":
-            f"python3 scripts/release_assistant.py prepare {version}",
-        r"^python3 scripts/release_assistant.py verify [0-9]+\.[0-9]+\.[0-9]+$":
-            f"python3 scripts/release_assistant.py verify {version}",
-        r"^python3 scripts/release_assistant.py publish [0-9]+\.[0-9]+\.[0-9]+ --confirm$":
-            f"python3 scripts/release_assistant.py publish {version} --confirm",
+        rf"^{cmd} prepare {ver_re}$": f"{cmd} prepare {version}",
+        rf"^{cmd} verify {ver_re}$": f"{cmd} verify {version}",
+        rf"^{cmd} publish {ver_re} --confirm$": f"{cmd} publish {version} --confirm",
     }
     updated = content
     for pattern, repl in patterns.items():
@@ -343,9 +341,7 @@ def _command_summary(output: str) -> str:
 
 def _warn_lines(output: str) -> list[str]:
     return [
-        line.strip()
-        for line in output.splitlines()
-        if "[WARN]" in line or line.startswith("WARN")
+        line.strip() for line in output.splitlines() if "[WARN]" in line or line.startswith("WARN")
     ]
 
 
@@ -381,9 +377,7 @@ def verify_release(
         ["git", "rev-parse", "origin/main"], repo_root=repo_root, runner=runner
     )
     if local_main != remote_main:
-        results.append(
-            CheckResult("FAIL", "git sync", "main is not aligned with origin/main")
-        )
+        results.append(CheckResult("FAIL", "git sync", "main is not aligned with origin/main"))
         return results
     results.append(CheckResult("PASS", "git sync", "main matches origin/main"))
 
@@ -395,9 +389,7 @@ def verify_release(
             version,
         ),
         "RELEASING target": (
-            extract_releasing_target(
-                read_text(repo_root / RELEASING_FILE.relative_to(REPO_ROOT))
-            ),
+            extract_releasing_target(read_text(repo_root / RELEASING_FILE.relative_to(REPO_ROOT))),
             version,
         ),
         "website quickstart track": (
@@ -416,9 +408,7 @@ def verify_release(
     if get_changelog_section(changelog_text, version) is None:
         mismatches.append("CHANGELOG.md missing released section")
     if mismatches:
-        results.append(
-            CheckResult("FAIL", "version consistency", "; ".join(mismatches))
-        )
+        results.append(CheckResult("FAIL", "version consistency", "; ".join(mismatches)))
         return results
     results.append(
         CheckResult("PASS", "version consistency", f"all release metadata points to {version}")
@@ -602,9 +592,7 @@ def print_summary(results: list[CheckResult]) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     """Create the CLI argument parser."""
-    parser = argparse.ArgumentParser(
-        description="Prepare, verify, and publish dbt-forge releases."
-    )
+    parser = argparse.ArgumentParser(description="Prepare, verify, and publish dbt-forge releases.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     prepare = subparsers.add_parser("prepare", help="Update release metadata for a version.")

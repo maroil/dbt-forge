@@ -24,13 +24,10 @@ class DuckDBIntrospector(WarehouseIntrospector):
 
     def list_tables(self, schema: str) -> list[TableMetadata]:
         rows = self._conn.execute(
-            "SELECT table_name, table_type FROM information_schema.tables "
-            "WHERE table_schema = ?",
+            "SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = ?",
             [schema],
         ).fetchall()
-        return [
-            TableMetadata(schema_name=schema, table_name=r[0], table_type=r[1]) for r in rows
-        ]
+        return [TableMetadata(schema_name=schema, table_name=r[0], table_type=r[1]) for r in rows]
 
     def get_columns(self, schema: str, table: str) -> list[ColumnMetadata]:
         rows = self._conn.execute(
@@ -38,9 +35,7 @@ class DuckDBIntrospector(WarehouseIntrospector):
             "WHERE table_schema = ? AND table_name = ? ORDER BY ordinal_position",
             [schema, table],
         ).fetchall()
-        return [
-            ColumnMetadata(name=r[0], data_type=r[1], is_nullable=r[2] == "YES") for r in rows
-        ]
+        return [ColumnMetadata(name=r[0], data_type=r[1], is_nullable=r[2] == "YES") for r in rows]
 
     def close(self):
         if self._conn:
@@ -82,8 +77,7 @@ class PostgresIntrospector(WarehouseIntrospector):
     def list_tables(self, schema: str) -> list[TableMetadata]:
         cur = self._conn.cursor()
         cur.execute(
-            "SELECT table_name, table_type FROM information_schema.tables "
-            "WHERE table_schema = %s",
+            "SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = %s",
             (schema,),
         )
         return [
@@ -166,9 +160,7 @@ class SnowflakeIntrospector(WarehouseIntrospector):
             "ORDER BY ordinal_position"
         )
         return [
-            ColumnMetadata(
-                name=r[0], data_type=r[1], is_nullable=r[2] == "YES", comment=r[3] or ""
-            )
+            ColumnMetadata(name=r[0], data_type=r[1], is_nullable=r[2] == "YES", comment=r[3] or "")
             for r in cur.fetchall()
         ]
 
@@ -392,6 +384,4 @@ def get_introspector(adapter_key: str, **config) -> WarehouseIntrospector:
         return cls(**config)
     except ImportError:
         dep = ADAPTER_DEPS.get(adapter_key, adapter_key)
-        raise ImportError(
-            f"Missing dependency for {adapter_key}. Install with: pip install {dep}"
-        )
+        raise ImportError(f"Missing dependency for {adapter_key}. Install with: pip install {dep}")

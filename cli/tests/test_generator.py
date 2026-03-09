@@ -193,8 +193,17 @@ def test_generated_readme_references_public_repo():
 
 def test_all_adapters_have_profile_template():
     from dbt_forge.generator.renderer import TEMPLATES_DIR
-    adapters = ["bigquery", "snowflake", "postgresql", "duckdb", "databricks",
-                "redshift", "trino", "spark"]
+
+    adapters = [
+        "bigquery",
+        "snowflake",
+        "postgresql",
+        "duckdb",
+        "databricks",
+        "redshift",
+        "trino",
+        "spark",
+    ]
     for adapter in adapters:
         profile = TEMPLATES_DIR / "profiles" / f"{adapter}.yml.j2"
         assert profile.exists(), f"Missing profile template for {adapter}"
@@ -258,8 +267,12 @@ def test_metricflow_created_when_requested():
         config = _default_config(output_dir=tmpdir, add_metricflow=True)
         generate_project(config)
         sem = (
-            Path(tmpdir) / "test_project"
-            / "models" / "marts" / "semantic_models" / "sem_orders.yml"
+            Path(tmpdir)
+            / "test_project"
+            / "models"
+            / "marts"
+            / "semantic_models"
+            / "sem_orders.yml"
         )
         assert sem.exists()
 
@@ -269,24 +282,49 @@ def test_metricflow_skipped_when_not_requested():
         config = _default_config(output_dir=tmpdir, add_metricflow=False)
         generate_project(config)
         sem = (
-            Path(tmpdir) / "test_project"
-            / "models" / "marts" / "semantic_models" / "sem_orders.yml"
+            Path(tmpdir)
+            / "test_project"
+            / "models"
+            / "marts"
+            / "semantic_models"
+            / "sem_orders.yml"
         )
         assert not sem.exists()
 
 
 def test_new_adapters_have_correct_package():
-    assert ProjectConfig(
-        project_name="p", adapter="Redshift", marts=["finance"], packages=[],
-        add_examples=False, add_sqlfluff=False,
-    ).dbt_adapter_package == "dbt-redshift"
+    assert (
+        ProjectConfig(
+            project_name="p",
+            adapter="Redshift",
+            marts=["finance"],
+            packages=[],
+            add_examples=False,
+            add_sqlfluff=False,
+        ).dbt_adapter_package
+        == "dbt-redshift"
+    )
 
-    assert ProjectConfig(
-        project_name="p", adapter="Trino", marts=["finance"], packages=[],
-        add_examples=False, add_sqlfluff=False,
-    ).dbt_adapter_package == "dbt-trino"
+    assert (
+        ProjectConfig(
+            project_name="p",
+            adapter="Trino",
+            marts=["finance"],
+            packages=[],
+            add_examples=False,
+            add_sqlfluff=False,
+        ).dbt_adapter_package
+        == "dbt-trino"
+    )
 
-    assert ProjectConfig(
-        project_name="p", adapter="Spark", marts=["finance"], packages=[],
-        add_examples=False, add_sqlfluff=False,
-    ).dbt_adapter_package == "dbt-spark"
+    assert (
+        ProjectConfig(
+            project_name="p",
+            adapter="Spark",
+            marts=["finance"],
+            packages=[],
+            add_examples=False,
+            add_sqlfluff=False,
+        ).dbt_adapter_package
+        == "dbt-spark"
+    )

@@ -1,4 +1,5 @@
 """LLM provider implementations."""
+
 from __future__ import annotations
 
 import json
@@ -17,9 +18,7 @@ class ClaudeProvider(LLMProvider):
         self._api_key = api_key or os.environ.get("ANTHROPIC_API_KEY", "")
         self._model = model
         if not self._api_key:
-            raise ValueError(
-                "Anthropic API key required. Set ANTHROPIC_API_KEY or pass api_key."
-            )
+            raise ValueError("Anthropic API key required. Set ANTHROPIC_API_KEY or pass api_key.")
 
     def name(self) -> str:
         return "Claude"
@@ -53,9 +52,7 @@ class OpenAIProvider(LLMProvider):
         self._api_key = api_key or os.environ.get("OPENAI_API_KEY", "")
         self._model = model
         if not self._api_key:
-            raise ValueError(
-                "OpenAI API key required. Set OPENAI_API_KEY or pass api_key."
-            )
+            raise ValueError("OpenAI API key required. Set OPENAI_API_KEY or pass api_key.")
 
     def name(self) -> str:
         return "OpenAI"
@@ -104,11 +101,13 @@ class OllamaProvider(LLMProvider):
         existing_descriptions: dict[str, str] | None = None,
     ) -> GeneratedDescription:
         prompt = build_description_prompt(model_name, sql, columns, existing_descriptions)
-        payload = json.dumps({
-            "model": self._model,
-            "prompt": prompt,
-            "stream": False,
-        }).encode()
+        payload = json.dumps(
+            {
+                "model": self._model,
+                "prompt": prompt,
+                "stream": False,
+            }
+        ).encode()
 
         req = urllib.request.Request(
             f"{self._base_url}/api/generate",
@@ -122,8 +121,7 @@ class OllamaProvider(LLMProvider):
                 response_text = data.get("response", "")
         except urllib.error.URLError as e:
             raise ConnectionError(
-                f"Could not connect to Ollama at {self._base_url}. "
-                f"Is Ollama running? Error: {e}"
+                f"Could not connect to Ollama at {self._base_url}. Is Ollama running? Error: {e}"
             ) from e
 
         return parse_description_response(model_name, response_text)

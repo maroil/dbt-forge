@@ -54,6 +54,7 @@ def find_project_root() -> Path:
 # Individual checks
 # ---------------------------------------------------------------------------
 
+
 def check_naming_conventions(root: Path) -> CheckResult:
     """Check that models follow naming conventions."""
     models = _find_sql_models(root)
@@ -105,7 +106,7 @@ def check_schema_coverage(root: Path) -> CheckResult:
             name="schema-coverage",
             passed=False,
             message=f"{len(undocumented)} model(s) missing YAML documentation:\n"
-                    + "\n".join(f"  {u}" for u in undocumented[:5]),
+            + "\n".join(f"  {u}" for u in undocumented[:5]),
             fix_hint="Run dbt-forge doctor --fix to auto-generate schema stubs.",
         )
     return CheckResult(
@@ -133,7 +134,7 @@ def check_test_coverage(root: Path) -> CheckResult:
             name="test-coverage",
             passed=False,
             message=f"{len(untested)} model(s) have no tests:\n"
-                    + "\n".join(f"  {u}" for u in untested[:5]),
+            + "\n".join(f"  {u}" for u in untested[:5]),
             fix_hint="Use dbt-forge add test <model> to generate test stubs.",
         )
     return CheckResult(
@@ -170,7 +171,7 @@ def check_hardcoded_refs(root: Path) -> CheckResult:
             name="hardcoded-refs",
             passed=False,
             message=f"{len(violations)} file(s) may have hardcoded references:\n"
-                    + "\n".join(violations[:5]),
+            + "\n".join(violations[:5]),
             fix_hint="Replace hardcoded references with ref() or source().",
         )
     return CheckResult(
@@ -214,7 +215,7 @@ def check_packages_pinned(root: Path) -> CheckResult:
             name="packages-pinned",
             passed=False,
             message=f"{len(unpinned)} package(s) missing version pin:\n"
-                    + "\n".join(f"  {u}" for u in unpinned),
+            + "\n".join(f"  {u}" for u in unpinned),
             fix_hint="Add version ranges to all packages in packages.yml.",
         )
     return CheckResult(
@@ -250,7 +251,7 @@ def check_source_freshness(root: Path) -> CheckResult:
             name="source-freshness",
             passed=False,
             message=f"{len(sources_without_freshness)} source(s) missing freshness config:\n"
-                    + "\n".join(f"  {s}" for s in sources_without_freshness),
+            + "\n".join(f"  {s}" for s in sources_without_freshness),
             fix_hint="Add freshness config inside the source's config: block.",
         )
     return CheckResult(
@@ -285,7 +286,7 @@ def check_orphaned_yml(root: Path) -> CheckResult:
             name="orphaned-yml",
             passed=False,
             message=f"{len(orphaned)} YAML model(s) reference missing SQL files:\n"
-                    + "\n".join(orphaned[:5]),
+            + "\n".join(orphaned[:5]),
             fix_hint="Remove orphaned entries or create the missing SQL files.",
         )
     return CheckResult(
@@ -361,7 +362,7 @@ def check_disabled_models(root: Path) -> CheckResult:
             name="disabled-models",
             passed=False,
             message=f"{len(disabled)} disabled model(s) found (tech debt):\n"
-                    + "\n".join(f"  {d}" for d in disabled),
+            + "\n".join(f"  {d}" for d in disabled),
             fix_hint="Remove disabled models or re-enable them.",
         )
     return CheckResult(
@@ -392,6 +393,7 @@ ALL_CHECKS = {
 # ---------------------------------------------------------------------------
 # --fix: auto-generate missing schema stubs
 # ---------------------------------------------------------------------------
+
 
 def fix_schema_coverage(root: Path) -> int:
     """Generate missing _models.yml stubs for undocumented models. Returns count."""
@@ -428,6 +430,7 @@ def fix_schema_coverage(root: Path) -> int:
 # ---------------------------------------------------------------------------
 # Main doctor runner
 # ---------------------------------------------------------------------------
+
 
 def run_doctor(
     check_name: str | None = None,
@@ -470,8 +473,7 @@ def run_doctor(
         console.print(table)
         console.print()
         console.print(
-            f"  [bold]{report.pass_count}[/bold] passed, "
-            f"[bold]{report.fail_count}[/bold] failed"
+            f"  [bold]{report.pass_count}[/bold] passed, [bold]{report.fail_count}[/bold] failed"
         )
         console.print()
 
