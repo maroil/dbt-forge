@@ -1,4 +1,6 @@
 ---
+import Analytics from '@vercel/analytics/astro';
+
 interface Props {
   title: string;
   description: string;
@@ -49,3 +51,4 @@ const twitterCard = imageUrl ? 'summary_large_image' : 'summary';
     <script type="application/ld+json" set:html={JSON.stringify(item)} />
   ))
 }
+<Analytics />

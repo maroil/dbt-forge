@@ -1,16 +1,21 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import vercel from '@astrojs/vercel';
 
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://dbt-forge.marou.one',
+	adapter: vercel(),
 	integrations: [
 		starlight({
 			title: 'dbt-forge',
 			description: 'Python CLI for scaffolding dbt projects with a consistent starting structure.',
 			tagline: 'Scaffold a dbt project with a consistent starting structure.',
 			favicon: '/favicon.svg',
+			components: {
+				Head: './src/components/StarlightHead.astro',
+			},
 			editLink: {
 				baseUrl: 'https://github.com/maroil/dbt-forge/edit/main/website/src/content/docs/',
 			},
