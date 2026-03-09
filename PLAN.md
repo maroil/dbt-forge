@@ -269,17 +269,17 @@ Manually writing source definitions for dozens of tables is tedious and error-pr
 - Support for all 8 adapters
 
 **Checklist:**
-- [ ] Design adapter-specific metadata query interface
-- [ ] Implement BigQuery metadata connector
-- [ ] Implement Snowflake metadata connector
-- [ ] Implement PostgreSQL metadata connector
-- [ ] Implement DuckDB metadata connector
-- [ ] Implement remaining adapter connectors (Databricks, Redshift, Trino, Spark)
-- [ ] Implement profiles.yml credential reader
-- [ ] Add interactive table selection
-- [ ] Generate sources YAML from metadata
-- [ ] Generate staging model stubs
-- [ ] Add tests (with mocked connections)
+- [x] Design adapter-specific metadata query interface
+- [x] Implement BigQuery metadata connector
+- [x] Implement Snowflake metadata connector
+- [x] Implement PostgreSQL metadata connector
+- [x] Implement DuckDB metadata connector
+- [x] Implement remaining adapter connectors (Databricks, Redshift, Trino, Spark)
+- [x] Implement profiles.yml credential reader
+- [x] Add interactive table selection
+- [x] Generate sources YAML from metadata
+- [x] Generate staging model stubs
+- [x] Add tests (with mocked connections)
 
 ---
 
@@ -322,13 +322,13 @@ dbt Mesh is the recommended architecture for large-scale dbt deployments, enabli
 - Cross-project `ref()` examples in generated models
 
 **Checklist:**
-- [ ] Design mesh project structure
-- [ ] Create `dependencies.yml.j2` template
-- [ ] Create model templates with access controls
-- [ ] Create group definition templates
-- [ ] Add `--mesh` flag to `init`
-- [ ] Add `add project` subcommand
-- [ ] Add tests
+- [x] Design mesh project structure
+- [x] Create `dependencies.yml.j2` template
+- [x] Create model templates with access controls
+- [x] Create group definition templates
+- [x] Add `--mesh` flag to `init`
+- [x] Add `add project` subcommand
+- [x] Add tests
 
 ---
 
@@ -345,13 +345,13 @@ Column documentation is the most neglected part of dbt projects. Writing descrip
 - `--model <name>` flag to target specific models
 
 **Checklist:**
-- [ ] Design LLM provider abstraction (Claude / OpenAI / Ollama)
-- [ ] Implement SQL + column context extraction
-- [ ] Implement description generation prompts
-- [ ] Implement schema.yml reader/writer (preserve existing descriptions)
-- [ ] Add interactive review flow
-- [ ] Add `docs generate` command
-- [ ] Add tests
+- [x] Design LLM provider abstraction (Claude / OpenAI / Ollama)
+- [x] Implement SQL + column context extraction
+- [x] Implement description generation prompts
+- [x] Implement schema.yml reader/writer (preserve existing descriptions)
+- [x] Add interactive review flow
+- [x] Add `docs generate` command
+- [x] Add tests
 
 ---
 
@@ -368,15 +368,15 @@ Converting legacy SQL projects (stored procedures, scripts, views) to dbt is a m
 - Outputs migration report with manual steps needed
 
 **Checklist:**
-- [ ] Implement SQL file scanner
-- [ ] Implement table reference parser
-- [ ] Implement CREATE statement converter
-- [ ] Implement dependency graph builder
-- [ ] Implement source definition generator
-- [ ] Implement model file generator with ref()/source()
-- [ ] Add migration report output
-- [ ] Add `migrate` command
-- [ ] Add tests
+- [x] Implement SQL file scanner
+- [x] Implement table reference parser
+- [x] Implement CREATE statement converter
+- [x] Implement dependency graph builder
+- [x] Implement source definition generator
+- [x] Implement model file generator with ref()/source()
+- [x] Add migration report output
+- [x] Add `migrate` command
+- [x] Add tests
 
 ---
 
