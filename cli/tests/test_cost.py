@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from contextlib import nullcontext
+from unittest.mock import patch
+
 from dbt_forge.cost import CostReport, QueryStat
 
 
@@ -230,3 +233,29 @@ class TestFormatBytes:
 
         result = _format_bytes(2 * 1024**4)
         assert "TB" in result
+
+
+class TestRunCost:
+    def test_connection_failure_is_reported(self):
+        from dbt_forge.cli.cost_cmd import run_cost
+
+        class BrokenIntrospector:
+            def connect(self):
+                raise RuntimeError("adapter boom")
+
+            def close(self):
+                pass
+
+        with (
+            patch("dbt_forge.cli.cost_cmd.find_project_root", return_value="."),
+            patch("dbt_forge.cli.cost_cmd.read_profile", return_value=("snowflake", {})),
+            patch(
+                "dbt_forge.cli.cost_cmd.get_introspector",
+                return_value=BrokenIntrospector(),
+            ),
+            patch("dbt_forge.cli.cost_cmd.timed", return_value=nullcontext()),
+            patch("dbt_forge.cli.cost_cmd.print_error") as mock_print_error,
+        ):
+            run_cost()
+
+        mock_print_error.assert_called_once_with("Error connecting to warehouse: adapter boom")

@@ -6,7 +6,6 @@ import re
 from pathlib import Path
 
 from rich.console import Console
-from rich.table import Table
 
 from dbt_forge.generator.renderer import render_template
 from dbt_forge.sql_parser import (
@@ -18,6 +17,7 @@ from dbt_forge.sql_parser import (
     replace_refs_in_sql,
     topological_sort,
 )
+from dbt_forge.ui.theme import make_table, print_error, print_ok, print_warning
 
 console = Console()
 
@@ -107,13 +107,13 @@ def run_migrate(
     out_path = Path(output_dir)
 
     if not sql_path.is_dir():
-        console.print(f"[red]Error:[/red] {sql_dir} is not a directory.")
+        print_error(f"{sql_dir} is not a directory.")
         return
 
     # 1. Scan for SQL files
     sql_files = sorted(sql_path.rglob("*.sql"))
     if not sql_files:
-        console.print(f"[yellow]No .sql files found in {sql_dir}[/yellow]")
+        print_warning(f"No .sql files found in {sql_dir}")
         return
 
     console.print(f"  Scanning [bold]{len(sql_files)}[/bold] SQL file(s) in {sql_dir}")
@@ -126,10 +126,10 @@ def run_migrate(
             if parsed.creates or parsed.references:
                 parsed_files.append(parsed)
         except Exception as e:
-            console.print(f"  [yellow]Warning:[/yellow] Could not parse {f}: {e}")
+            print_warning(f"Could not parse {f}: {e}")
 
     if not parsed_files:
-        console.print("[yellow]No CREATE statements or table references found.[/yellow]")
+        print_warning("No CREATE statements or table references found.")
         return
 
     # 3. Build dependency graph
@@ -186,10 +186,11 @@ def run_migrate(
     console.print()
 
     # Show table
-    tbl = Table(title="Migration Plan", show_lines=False)
-    tbl.add_column("Model", style="cyan")
-    tbl.add_column("Layer", style="green")
-    tbl.add_column("Original File", style="dim")
+    tbl = make_table("Migration Plan", [
+        ("Model", {"style": "cyan"}),
+        ("Layer", {"style": "green"}),
+        ("Original File", {"style": "dim"}),
+    ])
     for m in models_info:
         tbl.add_row(m["name"], m["layer"], m["original_file"])
     console.print(tbl)
@@ -273,7 +274,7 @@ def run_migrate(
     _write_file(report_dest, report_content)
     files_written.append(str(report_dest))
 
-    console.print(f"  [green]Wrote {len(files_written)} file(s)[/green]")
+    print_ok(f"Wrote {len(files_written)} file(s)")
     console.print(f"  Migration report: [bold]{report_dest}[/bold]")
 
 

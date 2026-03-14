@@ -11,6 +11,7 @@ from rich.tree import Tree
 
 from dbt_forge.generator.project import generate_project
 from dbt_forge.prompts.questions import ProjectConfig, gather_config
+from dbt_forge.ui.theme import print_ok
 
 console = Console()
 
@@ -53,8 +54,8 @@ def init_command(
     project_path = Path(output_dir) / config.project_name
 
     # Summary
-    console.print(f"  [green]✔[/green]  Created [bold]{project_path}/[/bold]")
-    console.print(f"  [green]✔[/green]  {len(written)} files written")
+    print_ok(f"Created [bold]{project_path}/[/bold]")
+    print_ok(f"{len(written)} files written")
     console.print()
 
     _print_next_steps(config)
@@ -106,9 +107,9 @@ def init_mesh_command(
     written = generate_mesh_project(config)
     project_path = Path(output_dir) / config.name
 
-    console.print(f"  [green]\u2714[/green]  Created mesh project [bold]{project_path}/[/bold]")
-    console.print(f"  [green]\u2714[/green]  {len(config.sub_projects)} sub-projects")
-    console.print(f"  [green]\u2714[/green]  {len(written)} files written")
+    print_ok(f"Created mesh project [bold]{project_path}/[/bold]")
+    print_ok(f"{len(config.sub_projects)} sub-projects")
+    print_ok(f"{len(written)} files written")
     console.print()
 
 

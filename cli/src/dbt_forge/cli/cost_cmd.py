@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import yaml
 from rich.console import Console
-from rich.table import Table
 
 from dbt_forge.cost import ADAPTER_STATS_FN, SUPPORTED_ADAPTERS, CostReport
 from dbt_forge.introspect.connectors import get_introspector
 from dbt_forge.introspect.profile_reader import read_profile
 from dbt_forge.scanner import find_project_root
+from dbt_forge.ui.theme import make_table, print_error, print_warning, timed
 
 console = Console()
 
@@ -23,31 +24,32 @@ def run_cost(
     root = find_project_root()
 
     try:
-        profile = read_profile(root, target=target)
-    except Exception as e:
-        console.print(f"[red]Error reading profile:[/red] {e}")
+        adapter, connection_config = read_profile(root, target=target)
+    except (FileNotFoundError, ValueError, yaml.YAMLError) as e:
+        print_error(f"Error reading profile: {e}")
         return
 
-    adapter = profile.get("type", "")
     if adapter not in SUPPORTED_ADAPTERS:
-        console.print(
-            f"[yellow]Cost analysis not yet supported for '{adapter}'.[/yellow]\n"
-            f"Supported adapters: {', '.join(SUPPORTED_ADAPTERS)}"
+        print_warning(
+            f"Cost analysis not yet supported for '{adapter}'. "
+            f"Supported: {', '.join(SUPPORTED_ADAPTERS)}"
         )
         return
 
     try:
-        introspector = get_introspector(adapter, **profile)
-        introspector.connect()
+        with timed("Connecting to warehouse..."):
+            introspector = get_introspector(adapter, **connection_config)
+            introspector.connect()
     except Exception as e:
-        console.print(f"[red]Error connecting to warehouse:[/red] {e}")
+        print_error(f"Error connecting to warehouse: {e}")
         return
 
     try:
-        stats_fn = ADAPTER_STATS_FN[adapter]
-        stats = stats_fn(introspector, days)
+        with timed("Querying cost data..."):
+            stats_fn = ADAPTER_STATS_FN[adapter]
+            stats = stats_fn(introspector, days)
     except Exception as e:
-        console.print(f"[red]Error retrieving cost data:[/red] {e}")
+        print_error(f"Error retrieving cost data: {e}")
         return
     finally:
         introspector.close()
@@ -68,16 +70,13 @@ def run_cost(
 def _render_table(cost_report: CostReport, top_models: list, days: int) -> None:
     """Render cost table with Rich."""
     console.print()
-    table = Table(
-        title=f"dbt-forge cost (last {days} days)",
-        show_lines=False,
-        padding=(0, 1),
-    )
-    table.add_column("Model", min_width=20)
-    table.add_column("Bytes Scanned", justify="right")
-    table.add_column("Avg Duration", justify="right")
-    table.add_column("Executions", justify="right")
-    table.add_column("Est. Cost (USD)", justify="right")
+    table = make_table(f"dbt-forge cost (last {days} days)", [
+        ("Model", {"min_width": 20}),
+        ("Bytes Scanned", {"justify": "right"}),
+        ("Avg Duration", {"justify": "right"}),
+        ("Executions", {"justify": "right"}),
+        ("Est. Cost (USD)", {"justify": "right"}),
+    ])
 
     for stat in top_models:
         bytes_str = _format_bytes(stat.total_bytes_scanned)

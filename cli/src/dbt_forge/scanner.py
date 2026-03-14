@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
+import typer
 import yaml
 from rich.console import Console
 
@@ -21,7 +21,7 @@ def find_project_root(start: Path | None = None) -> Path:
         "[red]Error:[/red] No [bold]dbt_project.yml[/bold] found.\n"
         "Run this command from inside a dbt project."
     )
-    sys.exit(1)
+    raise typer.Exit(1)
 
 
 def find_sql_models(root: Path) -> list[Path]:

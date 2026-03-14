@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from rich.console import Console
-from rich.table import Table
 
 from dbt_forge.scanner import (
     count_models_by_layer,
@@ -14,6 +13,7 @@ from dbt_forge.scanner import (
     parse_yml_models,
     parse_yml_tests,
 )
+from dbt_forge.ui.theme import forge_console, make_table
 
 console = Console()
 
@@ -43,17 +43,13 @@ def run_status() -> None:
     packages = parse_packages(root)
 
     # Build dashboard
-    console.print()
+    forge_console.print()
 
-    table = Table(
-        title=f"Project: {project_name}",
-        show_lines=False,
-        padding=(0, 2),
-        expand=False,
-    )
-    table.add_column("Models", min_width=20)
-    table.add_column("Quality", min_width=20)
-    table.add_column("Dependencies", min_width=20)
+    table = make_table(f"Project: {project_name}", [
+        ("Models", {"min_width": 20}),
+        ("Quality", {"min_width": 20}),
+        ("Dependencies", {"min_width": 20}),
+    ])
 
     # Models column
     models_lines = []
@@ -64,10 +60,17 @@ def run_status() -> None:
     models_lines.append(f"[bold]total: {total_models}[/bold]")
     models_text = "\n".join(models_lines)
 
+    def _color_pct(pct: int) -> str:
+        if pct >= 80:
+            return f"[green]{pct}%[/green]"
+        elif pct >= 50:
+            return f"[yellow]{pct}%[/yellow]"
+        return f"[red]{pct}%[/red]"
+
     # Quality column
     quality_lines = [
-        f"test coverage: {test_pct}%",
-        f"doc coverage: {doc_pct}%",
+        f"test coverage: {_color_pct(test_pct)}",
+        f"doc coverage: {_color_pct(doc_pct)}",
     ]
     if sources:
         quality_lines.append(f"sources: {len(sources)} (freshness: {freshness_count})")
@@ -81,5 +84,5 @@ def run_status() -> None:
     deps_text = "\n".join(deps_lines)
 
     table.add_row(models_text, quality_text, deps_text)
-    console.print(table)
-    console.print()
+    forge_console.print(table)
+    forge_console.print()

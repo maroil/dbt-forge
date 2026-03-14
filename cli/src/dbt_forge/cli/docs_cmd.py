@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import sys
 import time
 
 import questionary
+import typer
 from rich.console import Console
 from rich.table import Table
 
@@ -14,21 +14,9 @@ from dbt_forge.docs import (
     read_model_sql,
     update_model_descriptions,
 )
+from dbt_forge.ui.theme import abort, forge_style, print_error, print_ok
 
 console = Console()
-
-
-def _style() -> questionary.Style:
-    return questionary.Style(
-        [
-            ("qmark", "fg:#00d7ff bold"),
-            ("question", "bold"),
-            ("answer", "fg:#00d7ff bold"),
-            ("pointer", "fg:#00d7ff bold"),
-            ("highlighted", "fg:#00d7ff bold"),
-            ("selected", "fg:#00d7ff"),
-        ]
-    )
 
 
 def run_docs_generate(
@@ -48,11 +36,10 @@ def run_docs_generate(
         models = [m for m in models if m["model_name"] == model]
 
     if not models:
-        console.print(
-            "  [green]\u2714[/green]  All models are fully documented!"
-            if not model
-            else f"  [yellow]No undocumented model found matching '{model}'.[/yellow]"
-        )
+        if not model:
+            print_ok("All models are fully documented!")
+        else:
+            console.print(f"  [yellow]No undocumented model found matching '{model}'.[/yellow]")
         return
 
     console.print(f"  Found [bold]{len(models)}[/bold] model(s) needing documentation.")
@@ -87,7 +74,7 @@ def run_docs_generate(
                 existing_descriptions=existing if existing else None,
             )
         except Exception as e:
-            console.print(f"  [red]Error generating docs:[/red] {e}")
+            print_error(f"Error generating docs: {e}")
             skipped += 1
             continue
 
@@ -116,11 +103,10 @@ def run_docs_generate(
                     questionary.Choice("Accept", value="accept"),
                     questionary.Choice("Skip", value="skip"),
                 ],
-                style=_style(),
+                style=forge_style(),
             ).ask()
             if action is None:
-                console.print("\n[dim]Aborted.[/dim]")
-                return
+                abort()
 
         if action == "accept":
             update_model_descriptions(
@@ -129,7 +115,7 @@ def run_docs_generate(
                 model_description=result.model_description,
                 column_descriptions=result.column_descriptions,
             )
-            console.print(f"    [green]\u2714[/green]  Updated {model_info['yml_path'].name}")
+            print_ok(f"Updated {model_info['yml_path'].name}")
             accepted += 1
         else:
             skipped += 1
@@ -152,8 +138,8 @@ def _select_provider(provider_key: str | None):
         try:
             return create_provider(provider_key)
         except ValueError as e:
-            console.print(f"[red]Error:[/red] {e}")
-            sys.exit(1)
+            print_error(str(e))
+            raise typer.Exit(1)
 
     available = get_available_providers()
     if not available:
@@ -161,29 +147,28 @@ def _select_provider(provider_key: str | None):
             "[red]Error:[/red] No LLM providers available.\n"
             "Set one of: ANTHROPIC_API_KEY, OPENAI_API_KEY, or start Ollama."
         )
-        sys.exit(1)
+        raise typer.Exit(1)
 
     if len(available) == 1:
         key, display = available[0]
         try:
             return create_provider(key)
         except ValueError as e:
-            console.print(f"[red]Error:[/red] {e}")
-            sys.exit(1)
+            print_error(str(e))
+            raise typer.Exit(1)
 
     # Multiple providers -- let user choose
     choices = [questionary.Choice(display, value=key) for key, display in available]
     selected = questionary.select(
         "Select LLM provider:",
         choices=choices,
-        style=_style(),
+        style=forge_style(),
     ).ask()
     if selected is None:
-        console.print("\n[dim]Aborted.[/dim]")
-        return None
+        abort()
 
     try:
         return create_provider(selected)
     except ValueError as e:
-        console.print(f"[red]Error:[/red] {e}")
-        sys.exit(1)
+        print_error(str(e))
+        raise typer.Exit(1)

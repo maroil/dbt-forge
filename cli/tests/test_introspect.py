@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from dbt_forge.introspect.base import ColumnMetadata, TableMetadata, WarehouseIntrospector
-from dbt_forge.introspect.connectors import ADAPTER_MAP, get_introspector
+from dbt_forge.introspect.connectors import ADAPTER_MAP, _quote_identifier, get_introspector
 from dbt_forge.introspect.profile_reader import read_profile, resolve_env_vars
 
 
@@ -75,6 +75,24 @@ class TestGetIntrospector:
     def test_supported_adapters(self):
         for adapter_key in ADAPTER_MAP:
             assert adapter_key in ADAPTER_MAP
+
+
+class TestQuoteIdentifier:
+    def test_allows_hyphens_and_leading_digits(self):
+        assert _quote_identifier("sales-raw") == '"sales-raw"'
+        assert _quote_identifier("2024_schema") == '"2024_schema"'
+
+    def test_quotes_each_dotted_part(self):
+        assert _quote_identifier("analytics.sales-raw") == '"analytics"."sales-raw"'
+        assert _quote_identifier("main.orders", quote_char="`") == "`main`.`orders`"
+
+    def test_rejects_control_characters(self):
+        with pytest.raises(ValueError, match="Invalid schema"):
+            _quote_identifier("bad\nschema", label="schema")
+
+    def test_rejects_empty_identifier_parts(self):
+        with pytest.raises(ValueError, match="Invalid schema"):
+            _quote_identifier("analytics..orders", label="schema")
 
 
 class TestResolveEnvVars:

@@ -16,6 +16,7 @@ from dbt_forge.manifest import (
     write_manifest,
 )
 from dbt_forge.scanner import find_project_root
+from dbt_forge.ui.theme import forge_style, print_ok, print_summary
 
 console = Console()
 
@@ -128,18 +129,12 @@ def run_update(dry_run: bool = False) -> None:
         action = questionary.select(
             f"Apply changes to {rel}?",
             choices=["accept", "skip"],
-            style=questionary.Style(
-                [
-                    ("qmark", "fg:#00d7ff bold"),
-                    ("question", "bold"),
-                    ("pointer", "fg:#00d7ff bold"),
-                ]
-            ),
+            style=forge_style(),
         ).ask()
         if action == "accept":
             (root / rel).write_text(new)
             accepted_files.append(rel)
-            console.print(f"  [green]✔[/green]  Updated {rel}")
+            print_ok(f"Updated {rel}")
         else:
             console.print(f"  [dim]Skipped {rel}[/dim]")
 
@@ -147,20 +142,14 @@ def run_update(dry_run: bool = False) -> None:
         action = questionary.select(
             f"Create new file {rel}?",
             choices=["accept", "skip"],
-            style=questionary.Style(
-                [
-                    ("qmark", "fg:#00d7ff bold"),
-                    ("question", "bold"),
-                    ("pointer", "fg:#00d7ff bold"),
-                ]
-            ),
+            style=forge_style(),
         ).ask()
         if action == "accept":
             dest = root / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_text(content)
             accepted_files.append(rel)
-            console.print(f"  [green]✔[/green]  Created {rel}")
+            print_ok(f"Created {rel}")
         else:
             console.print(f"  [dim]Skipped {rel}[/dim]")
 
@@ -168,7 +157,12 @@ def run_update(dry_run: bool = False) -> None:
         # Re-generate manifest with current files
         all_files = [root / f for f in manifest.files if (root / f).exists()]
         write_manifest(root, config, all_files)
-        console.print(f"\n  [bold]{len(accepted_files)}[/bold] file(s) updated.")
+        skipped = len(changed) + len(new_files) - len(accepted_files)
+        print_summary("Update complete", [
+            f"{len(accepted_files)} file(s) updated",
+            f"{len(unchanged)} unchanged",
+            f"{skipped} skipped",
+        ])
     else:
         console.print("\n  [dim]No changes applied.[/dim]")
-    console.print()
+        console.print()

@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import re
-import sys
 from pathlib import Path
 
+import typer
 import yaml
 from rich.console import Console
-from rich.table import Table
 
 from dbt_forge.cli.doctor import CheckResult
 from dbt_forge.lint_config import LintConfig, load_lint_config
@@ -20,6 +19,15 @@ from dbt_forge.ref_graph import (
     detect_cycles,
 )
 from dbt_forge.scanner import find_project_root, find_sql_models, find_yml_files
+from dbt_forge.ui.theme import (
+    ICON_OK,
+    ICON_WARN,
+    forge_console,
+    make_table,
+    print_error,
+    print_summary,
+    timed,
+)
 
 console = Console()
 
@@ -300,40 +308,43 @@ def run_lint(
 
     if rule:
         if rule not in ALL_LINT_RULES:
-            console.print(
-                f"[red]Error:[/red] Unknown rule '{rule}'. "
+            print_error(
+                f"Unknown rule '{rule}'. "
                 f"Available: {', '.join(ALL_LINT_RULES.keys())}"
             )
-            sys.exit(1)
+            raise typer.Exit(1)
         _run_rule(rule)
     else:
-        for name in ALL_LINT_RULES:
-            _run_rule(name)
+        with timed("Running lint rules..."):
+            for name in ALL_LINT_RULES:
+                _run_rule(name)
 
     # Display
     if not ci:
-        console.print()
-        table = Table(title="dbt-forge lint", show_lines=False, padding=(0, 1))
-        table.add_column("Status", width=6, justify="center")
-        table.add_column("Rule", min_width=20)
-        table.add_column("Details", ratio=1)
+        forge_console.print()
+        table = make_table("dbt-forge lint", [
+            ("Status", {"width": 6, "justify": "center"}),
+            ("Rule", {"min_width": 20}),
+            ("Details", {"ratio": 1}),
+        ])
 
         for r in results:
-            status = "[green]PASS[/green]" if r.passed else "[yellow]WARN[/yellow]"
+            status = f"{ICON_OK} PASS" if r.passed else f"{ICON_WARN} WARN"
             details = r.message
             if not r.passed and r.fix_hint:
                 details += f"\n[dim]{r.fix_hint}[/dim]"
             table.add_row(status, r.name, details)
 
-        console.print(table)
-        console.print()
+        forge_console.print(table)
 
         passed = sum(1 for r in results if r.passed)
         failed = sum(1 for r in results if not r.passed)
-        console.print(f"  [bold]{passed}[/bold] passed, [bold]{failed}[/bold] warnings")
-        console.print()
+        print_summary("Lint results", [
+            f"{passed} passed",
+            f"{failed} warnings",
+        ])
 
     if ci and any(not r.passed for r in results):
-        sys.exit(1)
+        raise typer.Exit(1)
 
     return results

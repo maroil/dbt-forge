@@ -1,10 +1,11 @@
 """dbt-forge entrypoint."""
 
+import importlib.util
+
 import click
 import typer
 import typer.core
 from rich.console import Console
-from rich.text import Text
 
 from dbt_forge.cli.add import add_app
 from dbt_forge.cli.doctor import run_doctor
@@ -14,6 +15,12 @@ from dbt_forge.cli.lint import run_lint
 from dbt_forge.cli.migrate import run_migrate
 from dbt_forge.cli.status import run_status
 from dbt_forge.cli.update import run_update
+from dbt_forge.ui.theme import (
+    forge_console,
+    print_banner,
+    print_error,
+    set_verbose,
+)
 
 HELP_TEXT = """\
 Scaffold production-ready dbt projects with opinionated defaults.
@@ -116,12 +123,35 @@ app.add_typer(add_app, name="add")
 console = Console()
 
 
+def _adapter_import_name(package_name: str) -> str:
+    """Map pip package names to importable module names."""
+    import_name = package_name.replace("-", "_").split("[")[0]
+    overrides = {
+        "psycopg2-binary": "psycopg2",
+        "snowflake-connector-python": "snowflake.connector",
+        "google-cloud-bigquery": "google.cloud.bigquery",
+        "databricks-sql-connector": "databricks.sql",
+    }
+    return overrides.get(package_name, import_name)
+
+
+def _module_available(import_name: str) -> bool:
+    """Return whether a module can be imported without raising for missing parents."""
+    try:
+        return importlib.util.find_spec(import_name) is not None
+    except ModuleNotFoundError:
+        return False
+
+
 def version_callback(value: bool) -> None:
     if value:
         from dbt_forge import __version__
 
-        console.print(f"dbt-forge v{__version__}")
+        forge_console.print(f"dbt-forge v{__version__}")
         raise typer.Exit()
+
+
+_verbose = False
 
 
 @app.callback()
@@ -134,8 +164,15 @@ def main(
         is_eager=True,
         help="Show version and exit.",
     ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        help="Show full tracebacks on error.",
+    ),
 ) -> None:
-    pass
+    global _verbose
+    _verbose = verbose
+    set_verbose(verbose)
 
 
 @app.command()
@@ -179,7 +216,7 @@ def init(
     Snowflake, Postgres, etc.), CI provider, packages, and optional features
     like unit tests, MetricFlow, snapshots, seeds, and macros.
     """
-    _print_banner()
+    print_banner()
 
     if mesh:
         from dbt_forge.cli.init import init_mesh_command
@@ -199,11 +236,13 @@ def init(
         preset_config = load_preset(preset)
         errors = validate_preset(preset_config)
         if errors:
-            console.print("[red]Preset validation errors:[/red]")
+            print_error("Preset validation errors:")
             for err in errors:
-                console.print(f"  - {err}")
+                forge_console.print(f"  - {err}")
             raise typer.Exit(1)
-        console.print(f"  Using preset: [bold cyan]{preset_config.name or preset}[/bold cyan]")
+        forge_console.print(
+            f"  Using preset: [bold cyan]{preset_config.name or preset}[/bold cyan]"
+        )
         console.print()
 
     init_command(
@@ -302,6 +341,32 @@ def lint(
 ) -> None:
     """Lint dbt project structure for architectural issues."""
     run_lint(rule=rule, ci=ci, config_path=config)
+
+
+@app.command()
+def adapters() -> None:
+    """Show which optional warehouse adapter packages are installed."""
+    from dbt_forge.introspect.connectors import ADAPTER_DEPS, ADAPTER_MAP
+    from dbt_forge.ui.theme import make_table
+
+    table = make_table("dbt-forge adapters", [
+        ("Adapter", {"min_width": 14}),
+        ("Package", {"min_width": 28}),
+        ("Status", {"justify": "center"}),
+    ])
+    seen: set[str] = set()
+    for key in sorted(ADAPTER_MAP):
+        dep = ADAPTER_DEPS.get(key, key)
+        if dep in seen:
+            continue
+        seen.add(dep)
+        found = _module_available(_adapter_import_name(dep))
+        status = "[green]installed[/green]" if found else "[dim]not installed[/dim]"
+        table.add_row(key, dep, status)
+
+    console.print()
+    console.print(table)
+    console.print()
 
 
 @app.command()
@@ -438,15 +503,6 @@ def preset_validate(
             console.print(f"  {preset_config.description}")
         console.print(f"  Defaults: {', '.join(preset_config.defaults.keys())}")
         console.print(f"  Locked: {', '.join(preset_config.locked) or '(none)'}")
-
-
-def _print_banner() -> None:
-    text = Text()
-    text.append("✦  dbt-forge", style="bold cyan")
-    text.append(" — scaffold production-ready dbt projects", style="dim")
-    console.print()
-    console.print(text)
-    console.print()
 
 
 if __name__ == "__main__":

@@ -2,7 +2,30 @@
 
 from __future__ import annotations
 
+import re
+
 from dbt_forge.introspect.base import ColumnMetadata, TableMetadata, WarehouseIntrospector
+
+_CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f]")
+
+
+def _quote_identifier(
+    name: str,
+    label: str = "identifier",
+    quote_char: str = '"',
+) -> str:
+    """Safely quote SQL identifiers, including dotted multipart names."""
+    if not name or _CONTROL_CHARS.search(name):
+        raise ValueError(f"Invalid {label}: {name!r}")
+
+    parts = name.split(".")
+    if any(part == "" for part in parts):
+        raise ValueError(f"Invalid {label}: {name!r}")
+
+    escaped_quote = quote_char * 2
+    return ".".join(
+        f"{quote_char}{part.replace(quote_char, escaped_quote)}{quote_char}" for part in parts
+    )
 
 
 class DuckDBIntrospector(WarehouseIntrospector):
@@ -139,12 +162,13 @@ class SnowflakeIntrospector(WarehouseIntrospector):
 
     def list_tables(self, schema: str) -> list[TableMetadata]:
         cur = self._conn.cursor()
-        cur.execute(f'SHOW TABLES IN SCHEMA "{schema}"')
+        quoted_schema = _quote_identifier(schema, "schema")
+        cur.execute(f"SHOW TABLES IN SCHEMA {quoted_schema}")
         tables = [
             TableMetadata(schema_name=schema, table_name=r[1], table_type="TABLE")
             for r in cur.fetchall()
         ]
-        cur.execute(f'SHOW VIEWS IN SCHEMA "{schema}"')
+        cur.execute(f"SHOW VIEWS IN SCHEMA {quoted_schema}")
         tables += [
             TableMetadata(schema_name=schema, table_name=r[1], table_type="VIEW")
             for r in cur.fetchall()
@@ -156,8 +180,9 @@ class SnowflakeIntrospector(WarehouseIntrospector):
         cur.execute(
             "SELECT column_name, data_type, is_nullable, comment "
             "FROM information_schema.columns "
-            f"WHERE table_schema = '{schema}' AND table_name = '{table}' "
-            "ORDER BY ordinal_position"
+            "WHERE table_schema = %s AND table_name = %s "
+            "ORDER BY ordinal_position",
+            (schema, table),
         )
         return [
             ColumnMetadata(name=r[0], data_type=r[1], is_nullable=r[2] == "YES", comment=r[3] or "")
@@ -235,13 +260,14 @@ class DatabricksIntrospector(WarehouseIntrospector):
 
     def list_schemas(self) -> list[str]:
         cur = self._conn.cursor()
-        catalog = self._config.get("catalog", "hive_metastore")
+        catalog = _quote_identifier(self._config.get("catalog", "hive_metastore"), "catalog", "`")
         cur.execute(f"SHOW SCHEMAS IN {catalog}")
         return [r[0] for r in cur.fetchall() if r[0] not in ("information_schema",)]
 
     def list_tables(self, schema: str) -> list[TableMetadata]:
         cur = self._conn.cursor()
-        cur.execute(f"SHOW TABLES IN {schema}")
+        quoted_schema = _quote_identifier(schema, "schema", "`")
+        cur.execute(f"SHOW TABLES IN {quoted_schema}")
         return [
             TableMetadata(schema_name=schema, table_name=r[1], table_type="TABLE")
             for r in cur.fetchall()
@@ -249,7 +275,9 @@ class DatabricksIntrospector(WarehouseIntrospector):
 
     def get_columns(self, schema: str, table: str) -> list[ColumnMetadata]:
         cur = self._conn.cursor()
-        cur.execute(f"DESCRIBE TABLE {schema}.{table}")
+        quoted_schema = _quote_identifier(schema, "schema", "`")
+        quoted_table = _quote_identifier(table, "table", "`")
+        cur.execute(f"DESCRIBE TABLE {quoted_schema}.{quoted_table}")
         return [
             ColumnMetadata(name=r[0], data_type=r[1], is_nullable=True, comment=r[2] or "")
             for r in cur.fetchall()
@@ -296,7 +324,8 @@ class TrinoIntrospector(WarehouseIntrospector):
 
     def list_tables(self, schema: str) -> list[TableMetadata]:
         cur = self._conn.cursor()
-        cur.execute(f'SHOW TABLES IN "{schema}"')
+        quoted_schema = _quote_identifier(schema, "schema")
+        cur.execute(f"SHOW TABLES IN {quoted_schema}")
         return [
             TableMetadata(schema_name=schema, table_name=r[0], table_type="TABLE")
             for r in cur.fetchall()
@@ -304,7 +333,9 @@ class TrinoIntrospector(WarehouseIntrospector):
 
     def get_columns(self, schema: str, table: str) -> list[ColumnMetadata]:
         cur = self._conn.cursor()
-        cur.execute(f'SHOW COLUMNS FROM "{schema}"."{table}"')
+        quoted_schema = _quote_identifier(schema, "schema")
+        quoted_table = _quote_identifier(table, "table")
+        cur.execute(f"SHOW COLUMNS FROM {quoted_schema}.{quoted_table}")
         return [ColumnMetadata(name=r[0], data_type=r[1]) for r in cur.fetchall()]
 
     def close(self):
@@ -329,7 +360,8 @@ class SparkIntrospector(WarehouseIntrospector):
 
     def list_tables(self, schema: str) -> list[TableMetadata]:
         cur = self._conn.cursor()
-        cur.execute(f"SHOW TABLES IN {schema}")
+        quoted_schema = _quote_identifier(schema, "schema", "`")
+        cur.execute(f"SHOW TABLES IN {quoted_schema}")
         return [
             TableMetadata(schema_name=schema, table_name=r[1], table_type="TABLE")
             for r in cur.fetchall()
@@ -337,7 +369,9 @@ class SparkIntrospector(WarehouseIntrospector):
 
     def get_columns(self, schema: str, table: str) -> list[ColumnMetadata]:
         cur = self._conn.cursor()
-        cur.execute(f"DESCRIBE {schema}.{table}")
+        quoted_schema = _quote_identifier(schema, "schema", "`")
+        quoted_table = _quote_identifier(table, "table", "`")
+        cur.execute(f"DESCRIBE {quoted_schema}.{quoted_table}")
         return [
             ColumnMetadata(name=r[0], data_type=r[1], comment=r[2] or "")
             for r in cur.fetchall()

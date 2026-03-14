@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -14,6 +13,7 @@ import yaml
 from rich.console import Console
 
 from dbt_forge.generator.renderer import render_template
+from dbt_forge.ui.theme import forge_style
 
 console = Console()
 
@@ -65,7 +65,7 @@ def _find_project_root() -> Path:
         "or any parent directory.\n"
         "Run [cyan]dbt-forge add[/cyan] from inside a dbt project."
     )
-    sys.exit(1)
+    raise typer.Exit(1)
 
 
 def _read_project_name(project_root: Path) -> str:
@@ -95,7 +95,7 @@ def add_project(
 
     if not existing:
         console.print("[red]Error:[/red] No existing sub-projects found. Is this a mesh project?")
-        sys.exit(1)
+        raise typer.Exit(1)
 
     # Select upstream deps interactively
     upstream: list[str] = []
@@ -103,7 +103,7 @@ def add_project(
         selected = questionary.checkbox(
             f"Upstream dependencies for '{name}':",
             choices=[questionary.Choice(p, value=p) for p in existing],
-            style=_style(),
+            style=forge_style(),
         ).ask()
         if selected is None:
             console.print("\n[dim]Aborted.[/dim]")
@@ -171,7 +171,7 @@ def _find_mesh_root() -> Path:
         "[red]Error:[/red] No mesh project root found.\n"
         "Run [cyan]dbt-forge add project[/cyan] from inside a mesh project."
     )
-    sys.exit(1)
+    raise typer.Exit(1)
 
 
 def _is_mesh_root(path: Path) -> bool:
@@ -293,7 +293,7 @@ def _add_source_from_database(
         adapter_type, config = read_profile(project_root, target)
     except (FileNotFoundError, ValueError) as e:
         console.print(f"[red]Error:[/red] {e}")
-        sys.exit(1)
+        raise typer.Exit(1)
 
     console.print(f"  Connecting to [bold cyan]{adapter_type}[/bold cyan]...")
 
@@ -301,19 +301,19 @@ def _add_source_from_database(
         introspector = get_introspector(adapter_type, **config)
     except (ValueError, ImportError) as e:
         console.print(f"[red]Error:[/red] {e}")
-        sys.exit(1)
+        raise typer.Exit(1)
 
     with introspector:
         # List schemas
         schemas = introspector.list_schemas()
         if not schemas:
             console.print("[red]Error:[/red] No schemas found.")
-            sys.exit(1)
+            raise typer.Exit(1)
 
         schema = questionary.select(
             "Select schema:",
             choices=schemas,
-            style=_style(),
+            style=forge_style(),
         ).ask()
         if schema is None:
             console.print("\n[dim]Aborted.[/dim]")
@@ -323,13 +323,13 @@ def _add_source_from_database(
         tables = introspector.list_tables(schema)
         if not tables:
             console.print(f"[red]Error:[/red] No tables found in schema '{schema}'.")
-            sys.exit(1)
+            raise typer.Exit(1)
 
         table_names = [t.table_name for t in tables]
         selected = questionary.checkbox(
             "Select tables:",
             choices=[questionary.Choice(t, value=t) for t in table_names],
-            style=_style(),
+            style=forge_style(),
             validate=lambda v: True if v else "Select at least one table.",
         ).ask()
         if selected is None:
@@ -551,19 +551,6 @@ def _adapter_key_to_package(adapter_key: str) -> str:
     return mapping.get(adapter_key, "dbt-core")
 
 
-def _style() -> questionary.Style:
-    return questionary.Style(
-        [
-            ("qmark", "fg:#00d7ff bold"),
-            ("question", "bold"),
-            ("answer", "fg:#00d7ff bold"),
-            ("pointer", "fg:#00d7ff bold"),
-            ("highlighted", "fg:#00d7ff bold"),
-            ("selected", "fg:#00d7ff"),
-        ]
-    )
-
-
 # ---------------------------------------------------------------------------
 # add pre-commit
 # ---------------------------------------------------------------------------
@@ -656,19 +643,19 @@ def add_ci(
         console.print(
             f"[red]Error:[/red] Unknown provider '{provider}'. Use: github, gitlab, bitbucket"
         )
-        sys.exit(1)
+        raise typer.Exit(1)
     else:
         # Interactive prompt
         choices = [questionary.Choice(title=p, value=p) for p in CI_PROVIDERS]
         selected = questionary.checkbox(
             "Select CI provider(s):",
             choices=choices,
-            style=_style(),
+            style=forge_style(),
             validate=lambda v: True if v else "Select at least one provider.",
         ).ask()
         if selected is None:
             console.print("\n[dim]Aborted.[/dim]")
-            sys.exit(0)
+            raise typer.Exit()
 
     # Adapter name mapping (profile type → display name for templates)
     adapter_display = {
@@ -756,7 +743,7 @@ def add_model(
     layer = questionary.select(
         "Model layer:",
         choices=LAYER_CHOICES,
-        style=_style(),
+        style=forge_style(),
     ).ask()
     if layer is None:
         console.print("\n[dim]Aborted.[/dim]")
@@ -768,7 +755,7 @@ def add_model(
         "Materialization:",
         choices=MATERIALIZATION_CHOICES,
         default=default_mat,
-        style=_style(),
+        style=forge_style(),
     ).ask()
     if materialization is None:
         console.print("\n[dim]Aborted.[/dim]")
@@ -785,7 +772,7 @@ def add_model(
             source_name = questionary.select(
                 "Source name:",
                 choices=choices,
-                style=_style(),
+                style=forge_style(),
             ).ask()
             if source_name is None:
                 console.print("\n[dim]Aborted.[/dim]")
@@ -794,7 +781,7 @@ def add_model(
                 source_name = questionary.text(
                     "Source name (e.g. 'stripe'):",
                     default="",
-                    style=_style(),
+                    style=forge_style(),
                 ).ask()
                 if source_name is None:
                     console.print("\n[dim]Aborted.[/dim]")
@@ -803,7 +790,7 @@ def add_model(
             source_name = questionary.text(
                 "Source name (e.g. 'stripe'):",
                 default="",
-                style=_style(),
+                style=forge_style(),
             ).ask()
             if source_name is None:
                 console.print("\n[dim]Aborted.[/dim]")
@@ -813,7 +800,7 @@ def add_model(
     description = questionary.text(
         "Model description:",
         default="",
-        style=_style(),
+        style=forge_style(),
     ).ask()
     if description is None:
         console.print("\n[dim]Aborted.[/dim]")
@@ -824,7 +811,7 @@ def add_model(
     add_cols = questionary.confirm(
         "Add columns interactively?",
         default=False,
-        style=_style(),
+        style=forge_style(),
     ).ask()
     if add_cols is None:
         console.print("\n[dim]Aborted.[/dim]")
@@ -834,7 +821,7 @@ def add_model(
         while True:
             col_name = questionary.text(
                 "Column name (blank to finish):",
-                style=_style(),
+                style=forge_style(),
             ).ask()
             if col_name is None:
                 console.print("\n[dim]Aborted.[/dim]")
@@ -845,7 +832,7 @@ def add_model(
             col_desc = questionary.text(
                 f"Description for '{col_name}':",
                 default="",
-                style=_style(),
+                style=forge_style(),
             ).ask()
             if col_desc is None:
                 console.print("\n[dim]Aborted.[/dim]")
@@ -854,7 +841,7 @@ def add_model(
             col_tests = questionary.checkbox(
                 f"Tests for '{col_name}':",
                 choices=[questionary.Choice(t, value=t) for t in TEST_CHOICES],
-                style=_style(),
+                style=forge_style(),
             ).ask()
             if col_tests is None:
                 console.print("\n[dim]Aborted.[/dim]")
@@ -960,7 +947,7 @@ def add_test(
             questionary.Choice("Unit test (dbt 1.8+ mock-based)", value="unit"),
             questionary.Choice("Schema test (column-level in .yml)", value="schema"),
         ],
-        style=_style(),
+        style=forge_style(),
     ).ask()
     if test_type is None:
         console.print("\n[dim]Aborted.[/dim]")
@@ -991,7 +978,7 @@ def add_test(
             selected_cols = questionary.checkbox(
                 "Select columns to add tests for:",
                 choices=[questionary.Choice(c, value=c) for c in existing_cols],
-                style=_style(),
+                style=forge_style(),
                 validate=lambda v: True if v else "Select at least one column.",
             ).ask()
             if selected_cols is None:
@@ -1000,7 +987,7 @@ def add_test(
         else:
             col_input = questionary.text(
                 "Column names (comma-separated):",
-                style=_style(),
+                style=forge_style(),
             ).ask()
             if col_input is None:
                 console.print("\n[dim]Aborted.[/dim]")
@@ -1016,7 +1003,7 @@ def add_test(
             col_tests = questionary.checkbox(
                 f"Tests for '{col}':",
                 choices=[questionary.Choice(t, value=t) for t in schema_test_types],
-                style=_style(),
+                style=forge_style(),
             ).ask()
             if col_tests is None:
                 console.print("\n[dim]Aborted.[/dim]")
@@ -1027,7 +1014,7 @@ def add_test(
                 if t == "accepted_values":
                     vals = questionary.text(
                         f"Accepted values for '{col}' (comma-separated):",
-                        style=_style(),
+                        style=forge_style(),
                     ).ask()
                     if vals is None:
                         console.print("\n[dim]Aborted.[/dim]")
@@ -1037,7 +1024,7 @@ def add_test(
                 elif t == "relationships":
                     ref_model = questionary.text(
                         f"Relationships ref model for '{col}':",
-                        style=_style(),
+                        style=forge_style(),
                     ).ask()
                     if ref_model is None:
                         console.print("\n[dim]Aborted.[/dim]")
@@ -1045,7 +1032,7 @@ def add_test(
                     ref_field = questionary.text(
                         f"Relationships field for '{col}':",
                         default="id",
-                        style=_style(),
+                        style=forge_style(),
                     ).ask()
                     if ref_field is None:
                         console.print("\n[dim]Aborted.[/dim]")
@@ -1198,7 +1185,7 @@ def add_package(
         name = questionary.select(
             "Select package:",
             choices=choices,
-            style=_style(),
+            style=forge_style(),
         ).ask()
         if name is None:
             console.print("\n[dim]Aborted.[/dim]")
@@ -1209,14 +1196,14 @@ def add_package(
             f"[red]Error:[/red] Unknown package '{name}'. Use --list to see available packages."
         )
         console.print("[dim]For custom packages, add them manually to packages.yml.[/dim]")
-        sys.exit(1)
+        raise typer.Exit(1)
 
     pkg_info = PACKAGE_REGISTRY[name]
     packages_path = project_root / "packages.yml"
 
     if not packages_path.exists():
         console.print("[red]Error:[/red] No packages.yml found.")
-        sys.exit(1)
+        raise typer.Exit(1)
 
     data = yaml.safe_load(packages_path.read_text()) or {}
     packages_list = data.get("packages", [])
