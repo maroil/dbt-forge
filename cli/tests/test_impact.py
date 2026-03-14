@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -11,6 +12,7 @@ from dbt_forge.cli.impact import (
     _compute_blast_radius,
     _get_changed_models_from_git,
     _render_pr_markdown,
+    render_impact_json,
     run_impact,
 )
 from dbt_forge.ref_graph import ModelNode, RefEdge, RefGraph
@@ -254,3 +256,49 @@ class TestRunImpact:
                 ),
             ):
                 run_impact(diff=True, base="main")
+
+    def test_impact_diff_json_is_parseable(self, capsys):
+        graph = _make_test_graph()
+        with (
+            patch("dbt_forge.cli.impact.find_project_root", return_value=Path(".")),
+            patch("dbt_forge.cli.impact.build_ref_graph", return_value=graph),
+            patch("dbt_forge.cli.impact.parse_yml_tests", return_value=set()),
+            patch(
+                "dbt_forge.cli.impact._get_changed_models_from_git",
+                return_value=["stg_orders"],
+            ),
+        ):
+            run_impact(diff=True, output_format="json")
+
+        data = json.loads(capsys.readouterr().out)
+        assert data["changed_models"] == ["stg_orders"]
+        assert data["total_impacted"] == 2
+
+    def test_impact_diff_json_handles_no_changes(self, capsys):
+        graph = _make_test_graph()
+        with (
+            patch("dbt_forge.cli.impact.find_project_root", return_value=Path(".")),
+            patch("dbt_forge.cli.impact.build_ref_graph", return_value=graph),
+            patch("dbt_forge.cli.impact.parse_yml_tests", return_value=set()),
+            patch(
+                "dbt_forge.cli.impact._get_changed_models_from_git",
+                return_value=[],
+            ),
+        ):
+            run_impact(diff=True, output_format="json")
+
+        data = json.loads(capsys.readouterr().out)
+        assert data["changed_models"] == []
+        assert data["total_impacted"] == 0
+
+
+class TestRenderImpactJson:
+    def test_renders_valid_json(self):
+        graph = _make_test_graph()
+        blast = _compute_blast_radius(graph, ["stg_orders"], set())
+        output = render_impact_json(["stg_orders"], blast)
+        data = json.loads(output)
+        assert data["changed_models"] == ["stg_orders"]
+        assert data["total_impacted"] == 2
+        assert data["blast_pct"] == 66.7
+        assert "untested_models" in data

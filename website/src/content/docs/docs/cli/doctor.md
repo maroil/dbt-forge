@@ -9,13 +9,13 @@ practices. Use it to catch issues before they cause production failures.
 ## Command
 
 ```bash
-dbt-forge doctor [--check NAME] [--fix] [--ci]
+dbt-forge doctor [--check NAME] [--fix] [--ci] [--format FORMAT]
 ```
 
 ## What it does
 
-The command runs 10 health checks on the current dbt project and displays a summary
-table with pass/fail status and actionable fix suggestions for each check.
+The command runs 11 health checks on the current dbt project and displays a summary
+table with pass/fail status and actionable remediation suggestions for each check.
 
 All checks are file-based and do not require a warehouse connection.
 
@@ -32,14 +32,17 @@ dbt-forge doctor --check test-coverage
 
 Valid check names: `naming-conventions`, `schema-coverage`, `test-coverage`,
 `hardcoded-refs`, `packages-pinned`, `source-freshness`, `orphaned-yml`,
-`sqlfluff-config`, `gitignore`, `disabled-models`.
+`sqlfluff-config`, `gitignore`, `disabled-models`, `contract-enforcement`.
 
 ### `--fix`
 
-Auto-fix issues where possible. Currently generates missing schema YAML stubs for
-undocumented models. For each model without a YAML entry, `--fix` creates a file
-at `models/<layer>/_<model_name>__models.yml` with a model name and description
-placeholder.
+Auto-fix issues where possible. Currently supports two auto-fixes:
+
+1. **Schema coverage** — generates missing schema YAML stubs for undocumented models.
+   For each model without a YAML entry, `--fix` creates a file at
+   `models/<layer>/_<model_name>__models.yml` with a model name and description placeholder.
+2. **Contract enforcement** — injects `config: {contract: {enforced: true}}` into
+   mart model YAML entries that are missing contract configuration.
 
 ```bash
 dbt-forge doctor --fix
@@ -50,11 +53,12 @@ Example output:
 ```
  Created models/marts/finance/_fct_revenue__models.yml
  Created models/staging/stripe/_stg_stripe__orders__models.yml
+ Added contract enforcement to orders in _orders__models.yml
 
-  8 passed, 0 failed
+  9 passed, 0 failed
 ```
 
-Other failing checks are not auto-fixed and require manual intervention.
+Other failing checks include specific remediation hints but require manual intervention.
 
 ### `--ci`
 
@@ -63,6 +67,33 @@ code 0 if all checks pass.
 
 ```bash
 dbt-forge doctor --ci
+```
+
+### `--format`
+
+Output format: `table` (default) or `json`. JSON output includes pass/fail counts
+and full results for each check, suitable for CI/CD integrations and dashboards.
+
+```bash
+dbt-forge doctor --format json
+```
+
+Example JSON output:
+
+```json
+{
+  "passed": false,
+  "pass_count": 9,
+  "fail_count": 2,
+  "results": [
+    {
+      "name": "naming-conventions",
+      "passed": true,
+      "message": "All models follow naming conventions.",
+      "fix_hint": null
+    }
+  ]
+}
 ```
 
 ## Checks
@@ -79,6 +110,7 @@ dbt-forge doctor --ci
 | `sqlfluff-config` | `.sqlfluff` config file exists |
 | `gitignore` | `.gitignore` includes `target/`, `dbt_packages/`, `logs/` |
 | `disabled-models` | No models with `enabled: false` (tech debt indicator) |
+| `contract-enforcement` | Mart models have `contract: { enforced: true }` config |
 
 ### Check details
 
@@ -109,6 +141,12 @@ These accumulate when models are renamed or deleted without updating the YAML.
 **disabled-models** — Models with `config(enabled=false)` or `enabled: false` in YAML.
 These are tech debt — either remove the model or re-enable it.
 
+**contract-enforcement** — Mart-layer models (in `models/marts/`) should have
+`contract: { enforced: true }` in their YAML config. Data contracts ensure that
+downstream consumers can rely on a stable schema. Use `--fix` to auto-inject the
+contract config, or run `dbt-forge contracts generate` for full contract generation
+with column types.
+
 ## Output
 
 The command displays a Rich table with pass/fail status per check:
@@ -123,10 +161,11 @@ The command displays a Rich table with pass/fail status per check:
                                Use dbt-forge add test <model> to generate test stubs.
  PASS     packages-pinned      All packages have version ranges.
 
-  8 passed, 2 failed
+  9 passed, 2 failed
 ```
 
-Each failing check includes the affected file paths and a suggested fix.
+Each failing check includes the affected file paths and a specific remediation
+suggestion (e.g., the exact `dbt-forge` command to run to fix the issue).
 
 ## CI integration
 
@@ -149,6 +188,6 @@ doctor:
 
 - Must run from inside an existing dbt project (walks up from the current directory to find `dbt_project.yml`).
 - Intermediate models (`int_` prefix) are excluded from schema coverage checks since they are typically ephemeral.
-- The `--fix` flag only generates missing schema stubs. Other fixes require manual intervention.
+- The `--fix` flag generates missing schema stubs and injects contract enforcement config. Other fixes require manual intervention.
 - Checks are fast and do not require a warehouse connection — all data comes from local files.
 - When using `--check`, only the specified check runs. The exit code in `--ci` mode reflects only that check.

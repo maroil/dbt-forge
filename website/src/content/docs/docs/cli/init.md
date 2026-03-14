@@ -180,9 +180,34 @@ BigQuery, Snowflake, PostgreSQL, DuckDB, Databricks, Redshift, Trino, Spark.
 Each adapter generates a different `profiles/profiles.yml` with the correct connection
 fields and `env_var()` references.
 
+## Review screen
+
+In interactive mode (without `--defaults` or `--dry-run`), `init` displays a summary
+table of all 16 configuration choices before writing files:
+
+```
+               Project Configuration Review
+ Setting                Value
+ Project name           my_project
+ Adapter                Snowflake
+ Marts                  finance, marketing
+ Packages               dbt-utils, dbt-expectations
+ Example models         Yes
+ SQLFluff               Yes
+ CI providers           GitHub Actions
+ Unit tests             No
+ MetricFlow             No
+ ...
+
+? Proceed with generation? (Y/n)
+```
+
+This gives you a chance to review your choices and abort if something looks wrong.
+The review screen is skipped when using `--defaults` or `--dry-run`.
+
 ## Behavior and limits
 
 - `--dry-run` resolves the full config and project path but does not write files or create the manifest.
 - The command always prints a banner and next-step hints for the generated project.
 - If the project directory already exists, files are written into it without deleting existing content.
-- Run `dbt-forge --help` for a quick overview of all available commands.
+- Run `dbt-forge --help` for a quick overview of all available commands (organized by category).

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -16,6 +17,7 @@ from dbt_forge.cli.lint import (
     check_model_complexity,
     check_source_to_mart,
     check_yaml_sql_drift,
+    render_lint_json,
 )
 from dbt_forge.lint_config import LintConfig, load_lint_config
 from dbt_forge.ref_graph import ModelNode, RefEdge, RefGraph
@@ -454,3 +456,29 @@ class TestLintCli:
 
                 results = run_lint(config_path=str(custom_config))
                 assert len(results) > 0
+
+    def test_lint_json_format(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = _make_project(tmpdir)
+            (root / "models" / "staging" / "stg_orders.sql").write_text("SELECT 1")
+            with patch("dbt_forge.cli.lint.find_project_root", return_value=root):
+                from dbt_forge.cli.lint import run_lint
+
+                results = run_lint(output_format="json")
+                assert len(results) == 6
+
+
+class TestRenderLintJson:
+    def test_renders_valid_json(self):
+        from dbt_forge.cli.doctor import CheckResult
+
+        results = [
+            CheckResult(name="rule-a", passed=True, message="OK."),
+            CheckResult(name="rule-b", passed=False, message="Bad.", fix_hint="Fix."),
+        ]
+        output = render_lint_json(results)
+        data = json.loads(output)
+        assert data["passed"] is False
+        assert data["pass_count"] == 1
+        assert data["warning_count"] == 1
+        assert len(data["results"]) == 2

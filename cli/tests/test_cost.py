@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from contextlib import nullcontext
 from unittest.mock import patch
 
@@ -235,6 +236,40 @@ class TestFormatBytes:
         assert "TB" in result
 
 
+class TestRenderCostJson:
+    def test_renders_valid_json(self):
+        import json
+
+        from dbt_forge.cli.cost_cmd import render_cost_json
+
+        report = CostReport(stats=[
+            QueryStat(
+                model_name="orders",
+                total_bytes_scanned=1_000_000,
+                avg_duration_seconds=2.5,
+                execution_count=10,
+                estimated_cost_usd=0.05,
+                materialization="table",
+            ),
+            QueryStat(
+                model_name="users",
+                total_bytes_scanned=500_000,
+                avg_duration_seconds=1.0,
+                execution_count=5,
+                estimated_cost_usd=0.02,
+                materialization="view",
+            ),
+        ])
+        top = report.top_n(10)
+        output = render_cost_json(report, top, 30)
+        data = json.loads(output)
+        assert data["days"] == 30
+        assert data["total_estimated_cost_usd"] == 0.07
+        assert len(data["models"]) == 2
+        assert data["models"][0]["model_name"] == "orders"
+        assert "suggestions" in data
+
+
 class TestRunCost:
     def test_connection_failure_is_reported(self):
         from dbt_forge.cli.cost_cmd import run_cost
@@ -259,3 +294,58 @@ class TestRunCost:
             run_cost()
 
         mock_print_error.assert_called_once_with("Error connecting to warehouse: adapter boom")
+
+    def test_json_output_is_parseable(self, capsys):
+        from dbt_forge.cli.cost_cmd import run_cost
+
+        class Introspector:
+            def connect(self):
+                pass
+
+            def close(self):
+                pass
+
+        stats = [
+            QueryStat(
+                model_name="orders",
+                total_bytes_scanned=1_000_000,
+                avg_duration_seconds=2.5,
+                execution_count=10,
+                estimated_cost_usd=0.05,
+                materialization="table",
+            )
+        ]
+
+        with (
+            patch("dbt_forge.cli.cost_cmd.find_project_root", return_value="."),
+            patch("dbt_forge.cli.cost_cmd.read_profile", return_value=("bigquery", {})),
+            patch("dbt_forge.cli.cost_cmd.get_introspector", return_value=Introspector()),
+            patch.dict("dbt_forge.cli.cost_cmd.ADAPTER_STATS_FN", {"bigquery": lambda *_: stats}),
+        ):
+            run_cost(output_format="json")
+
+        data = json.loads(capsys.readouterr().out)
+        assert data["total_estimated_cost_usd"] == 0.05
+        assert data["models"][0]["model_name"] == "orders"
+
+    def test_json_output_handles_empty_stats(self, capsys):
+        from dbt_forge.cli.cost_cmd import run_cost
+
+        class Introspector:
+            def connect(self):
+                pass
+
+            def close(self):
+                pass
+
+        with (
+            patch("dbt_forge.cli.cost_cmd.find_project_root", return_value="."),
+            patch("dbt_forge.cli.cost_cmd.read_profile", return_value=("bigquery", {})),
+            patch("dbt_forge.cli.cost_cmd.get_introspector", return_value=Introspector()),
+            patch.dict("dbt_forge.cli.cost_cmd.ADAPTER_STATS_FN", {"bigquery": lambda *_: []}),
+        ):
+            run_cost(output_format="json")
+
+        data = json.loads(capsys.readouterr().out)
+        assert data["total_estimated_cost_usd"] == 0
+        assert data["models"] == []

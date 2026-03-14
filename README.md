@@ -23,7 +23,7 @@ Starting a new dbt project means creating dozens of files, configuring profiles,
 - **One command** to scaffold a complete, production-ready dbt project
 - **8 database adapters** supported out of the box
 - **13 `add` subcommands** to extend projects after init
-- **10 health checks** via `doctor` to keep your project clean
+- **11 health checks** via `doctor` with actionable remediation hints
 - **6 architectural lint rules** via `lint` — fan-out, source-to-mart, complexity, duplicates, cycles, drift
 - **Impact analysis** — see which models break when you change an upstream model
 - **Query cost estimation** — identify expensive models from warehouse usage data
@@ -158,6 +158,7 @@ dbt-forge lint                        # run all 6 rules
 dbt-forge lint --rule fan-out         # single rule
 dbt-forge lint --ci                   # exit 1 on warnings
 dbt-forge lint --config custom.yml    # custom thresholds
+dbt-forge lint --format json          # machine-readable output
 ```
 
 <details>
@@ -181,6 +182,7 @@ dbt-forge impact stg_orders           # downstream tree for one model
 dbt-forge impact --diff               # detect changed models from git diff
 dbt-forge impact --diff --base main   # custom base ref
 dbt-forge impact --pr                 # markdown output for PR descriptions
+dbt-forge impact --format json        # machine-readable output
 ```
 
 ### `cost` — Query cost estimation
@@ -190,6 +192,7 @@ dbt-forge cost                        # connect + show top 10
 dbt-forge cost --days 7 --top 20      # last 7 days, top 20 models
 dbt-forge cost --report               # markdown report
 dbt-forge cost --target prod          # use a specific dbt target
+dbt-forge cost --format json          # machine-readable output
 ```
 
 ### `contracts` — Data contract generation
@@ -214,14 +217,15 @@ dbt-forge changelog generate -o CHANGELOG.md          # write to file
 ### `doctor` — Health checks
 
 ```bash
-dbt-forge doctor                       # run all 10 checks
-dbt-forge doctor --fix                 # auto-generate missing schema stubs
+dbt-forge doctor                       # run all 11 checks
+dbt-forge doctor --fix                 # auto-fix schema stubs + contract config
 dbt-forge doctor --ci                  # exit code 1 on failures (for CI)
 dbt-forge doctor --check test-coverage # run a single check
+dbt-forge doctor --format json         # machine-readable output
 ```
 
 <details>
-<summary><strong>All 10 checks</strong></summary>
+<summary><strong>All 11 checks</strong></summary>
 
 | Check | What it verifies |
 |---|---|
@@ -235,6 +239,7 @@ dbt-forge doctor --check test-coverage # run a single check
 | `sqlfluff-config` | `.sqlfluff` file exists |
 | `gitignore` | `.gitignore` is configured |
 | `disabled-models` | No disabled models in production |
+| `contract-enforcement` | Mart models have `contract: { enforced: true }` |
 
 </details>
 

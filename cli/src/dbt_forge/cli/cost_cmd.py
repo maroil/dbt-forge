@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import json
+from contextlib import nullcontext
+
 import yaml
 from rich.console import Console
 
@@ -14,11 +17,31 @@ from dbt_forge.ui.theme import make_table, print_error, print_warning, timed
 console = Console()
 
 
+def render_cost_json(cost_report: CostReport, top_models: list, days: int) -> str:
+    """Render cost report as JSON string."""
+    return json.dumps({
+        "days": days,
+        "total_estimated_cost_usd": round(cost_report.total_estimated_cost, 2),
+        "models": [
+            {
+                "model_name": s.model_name,
+                "total_bytes_scanned": s.total_bytes_scanned,
+                "avg_duration_seconds": round(s.avg_duration_seconds, 1),
+                "execution_count": s.execution_count,
+                "estimated_cost_usd": round(s.estimated_cost_usd, 2),
+            }
+            for s in top_models
+        ],
+        "suggestions": cost_report.materialization_suggestions()[:5],
+    }, indent=2)
+
+
 def run_cost(
     days: int = 30,
     top: int = 10,
     report: bool = False,
     target: str = "dev",
+    output_format: str = "table",
 ) -> None:
     """Run cost analysis against the warehouse."""
     root = find_project_root()
@@ -36,16 +59,26 @@ def run_cost(
         )
         return
 
+    connect_timer = (
+        timed("Connecting to warehouse...")
+        if output_format != "json"
+        else nullcontext()
+    )
     try:
-        with timed("Connecting to warehouse..."):
+        with connect_timer:
             introspector = get_introspector(adapter, **connection_config)
             introspector.connect()
     except Exception as e:
         print_error(f"Error connecting to warehouse: {e}")
         return
 
+    query_timer = (
+        timed("Querying cost data...")
+        if output_format != "json"
+        else nullcontext()
+    )
     try:
-        with timed("Querying cost data..."):
+        with query_timer:
             stats_fn = ADAPTER_STATS_FN[adapter]
             stats = stats_fn(introspector, days)
     except Exception as e:
@@ -55,13 +88,18 @@ def run_cost(
         introspector.close()
 
     if not stats:
-        console.print("[green]No query stats found for the given period.[/green]")
+        if output_format == "json":
+            print(render_cost_json(CostReport(stats=[]), [], days))
+        else:
+            console.print("[green]No query stats found for the given period.[/green]")
         return
 
     cost_report = CostReport(stats=stats)
     top_models = cost_report.top_n(top)
 
-    if report:
+    if output_format == "json":
+        print(render_cost_json(cost_report, top_models, days))
+    elif report:
         _render_markdown_report(cost_report, top_models, days)
     else:
         _render_table(cost_report, top_models, days)

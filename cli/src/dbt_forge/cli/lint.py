@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
+from dataclasses import asdict
 from pathlib import Path
 
 import typer
@@ -275,10 +277,23 @@ ALL_LINT_RULES = {
 }
 
 
+def render_lint_json(results: list[CheckResult]) -> str:
+    """Render lint results as JSON string."""
+    passed = sum(1 for r in results if r.passed)
+    failed = sum(1 for r in results if not r.passed)
+    return json.dumps({
+        "passed": failed == 0,
+        "pass_count": passed,
+        "warning_count": failed,
+        "results": [asdict(r) for r in results],
+    }, indent=2)
+
+
 def run_lint(
     rule: str | None = None,
     ci: bool = False,
     config_path: str | None = None,
+    output_format: str = "table",
 ) -> list[CheckResult]:
     """Run lint rules and display results."""
     root = find_project_root()
@@ -314,13 +329,18 @@ def run_lint(
             )
             raise typer.Exit(1)
         _run_rule(rule)
+    elif output_format == "json":
+        for name in ALL_LINT_RULES:
+            _run_rule(name)
     else:
         with timed("Running lint rules..."):
             for name in ALL_LINT_RULES:
                 _run_rule(name)
 
     # Display
-    if not ci:
+    if output_format == "json":
+        print(render_lint_json(results))
+    elif not ci:
         forge_console.print()
         table = make_table("dbt-forge lint", [
             ("Status", {"width": 6, "justify": "center"}),

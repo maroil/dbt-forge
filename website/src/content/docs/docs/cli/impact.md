@@ -10,7 +10,7 @@ pull requests.
 ## Command
 
 ```bash
-dbt-forge impact <MODEL> [--diff] [--base REF] [--pr]
+dbt-forge impact <MODEL> [--diff] [--base REF] [--pr] [--format FORMAT]
 ```
 
 ## What it does
@@ -51,6 +51,16 @@ Base git ref for `--diff` comparison. Defaults to `main`.
 
 ```bash
 dbt-forge impact --diff --base origin/main
+```
+
+### `--format`
+
+Output format: `table` (default) or `json`. JSON output includes changed models,
+impact counts, blast radius percentage, and untested model names.
+
+```bash
+dbt-forge impact stg_orders --format json
+dbt-forge impact --diff --format json
 ```
 
 ### `--pr`

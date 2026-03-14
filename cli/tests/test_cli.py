@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import subprocess
 import sys
+from unittest.mock import patch
 
 from typer.testing import CliRunner
 
@@ -72,6 +73,20 @@ def test_module_available_handles_missing_parent_package(monkeypatch) -> None:
     assert _module_available("google.cloud.bigquery") is False
 
 
+def test_help_shows_grouped_panels() -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "dbt_forge.main", "--help"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    out = _strip_ansi(result.stdout)
+    assert "Scaffold" in out
+    assert "Analyze" in out
+    assert "Govern" in out
+    assert "Migrate" in out
+
+
 def test_adapters_command_reports_missing_optional_deps(monkeypatch) -> None:
     from dbt_forge.introspect import connectors
 
@@ -96,3 +111,54 @@ def test_adapters_command_reports_missing_optional_deps(monkeypatch) -> None:
     assert "not installed" in out
     assert "duckdb" in out
     assert "installed" in out
+
+
+class TestInitReviewScreen:
+    def test_review_screen_renders(self):
+        from dbt_forge.cli.init import _show_review_screen
+        from dbt_forge.prompts.questions import ProjectConfig
+
+        config = ProjectConfig(
+            project_name="test_proj",
+            adapter="BigQuery",
+            marts=["finance"],
+            packages=["dbt-utils"],
+            add_examples=True,
+            add_sqlfluff=True,
+        )
+        with patch("dbt_forge.cli.init.questionary") as mock_q:
+            mock_q.confirm.return_value.ask.return_value = True
+            result = _show_review_screen(config)
+            assert result is True
+
+    def test_review_screen_abort(self):
+        from dbt_forge.cli.init import _show_review_screen
+        from dbt_forge.prompts.questions import ProjectConfig
+
+        config = ProjectConfig(
+            project_name="test_proj",
+            adapter="BigQuery",
+            marts=["finance"],
+            packages=[],
+            add_examples=False,
+            add_sqlfluff=False,
+        )
+        with patch("dbt_forge.cli.init.questionary") as mock_q:
+            mock_q.confirm.return_value.ask.return_value = False
+            result = _show_review_screen(config)
+            assert result is False
+
+    def test_review_screen_skipped_in_defaults_mode(self):
+        """When use_defaults=True, review screen is not shown."""
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch("dbt_forge.cli.init._show_review_screen") as mock_review:
+                from dbt_forge.cli.init import init_command
+
+                init_command(
+                    project_name="test_proj",
+                    use_defaults=True,
+                    output_dir=tmpdir,
+                )
+                mock_review.assert_not_called()

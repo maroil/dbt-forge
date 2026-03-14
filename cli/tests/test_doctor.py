@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import tempfile
 from pathlib import Path
@@ -9,6 +10,8 @@ from pathlib import Path
 import yaml
 
 from dbt_forge.cli.doctor import (
+    DoctorReport,
+    check_contract_enforcement,
     check_disabled_models,
     check_gitignore,
     check_hardcoded_refs,
@@ -19,7 +22,9 @@ from dbt_forge.cli.doctor import (
     check_source_freshness,
     check_sqlfluff_config,
     check_test_coverage,
+    fix_contract_enforcement,
     fix_schema_coverage,
+    render_doctor_json,
 )
 from dbt_forge.generator.project import generate_project
 from dbt_forge.prompts.questions import ProjectConfig
@@ -223,6 +228,132 @@ class TestFixSchemaCoverage:
             assert data["models"][0]["name"] == "lonely_model"
 
 
+def _make_minimal_project(tmpdir: str) -> Path:
+    """Create a minimal dbt project with just the directory structure."""
+    root = Path(tmpdir) / "test_project"
+    (root / "models" / "marts" / "finance").mkdir(parents=True, exist_ok=True)
+    (root / "dbt_project.yml").write_text("name: test_project")
+    return root
+
+
+class TestContractEnforcement:
+    def test_passes_with_contract(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = _make_minimal_project(tmpdir)
+            mart = root / "models" / "marts" / "finance" / "fct_revenue.sql"
+            mart.write_text("SELECT 1 AS id")
+            yml = root / "models" / "marts" / "finance" / "_fct_revenue__models.yml"
+            yml.write_text(
+                yaml.dump({
+                    "version": 2,
+                    "models": [{
+                        "name": "fct_revenue",
+                        "config": {"contract": {"enforced": True}},
+                        "columns": [{"name": "id"}],
+                    }],
+                })
+            )
+            result = check_contract_enforcement(root)
+            assert result.passed
+
+    def test_fails_without_contract(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = _make_minimal_project(tmpdir)
+            mart = root / "models" / "marts" / "finance" / "fct_revenue.sql"
+            mart.write_text("SELECT 1 AS id")
+            yml = root / "models" / "marts" / "finance" / "_fct_revenue__models.yml"
+            yml.write_text(
+                yaml.dump({
+                    "version": 2,
+                    "models": [{"name": "fct_revenue", "columns": [{"name": "id"}]}],
+                })
+            )
+            result = check_contract_enforcement(root)
+            assert not result.passed
+            assert "fct_revenue" in result.message
+
+    def test_fix_adds_contract(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = _make_minimal_project(tmpdir)
+            mart = root / "models" / "marts" / "finance" / "fct_revenue.sql"
+            mart.write_text("SELECT 1 AS id")
+            yml = root / "models" / "marts" / "finance" / "_fct_revenue__models.yml"
+            yml.write_text(
+                yaml.dump({
+                    "version": 2,
+                    "models": [{"name": "fct_revenue", "columns": [{"name": "id"}]}],
+                })
+            )
+            fixed = fix_contract_enforcement(root)
+            assert fixed >= 1
+            data = yaml.safe_load(yml.read_text())
+            model = data["models"][0]
+            assert model["config"]["contract"]["enforced"] is True
+
+    def test_fix_preserves_existing_contract_settings(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = _make_minimal_project(tmpdir)
+            mart = root / "models" / "marts" / "finance" / "fct_revenue.sql"
+            mart.write_text("SELECT 1 AS id")
+            yml = root / "models" / "marts" / "finance" / "_fct_revenue__models.yml"
+            yml.write_text(
+                yaml.dump({
+                    "version": 2,
+                    "models": [{
+                        "name": "fct_revenue",
+                        "config": {"contract": {"alias_types": False}},
+                        "columns": [{"name": "id"}],
+                    }],
+                })
+            )
+
+            fixed = fix_contract_enforcement(root)
+
+            assert fixed >= 1
+            data = yaml.safe_load(yml.read_text())
+            contract = data["models"][0]["config"]["contract"]
+            assert contract["enforced"] is True
+            assert contract["alias_types"] is False
+
+
+class TestRenderDoctorJson:
+    def test_renders_valid_json(self):
+        from dbt_forge.cli.doctor import CheckResult
+
+        report = DoctorReport(results=[
+            CheckResult(name="test-check", passed=True, message="All good."),
+            CheckResult(name="fail-check", passed=False, message="Bad.", fix_hint="Fix it."),
+        ])
+        output = render_doctor_json(report)
+        data = json.loads(output)
+        assert data["passed"] is False
+        assert data["pass_count"] == 1
+        assert data["fail_count"] == 1
+        assert len(data["results"]) == 2
+        assert data["results"][1]["fix_hint"] == "Fix it."
+
+
+class TestRemediation:
+    """Verify that failed checks produce actionable fix_hint values."""
+
+    def test_failed_checks_have_fix_hints(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = _generate_project(tmpdir)
+            # Create conditions that fail various checks
+            bad = root / "models" / "staging" / "bad_model.sql"
+            bad.write_text("SELECT 1")
+            (root / ".sqlfluff").unlink(missing_ok=True)
+
+            for check_fn in [
+                check_naming_conventions,
+                check_sqlfluff_config,
+            ]:
+                result = check_fn(root)
+                if not result.passed:
+                    assert result.fix_hint, f"{result.name} missing fix_hint"
+                    assert len(result.fix_hint) > 10, f"{result.name} fix_hint too short"
+
+
 class TestDoctorCli:
     def test_doctor_runs_from_cli(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -279,3 +410,45 @@ class TestDoctorCli:
 
             stub = root / "models" / "marts" / "finance" / "_fix_me__models.yml"
             assert stub.exists()
+
+    def test_doctor_json_format(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = _generate_project(tmpdir)
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(root)
+                from typer.testing import CliRunner
+
+                from dbt_forge.main import app
+
+                runner = CliRunner()
+                result = runner.invoke(app, ["doctor", "--format", "json"])
+                assert result.exit_code == 0, result.output
+                data = json.loads(result.output)
+                assert "passed" in data
+                assert "results" in data
+            finally:
+                os.chdir(old_cwd)
+
+    def test_doctor_json_fix_output_stays_parseable(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = _generate_project(tmpdir)
+            undoc = root / "models" / "marts" / "finance" / "fix_me.sql"
+            undoc.write_text("SELECT 1")
+
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(root)
+                from typer.testing import CliRunner
+
+                from dbt_forge.main import app
+
+                runner = CliRunner()
+                result = runner.invoke(app, ["doctor", "--fix", "--format", "json"])
+                assert result.exit_code == 0, result.output
+                data = json.loads(result.output)
+                assert "passed" in data
+                assert "results" in data
+                assert "Auto-fixing" not in result.output
+            finally:
+                os.chdir(old_cwd)
