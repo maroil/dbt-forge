@@ -3,7 +3,7 @@
 > Long-term roadmap for dbt-forge features, organized by phase.
 > Phases 1–4.4 are complete. This document covers upcoming work only.
 >
-> **Current state:** v0.4.1 — 514+ tests, 13 `add` subcommands, 11 doctor checks, 6 lint rules,
+> **Current state:** v0.4.2 — 526+ unit tests, 13 `add` subcommands, 11 doctor checks, 6 lint rules,
 > AI docs, mesh support, cost/impact/contracts/changelog all shipped.
 > Phase 5.0 (DX quick wins) complete: command grouping, JSON output, remediation hints,
 > contract enforcement check, init review screen.
@@ -12,7 +12,7 @@
 
 ## Phase 5.0: Developer Experience Quick Wins ✅
 
-Small, high-value improvements to polish the CLI before adding major new features. **All 5 features complete — 514 tests passing.**
+Small, high-value improvements to polish the CLI before adding major new features. **All 5 features complete — 526 unit tests passing.**
 
 ### 5.0.1 Init Summary / Review Screen ✅
 

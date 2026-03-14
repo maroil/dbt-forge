@@ -8,6 +8,12 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ### Added
 
+- Nothing yet.
+
+## [0.4.2] - 2026-03-14
+
+### Added
+
 - **Command grouping in help** — `dbt-forge --help` now organizes 20+ commands into scannable panels: Scaffold, Analyze, Govern, AI, Migrate, and Utility. Removed the old `HelpGroup` class in favor of Typer's `rich_help_panel`.
 - **JSON output for analysis commands** — Added `--format json` to `doctor`, `lint`, `impact`, and `cost` commands. Enables CI/CD integrations and dashboards with machine-readable output.
 - **Smart doctor remediation suggestions** — Every failed `doctor` check now includes a specific `dbt-forge` command or actionable fix hint (e.g., "Run `dbt-forge add test <model>`").
