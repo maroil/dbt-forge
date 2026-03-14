@@ -13,6 +13,7 @@ from dbt_forge.changelog import (
     render_changelog_markdown,
 )
 from dbt_forge.scanner import find_project_root
+from dbt_forge.ui.theme import print_ok, print_warning
 
 console = Console()
 
@@ -30,7 +31,7 @@ def run_changelog_generate(
     if not from_ref:
         from_ref = _get_latest_tag(root)
         if not from_ref:
-            console.print("[yellow]No git tag found. Use --from to specify a ref.[/yellow]")
+            print_warning("No git tag found. Use --from to specify a ref.")
             return
         console.print(f"[dim]Using latest tag: {from_ref}[/dim]")
 
@@ -40,7 +41,7 @@ def run_changelog_generate(
         changes = [c for c in changes if c.is_breaking]
 
     if not changes:
-        console.print("[green]No model changes detected.[/green]")
+        print_ok("No model changes detected.")
         return
 
     if format == "json":
@@ -50,6 +51,6 @@ def run_changelog_generate(
 
     if output:
         Path(output).write_text(rendered)
-        console.print(f"[green]Changelog written to {output}[/green]")
+        print_ok(f"Changelog written to {output}")
     else:
         console.print(rendered)

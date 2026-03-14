@@ -3,19 +3,28 @@
 from __future__ import annotations
 
 import re
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import typer
 import yaml
 from rich.console import Console
-from rich.table import Table
 
 from dbt_forge.scanner import find_project_root as _scanner_find_project_root
 from dbt_forge.scanner import find_sql_models as _find_sql_models
 from dbt_forge.scanner import find_yml_files as _find_yml_files
 from dbt_forge.scanner import parse_yml_models as _parse_yml_models
 from dbt_forge.scanner import parse_yml_tests as _parse_yml_tests
+from dbt_forge.ui.theme import (
+    ICON_FAIL,
+    ICON_OK,
+    forge_console,
+    make_table,
+    print_error,
+    print_ok,
+    print_summary,
+    timed,
+)
 
 console = Console()
 
@@ -443,52 +452,53 @@ def run_doctor(
 
     if check_name:
         if check_name not in ALL_CHECKS:
-            console.print(
-                f"[red]Error:[/red] Unknown check '{check_name}'. "
+            print_error(
+                f"Unknown check '{check_name}'. "
                 f"Available: {', '.join(ALL_CHECKS.keys())}"
             )
-            sys.exit(1)
+            raise typer.Exit(1)
         result = ALL_CHECKS[check_name](root)
         report.results.append(result)
     else:
-        for _name, check_fn in ALL_CHECKS.items():
-            result = check_fn(root)
-            report.results.append(result)
+        with timed("Running health checks..."):
+            for _name, check_fn in ALL_CHECKS.items():
+                result = check_fn(root)
+                report.results.append(result)
 
     # Display results
     if not ci:
-        console.print()
-        table = Table(title="dbt-forge doctor", show_lines=False, padding=(0, 1))
-        table.add_column("Status", width=6, justify="center")
-        table.add_column("Check", min_width=20)
-        table.add_column("Details", ratio=1)
+        forge_console.print()
+        table = make_table("dbt-forge doctor", [
+            ("Status", {"width": 6, "justify": "center"}),
+            ("Check", {"min_width": 20}),
+            ("Details", {"ratio": 1}),
+        ])
 
         for r in report.results:
-            status = "[green]PASS[/green]" if r.passed else "[red]FAIL[/red]"
+            status = f"{ICON_OK} PASS" if r.passed else f"{ICON_FAIL} FAIL"
             details = r.message
             if not r.passed and r.fix_hint:
                 details += f"\n[dim]{r.fix_hint}[/dim]"
             table.add_row(status, r.name, details)
 
-        console.print(table)
-        console.print()
-        console.print(
-            f"  [bold]{report.pass_count}[/bold] passed, [bold]{report.fail_count}[/bold] failed"
-        )
-        console.print()
+        forge_console.print(table)
+        print_summary("Doctor results", [
+            f"{report.pass_count} passed",
+            f"{report.fail_count} failed",
+        ])
 
     # Auto-fix
     if fix:
-        console.print("[bold cyan]Auto-fixing schema coverage...[/bold cyan]")
+        forge_console.print("[bold cyan]Auto-fixing schema coverage...[/bold cyan]")
         fixed = fix_schema_coverage(root)
         if fixed:
-            console.print(f"  Generated {fixed} schema stub(s).")
+            print_ok(f"Generated {fixed} schema stub(s).")
         else:
-            console.print("  Nothing to fix.")
-        console.print()
+            forge_console.print("  Nothing to fix.")
+        forge_console.print()
 
     # CI exit code
     if ci and not report.passed:
-        sys.exit(1)
+        raise typer.Exit(1)
 
     return report

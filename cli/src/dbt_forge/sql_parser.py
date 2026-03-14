@@ -347,26 +347,7 @@ def topological_sort(graph: DependencyGraph) -> list[str]:
     if not graph.nodes:
         return []
 
-    # Build in-degree map (only for nodes in the graph)
     in_degree: dict[str, int] = {node: 0 for node in graph.nodes}
-    for node, deps in graph.edges.items():
-        for dep in deps:
-            if dep in in_degree:
-                in_degree[dep] = in_degree.get(dep, 0)  # already initialized above
-
-    # Recalculate: in_degree counts how many nodes depend on this node
-    # Actually for topological sort we want: in_degree[x] = number of deps x has
-    # that are still in the graph
-    in_degree = {node: 0 for node in graph.nodes}
-    for node, deps in graph.edges.items():
-        for dep in deps:
-            if dep in graph.nodes:
-                in_degree[node] = in_degree.get(node, 0) + 1
-
-    # Wait, let me reconsider. Standard Kahn's:
-    # in_degree[x] = number of prerequisites of x
-    # A node with 0 in-degree has no prerequisites and can be processed first.
-    in_degree = {node: 0 for node in graph.nodes}
     for node, deps in graph.edges.items():
         count = sum(1 for d in deps if d in graph.nodes)
         in_degree[node] = count

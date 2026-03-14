@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import yaml
 from rich.console import Console
 
 from dbt_forge.contracts import (
@@ -13,6 +14,7 @@ from dbt_forge.contracts import (
 from dbt_forge.introspect.connectors import get_introspector
 from dbt_forge.introspect.profile_reader import read_profile
 from dbt_forge.scanner import find_project_root, parse_yml_models
+from dbt_forge.ui.theme import forge_style, print_error, print_ok, print_warning, timed
 
 console = Console()
 
@@ -34,30 +36,30 @@ def run_contracts_generate(
     elif all_public:
         models_to_process = find_public_models(root)
         if not models_to_process:
-            console.print("[yellow]No public models found.[/yellow]")
+            print_warning("No public models found.")
             return
         console.print(f"[bold]Found {len(models_to_process)} public model(s)[/bold]")
     else:
-        console.print("[red]Error:[/red] Provide a model name or use --all-public.")
+        print_error("Provide a model name or use --all-public.")
         return
 
     # Connect to warehouse
     try:
-        profile = read_profile(root, target=target)
-    except Exception as e:
-        console.print(f"[red]Error reading profile:[/red] {e}")
+        adapter, connection_config = read_profile(root, target=target)
+    except (FileNotFoundError, ValueError, yaml.YAMLError) as e:
+        print_error(f"Error reading profile: {e}")
         return
 
-    adapter = profile.get("type", "")
     if not adapter:
-        console.print("[red]Error:[/red] Could not determine adapter from profile.")
+        print_error("Could not determine adapter from profile.")
         return
 
     try:
-        introspector = get_introspector(adapter, **profile)
-        introspector.connect()
+        with timed("Connecting to warehouse..."):
+            introspector = get_introspector(adapter, **connection_config)
+            introspector.connect()
     except Exception as e:
-        console.print(f"[red]Error connecting to warehouse:[/red] {e}")
+        print_error(f"Error connecting to warehouse: {e}")
         return
 
     yml_models = parse_yml_models(root)
@@ -68,17 +70,17 @@ def run_contracts_generate(
 
             schema = get_model_schema(root, model_name)
             if not schema:
-                console.print("  [yellow]Could not determine schema, skipping.[/yellow]")
+                print_warning("Could not determine schema, skipping.")
                 continue
 
             try:
                 columns = introspect_model_columns(introspector, schema, model_name)
             except Exception as e:
-                console.print(f"  [yellow]Could not introspect columns: {e}[/yellow]")
+                print_warning(f"Could not introspect columns: {e}")
                 continue
 
             if not columns:
-                console.print("  [yellow]No columns found, skipping.[/yellow]")
+                print_warning("No columns found, skipping.")
                 continue
 
             # Display columns
@@ -106,6 +108,7 @@ def run_contracts_generate(
                     choice = questionary.select(
                         f"Apply contract for {model_name}?",
                         choices=["Accept", "Skip"],
+                        style=forge_style(),
                     ).ask()
                     if choice != "Accept":
                         console.print(f"  [dim]Skipped {model_name}[/dim]")
@@ -115,7 +118,7 @@ def run_contracts_generate(
 
             yml_path.parent.mkdir(parents=True, exist_ok=True)
             yml_path.write_text(content)
-            console.print(f"  [green]Contract written to {yml_path.relative_to(root)}[/green]")
+            print_ok(f"Contract written to {yml_path.relative_to(root)}")
 
     finally:
         introspector.close()

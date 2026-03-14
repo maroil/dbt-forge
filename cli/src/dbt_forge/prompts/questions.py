@@ -3,17 +3,16 @@
 from __future__ import annotations
 
 import re
-import sys
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import questionary
-from rich.console import Console
+
+from dbt_forge.ui.theme import abort, forge_style, print_step
+from dbt_forge.ui.theme import forge_console as console
 
 if TYPE_CHECKING:
     from dbt_forge.mesh import MeshProjectConfig
-
-console = Console()
 
 ADAPTERS = [
     "BigQuery",
@@ -162,6 +161,11 @@ def gather_config(
             output_dir=output_dir,
         )
 
+    style = forge_style()
+
+    # ── [1/4] Project Setup ──────────────────────────────────────────────
+    print_step(1, 4, "Project Setup")
+
     # --- Project name ---
     if project_name:
         name = _slugify(project_name)
@@ -169,10 +173,10 @@ def gather_config(
         answer = questionary.text(
             "Project name:",
             validate=_validate_project_name,
-            style=_style(),
+            style=style,
         ).ask()
         if answer is None:
-            _abort()
+            abort()
         name = _slugify(answer)
 
     # --- Adapter ---
@@ -184,10 +188,13 @@ def gather_config(
             "Warehouse adapter:",
             choices=ADAPTERS,
             default=default_adapter if default_adapter in ADAPTERS else None,
-            style=_style(),
+            style=style,
         ).ask()
         if adapter is None:
-            _abort()
+            abort()
+
+    # ── [2/4] Project Structure ──────────────────────────────────────────
+    print_step(2, 4, "Project Structure")
 
     # --- Marts ---
     if _is_locked("marts"):
@@ -201,29 +208,32 @@ def gather_config(
         marts = questionary.checkbox(
             "Which marts/departments to scaffold? (space to select)",
             choices=mart_choices,
-            style=_style(),
+            style=style,
             validate=lambda v: True if v else "Select at least one mart.",
         ).ask()
         if marts is None:
-            _abort()
+            abort()
 
     # --- Packages ---
     packages = questionary.checkbox(
         "Include packages? (space to select)",
         choices=PACKAGE_CHOICES,
-        style=_style(),
+        style=style,
     ).ask()
     if packages is None:
-        _abort()
+        abort()
+
+    # ── [3/4] Features & Tooling ─────────────────────────────────────────
+    print_step(3, 4, "Features & Tooling")
 
     # --- Optional extras ---
     add_examples = questionary.confirm(
         "Add example models and tests?",
         default=True,
-        style=_style(),
+        style=style,
     ).ask()
     if add_examples is None:
-        _abort()
+        abort()
 
     if _is_locked("add_sqlfluff"):
         add_sqlfluff = _preset_default("add_sqlfluff", True)
@@ -231,10 +241,10 @@ def gather_config(
         add_sqlfluff = questionary.confirm(
             "Add SQLFluff config?",
             default=_preset_default("add_sqlfluff", True),
-            style=_style(),
+            style=style,
         ).ask()
         if add_sqlfluff is None:
-            _abort()
+            abort()
 
     # --- CI providers (multi-select) ---
     if _is_locked("ci_providers"):
@@ -253,10 +263,10 @@ def gather_config(
         ci_providers = questionary.checkbox(
             "Add CI/CD config? (space to select, none = skip)",
             choices=ci_choices,
-            style=_style(),
+            style=style,
         ).ask()
         if ci_providers is None:
-            _abort()
+            abort()
 
     # --- dbt unit tests (dbt 1.8+) ---
     add_unit_tests = False
@@ -267,10 +277,10 @@ def gather_config(
             add_unit_tests = questionary.confirm(
                 "Add dbt unit test examples? (dbt 1.8+)",
                 default=_preset_default("add_unit_tests", False),
-                style=_style(),
+                style=style,
             ).ask()
             if add_unit_tests is None:
-                _abort()
+                abort()
 
     # --- MetricFlow / Semantic Layer (dbt 1.6+) ---
     if _is_locked("add_metricflow"):
@@ -279,10 +289,10 @@ def gather_config(
         add_metricflow = questionary.confirm(
             "Add MetricFlow semantic model examples? (dbt 1.6+)",
             default=_preset_default("add_metricflow", False),
-            style=_style(),
+            style=style,
         ).ask()
         if add_metricflow is None:
-            _abort()
+            abort()
 
     # --- Snapshots ---
     if _is_locked("add_snapshot"):
@@ -291,10 +301,10 @@ def gather_config(
         add_snapshot = questionary.confirm(
             "Add an example snapshot?",
             default=_preset_default("add_snapshot", False),
-            style=_style(),
+            style=style,
         ).ask()
         if add_snapshot is None:
-            _abort()
+            abort()
 
     # --- Seeds ---
     if _is_locked("add_seed"):
@@ -303,10 +313,10 @@ def gather_config(
         add_seed = questionary.confirm(
             "Add an example seed (CSV reference data)?",
             default=_preset_default("add_seed", False),
-            style=_style(),
+            style=style,
         ).ask()
         if add_seed is None:
-            _abort()
+            abort()
 
     # --- Exposures ---
     if _is_locked("add_exposure"):
@@ -315,10 +325,10 @@ def gather_config(
         add_exposure = questionary.confirm(
             "Add an example exposure (downstream dashboard)?",
             default=_preset_default("add_exposure", False),
-            style=_style(),
+            style=style,
         ).ask()
         if add_exposure is None:
-            _abort()
+            abort()
 
     # --- Macros ---
     if _is_locked("add_macro"):
@@ -327,10 +337,10 @@ def gather_config(
         add_macro = questionary.confirm(
             "Add an example macro?",
             default=_preset_default("add_macro", False),
-            style=_style(),
+            style=style,
         ).ask()
         if add_macro is None:
-            _abort()
+            abort()
 
     # --- Pre-commit hooks ---
     if _is_locked("add_pre_commit"):
@@ -339,10 +349,10 @@ def gather_config(
         add_pre_commit = questionary.confirm(
             "Add pre-commit hooks config? (SQLFluff, yamllint, etc.)",
             default=_preset_default("add_pre_commit", add_sqlfluff),
-            style=_style(),
+            style=style,
         ).ask()
         if add_pre_commit is None:
-            _abort()
+            abort()
 
     # --- Environment config (generate_schema_name + .env.example) ---
     if _is_locked("add_env_config"):
@@ -351,10 +361,13 @@ def gather_config(
         add_env_config = questionary.confirm(
             "Add environment config? (generate_schema_name macro + .env.example)",
             default=_preset_default("add_env_config", True),
-            style=_style(),
+            style=style,
         ).ask()
         if add_env_config is None:
-            _abort()
+            abort()
+
+    # ── [4/4] Team ───────────────────────────────────────────────────────
+    print_step(4, 4, "Team")
 
     # --- CODEOWNERS ---
     if _is_locked("team_owner"):
@@ -363,10 +376,10 @@ def gather_config(
         team_owner = questionary.text(
             "Team owner for CODEOWNERS (e.g. @my-org/data-team, leave blank to skip):",
             default=_preset_default("team_owner", ""),
-            style=_style(),
+            style=style,
         ).ask()
         if team_owner is None:
-            _abort()
+            abort()
 
     return ProjectConfig(
         project_name=name,
@@ -396,6 +409,8 @@ def gather_mesh_config(
     """Interactive prompts for mesh project configuration."""
     from dbt_forge.mesh import MeshProjectConfig, SubProjectConfig
 
+    style = forge_style()
+
     # Project name
     if project_name:
         name = _slugify(project_name)
@@ -403,20 +418,20 @@ def gather_mesh_config(
         answer = questionary.text(
             "Mesh project name:",
             validate=_validate_project_name,
-            style=_style(),
+            style=style,
         ).ask()
         if answer is None:
-            _abort()
+            abort()
         name = _slugify(answer)
 
     # Adapter
     adapter = questionary.select(
         "Warehouse adapter:",
         choices=ADAPTERS,
-        style=_style(),
+        style=style,
     ).ask()
     if adapter is None:
-        _abort()
+        abort()
 
     adapter_key = adapter.lower().replace(" ", "_").replace("/", "_")
     adapter_pkg_map = {
@@ -438,10 +453,10 @@ def gather_mesh_config(
             questionary.Choice("Preset: staging \u2192 transform \u2192 marts", value="preset"),
             questionary.Choice("Custom: define sub-projects manually", value="custom"),
         ],
-        style=_style(),
+        style=style,
     ).ask()
     if setup_style is None:
-        _abort()
+        abort()
 
     sub_projects: list[SubProjectConfig] = []
     if setup_style == "preset":
@@ -454,10 +469,10 @@ def gather_mesh_config(
         while True:
             sp_name = questionary.text(
                 "Sub-project name (blank to finish):",
-                style=_style(),
+                style=style,
             ).ask()
             if sp_name is None:
-                _abort()
+                abort()
             if not sp_name.strip():
                 if not sub_projects:
                     console.print("[red]At least one sub-project is required.[/red]")
@@ -467,10 +482,10 @@ def gather_mesh_config(
             sp_purpose = questionary.text(
                 f"Purpose for '{sp_name}' (e.g. staging, transform, marts):",
                 default="",
-                style=_style(),
+                style=style,
             ).ask()
             if sp_purpose is None:
-                _abort()
+                abort()
 
             upstream: list[str] = []
             if sub_projects:
@@ -478,10 +493,10 @@ def gather_mesh_config(
                 selected_deps = questionary.checkbox(
                     f"Upstream dependencies for '{sp_name}':",
                     choices=[questionary.Choice(n, value=n) for n in existing_names],
-                    style=_style(),
+                    style=style,
                 ).ask()
                 if selected_deps is None:
-                    _abort()
+                    abort()
                 upstream = selected_deps
 
             sub_projects.append(
@@ -502,21 +517,3 @@ def gather_mesh_config(
     )
 
 
-def _style() -> questionary.Style:
-    return questionary.Style(
-        [
-            ("qmark", "fg:#00d7ff bold"),
-            ("question", "bold"),
-            ("answer", "fg:#00d7ff bold"),
-            ("pointer", "fg:#00d7ff bold"),
-            ("highlighted", "fg:#00d7ff bold"),
-            ("selected", "fg:#00d7ff"),
-            ("separator", "fg:#6c6c6c"),
-            ("instruction", "fg:#6c6c6c"),
-        ]
-    )
-
-
-def _abort() -> None:
-    console.print("\n[dim]Aborted.[/dim]")
-    sys.exit(0)

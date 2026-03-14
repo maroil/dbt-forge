@@ -6,11 +6,11 @@ import subprocess
 from pathlib import Path
 
 from rich.console import Console
-from rich.table import Table
 from rich.tree import Tree
 
 from dbt_forge.ref_graph import RefGraph, build_ref_graph, get_all_downstream
 from dbt_forge.scanner import find_project_root, parse_yml_tests
+from dbt_forge.ui.theme import make_table, print_error, print_warning, timed
 
 console = Console()
 
@@ -136,19 +136,20 @@ def run_impact(
     changed: list[str] = []
 
     if diff:
-        changed = _get_changed_models_from_git(root, base)
+        with timed("Detecting changed models from git..."):
+            changed = _get_changed_models_from_git(root, base)
         if not changed:
-            console.print("[yellow]No changed models found in git diff.[/yellow]")
+            print_warning("No changed models found in git diff.")
             return
         console.print(f"[bold]Changed models:[/bold] {', '.join(changed)}")
         console.print()
     elif model:
         if model not in graph.nodes:
-            console.print(f"[red]Error:[/red] Model '{model}' not found in project.")
+            print_error(f"Model '{model}' not found in project.")
             return
         changed = [model]
     else:
-        console.print("[red]Error:[/red] Provide a model name or use --diff.")
+        print_error("Provide a model name or use --diff.")
         return
 
     tested = parse_yml_tests(root)
@@ -162,16 +163,17 @@ def run_impact(
     # Display impact trees
     for m in changed:
         if m not in graph.nodes:
-            console.print(f"[yellow]Warning:[/yellow] '{m}' not found in graph, skipping.")
+            print_warning(f"'{m}' not found in graph, skipping.")
             continue
         tree = _build_impact_tree(graph, m)
         console.print(tree)
         console.print()
 
     # Summary table
-    table = Table(title="Blast Radius", show_lines=False, padding=(0, 1))
-    table.add_column("Metric", min_width=20)
-    table.add_column("Value", justify="right")
+    table = make_table("Blast Radius", [
+        ("Metric", {"min_width": 20}),
+        ("Value", {"justify": "right"}),
+    ])
     table.add_row("Total impacted", str(blast["total_impacted"]))
     table.add_row("Direct dependents", str(blast["direct"]))
     table.add_row("Transitive dependents", str(blast["transitive"]))

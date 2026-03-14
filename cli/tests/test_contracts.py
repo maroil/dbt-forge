@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import tempfile
+from contextlib import nullcontext
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import yaml
 
@@ -258,6 +259,32 @@ class TestFindPublicModels:
             result = find_public_models(root)
             assert "public_model" in result
             assert "private_model" not in result
+
+
+class TestRunContractsGenerate:
+    def test_connection_failure_is_reported(self):
+        from dbt_forge.cli.contracts_cmd import run_contracts_generate
+
+        class BrokenIntrospector:
+            def connect(self):
+                raise RuntimeError("adapter boom")
+
+            def close(self):
+                pass
+
+        with (
+            patch("dbt_forge.cli.contracts_cmd.find_project_root", return_value="."),
+            patch("dbt_forge.cli.contracts_cmd.read_profile", return_value=("snowflake", {})),
+            patch(
+                "dbt_forge.cli.contracts_cmd.get_introspector",
+                return_value=BrokenIntrospector(),
+            ),
+            patch("dbt_forge.cli.contracts_cmd.timed", return_value=nullcontext()),
+            patch("dbt_forge.cli.contracts_cmd.print_error") as mock_print_error,
+        ):
+            run_contracts_generate(model="orders")
+
+        mock_print_error.assert_called_once_with("Error connecting to warehouse: adapter boom")
 
     def test_finds_public_in_config(self):
         with tempfile.TemporaryDirectory() as tmpdir:
