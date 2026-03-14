@@ -162,14 +162,16 @@ See [`add`](/docs/cli/add/) for the full command reference.
 Run `doctor` from inside a dbt project to validate best practices:
 
 ```bash
-dbt-forge doctor                    # run all 10 checks
-dbt-forge doctor --fix              # auto-generate missing schema stubs
+dbt-forge doctor                    # run all 11 checks
+dbt-forge doctor --fix              # auto-fix schema stubs + contract config
 dbt-forge doctor --ci               # non-interactive, exit 1 on failures
 dbt-forge doctor --check test-coverage  # run a single check
+dbt-forge doctor --format json      # machine-readable output
 ```
 
 The doctor checks naming conventions, schema/test coverage, hardcoded references,
-pinned package versions, source freshness, orphaned YAML entries, and more.
+pinned package versions, source freshness, orphaned YAML entries, contract
+enforcement, and more. Each failing check includes a specific remediation hint.
 See [`doctor`](/docs/cli/doctor/) for details on each check.
 
 ## View project stats
@@ -221,6 +223,7 @@ Run `lint` to check for architectural issues that SQL linters miss:
 dbt-forge lint                         # run all 6 rules
 dbt-forge lint --rule fan-out          # single rule
 dbt-forge lint --ci                    # exit 1 on warnings
+dbt-forge lint --format json           # machine-readable output
 ```
 
 The lint rules check DAG fan-out, source-to-mart violations, model complexity,
@@ -237,6 +240,7 @@ Run `impact` to see which downstream models are affected by a change:
 dbt-forge impact stg_orders            # downstream tree for one model
 dbt-forge impact --diff                # detect changes from git diff
 dbt-forge impact --diff --pr           # markdown for PR descriptions
+dbt-forge impact --format json         # machine-readable output
 ```
 
 See [`impact`](/docs/cli/impact/) for output examples and options.
@@ -249,6 +253,7 @@ Run `cost` to identify expensive models from warehouse usage data:
 dbt-forge cost                         # top 10 models, last 30 days
 dbt-forge cost --days 7 --top 20       # custom range
 dbt-forge cost --report                # markdown report
+dbt-forge cost --format json           # machine-readable output
 ```
 
 Supports BigQuery, Snowflake, and Databricks. Includes materialization suggestions.

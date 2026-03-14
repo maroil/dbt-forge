@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import re
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 import typer
@@ -86,7 +87,7 @@ def check_naming_conventions(root: Path) -> CheckResult:
                 f"{len(violations)} model(s) violate naming conventions:\n"
                 + "\n".join(violations[:5])
             ),
-            fix_hint="Rename models to follow stg_/int_ prefix conventions.",
+            fix_hint="Rename: staging models → `stg_` prefix, intermediate → `int_` prefix.",
         )
     return CheckResult(
         name="naming-conventions",
@@ -116,7 +117,7 @@ def check_schema_coverage(root: Path) -> CheckResult:
             passed=False,
             message=f"{len(undocumented)} model(s) missing YAML documentation:\n"
             + "\n".join(f"  {u}" for u in undocumented[:5]),
-            fix_hint="Run dbt-forge doctor --fix to auto-generate schema stubs.",
+            fix_hint="Run `dbt-forge doctor --fix` to auto-generate schema stubs.",
         )
     return CheckResult(
         name="schema-coverage",
@@ -144,7 +145,7 @@ def check_test_coverage(root: Path) -> CheckResult:
             passed=False,
             message=f"{len(untested)} model(s) have no tests:\n"
             + "\n".join(f"  {u}" for u in untested[:5]),
-            fix_hint="Use dbt-forge add test <model> to generate test stubs.",
+            fix_hint="Run `dbt-forge add test <model>` to generate test stubs.",
         )
     return CheckResult(
         name="test-coverage",
@@ -181,7 +182,7 @@ def check_hardcoded_refs(root: Path) -> CheckResult:
             passed=False,
             message=f"{len(violations)} file(s) may have hardcoded references:\n"
             + "\n".join(violations[:5]),
-            fix_hint="Replace hardcoded references with ref() or source().",
+            fix_hint="Replace with `ref('model')` or `source('src', 'table')`.",
         )
     return CheckResult(
         name="hardcoded-refs",
@@ -225,7 +226,7 @@ def check_packages_pinned(root: Path) -> CheckResult:
             passed=False,
             message=f"{len(unpinned)} package(s) missing version pin:\n"
             + "\n".join(f"  {u}" for u in unpinned),
-            fix_hint="Add version ranges to all packages in packages.yml.",
+            fix_hint='Pin versions in packages.yml: `version: [">=1.0.0", "<2.0.0"]`.',
         )
     return CheckResult(
         name="packages-pinned",
@@ -261,7 +262,7 @@ def check_source_freshness(root: Path) -> CheckResult:
             passed=False,
             message=f"{len(sources_without_freshness)} source(s) missing freshness config:\n"
             + "\n".join(f"  {s}" for s in sources_without_freshness),
-            fix_hint="Add freshness config inside the source's config: block.",
+            fix_hint="Add `freshness: {warn_after: {count: 24, period: hour}}` to sources.",
         )
     return CheckResult(
         name="source-freshness",
@@ -296,7 +297,7 @@ def check_orphaned_yml(root: Path) -> CheckResult:
             passed=False,
             message=f"{len(orphaned)} YAML model(s) reference missing SQL files:\n"
             + "\n".join(orphaned[:5]),
-            fix_hint="Remove orphaned entries or create the missing SQL files.",
+            fix_hint="Remove orphaned YAML entries or create the missing SQL files.",
         )
     return CheckResult(
         name="orphaned-yml",
@@ -317,7 +318,7 @@ def check_sqlfluff_config(root: Path) -> CheckResult:
         name="sqlfluff-config",
         passed=False,
         message="No .sqlfluff config found.",
-        fix_hint="Run dbt-forge add pre-commit or create .sqlfluff manually.",
+        fix_hint="Run `dbt-forge add pre-commit` to generate .sqlfluff and linting config.",
     )
 
 
@@ -329,7 +330,7 @@ def check_gitignore(root: Path) -> CheckResult:
             name="gitignore",
             passed=False,
             message="No .gitignore found.",
-            fix_hint="Create a .gitignore with target/, dbt_packages/, logs/.",
+            fix_hint="Add `target/`, `dbt_packages/`, `logs/` to .gitignore.",
         )
     content = gitignore_path.read_text()
     missing = []
@@ -342,7 +343,7 @@ def check_gitignore(root: Path) -> CheckResult:
             name="gitignore",
             passed=False,
             message=f".gitignore missing: {', '.join(missing)}",
-            fix_hint=f"Add {', '.join(missing)} to .gitignore.",
+            fix_hint=f"Add `{', '.join(missing)}` to .gitignore.",
         )
     return CheckResult(name="gitignore", passed=True, message=".gitignore looks good.")
 
@@ -372,12 +373,75 @@ def check_disabled_models(root: Path) -> CheckResult:
             passed=False,
             message=f"{len(disabled)} disabled model(s) found (tech debt):\n"
             + "\n".join(f"  {d}" for d in disabled),
-            fix_hint="Remove disabled models or re-enable them.",
+            fix_hint="Remove `enabled: false` from config or delete the model file.",
         )
     return CheckResult(
         name="disabled-models",
         passed=True,
         message="No disabled models.",
+    )
+
+
+def check_contract_enforcement(root: Path) -> CheckResult:
+    """Check that mart/public models have contract enforcement enabled."""
+    marts_dir = root / "models" / "marts"
+    if not marts_dir.exists():
+        return CheckResult(
+            name="contract-enforcement",
+            passed=True,
+            message="No marts directory (skipped).",
+        )
+
+    sql_models = sorted(marts_dir.rglob("*.sql"))
+    if not sql_models:
+        return CheckResult(
+            name="contract-enforcement",
+            passed=True,
+            message="No mart models found (skipped).",
+        )
+
+    yml_models = _parse_yml_models(root)
+    violations = []
+
+    for sql_path in sql_models:
+        name = sql_path.stem
+        if name.startswith("_"):
+            continue
+
+        yml_path = yml_models.get(name)
+        if not yml_path:
+            continue  # schema-coverage check handles missing YAML
+
+        try:
+            data = yaml.safe_load(yml_path.read_text())
+        except yaml.YAMLError:
+            continue
+        if not data or "models" not in data:
+            continue
+
+        for model in data["models"]:
+            if not isinstance(model, dict) or model.get("name") != name:
+                continue
+            config = model.get("config", {})
+            contract = (config or {}).get("contract", {})
+            if not (contract or {}).get("enforced"):
+                violations.append(name)
+
+    if violations:
+        return CheckResult(
+            name="contract-enforcement",
+            passed=False,
+            message=f"{len(violations)} mart model(s) missing contract enforcement:\n"
+            + "\n".join(f"  {v}" for v in violations[:5]),
+            fix_hint=(
+                "Run `dbt-forge doctor --fix` or add "
+                "`config: {contract: {enforced: true}}` to YAML."
+            ),
+        )
+    return CheckResult(
+        name="contract-enforcement",
+        passed=True,
+        message="All mart models have contract enforcement.",
     )
 
 
@@ -396,6 +460,7 @@ ALL_CHECKS = {
     "sqlfluff-config": check_sqlfluff_config,
     "gitignore": check_gitignore,
     "disabled-models": check_disabled_models,
+    "contract-enforcement": check_contract_enforcement,
 }
 
 
@@ -404,7 +469,7 @@ ALL_CHECKS = {
 # ---------------------------------------------------------------------------
 
 
-def fix_schema_coverage(root: Path) -> int:
+def fix_schema_coverage(root: Path, announce: bool = True) -> int:
     """Generate missing _models.yml stubs for undocumented models. Returns count."""
     sql_models = _find_sql_models(root)
     documented = _parse_yml_models(root)
@@ -430,10 +495,72 @@ def fix_schema_coverage(root: Path) -> int:
             ],
         }
         yml_path.write_text(yaml.dump(stub, default_flow_style=False, sort_keys=False))
-        console.print(f"  [green]\u2714[/green]  {yml_path.relative_to(root)}")
+        if announce:
+            console.print(f"  [green]\u2714[/green]  {yml_path.relative_to(root)}")
         fixed += 1
 
     return fixed
+
+
+def fix_contract_enforcement(root: Path, announce: bool = True) -> int:
+    """Inject contract enforcement config into mart model YAML entries. Returns count."""
+    marts_dir = root / "models" / "marts"
+    if not marts_dir.exists():
+        return 0
+
+    sql_models = sorted(marts_dir.rglob("*.sql"))
+    yml_models = _parse_yml_models(root)
+    fixed = 0
+
+    for sql_path in sql_models:
+        name = sql_path.stem
+        if name.startswith("_"):
+            continue
+
+        yml_path = yml_models.get(name)
+        if not yml_path:
+            continue
+
+        try:
+            data = yaml.safe_load(yml_path.read_text())
+        except yaml.YAMLError:
+            continue
+        if not data or "models" not in data:
+            continue
+
+        modified = False
+        for model in data["models"]:
+            if not isinstance(model, dict) or model.get("name") != name:
+                continue
+            config = model.setdefault("config", {})
+            contract = config.setdefault("contract", {})
+            if not (contract or {}).get("enforced"):
+                contract["enforced"] = True
+                modified = True
+
+        if modified:
+            yml_path.write_text(yaml.dump(data, default_flow_style=False, sort_keys=False))
+            rel = yml_path.relative_to(root)
+            if announce:
+                console.print(f"  [green]\u2714[/green]  {rel} — contract enforced")
+            fixed += 1
+
+    return fixed
+
+
+# ---------------------------------------------------------------------------
+# JSON output
+# ---------------------------------------------------------------------------
+
+
+def render_doctor_json(report: DoctorReport) -> str:
+    """Render doctor report as JSON string."""
+    return json.dumps({
+        "passed": report.passed,
+        "pass_count": report.pass_count,
+        "fail_count": report.fail_count,
+        "results": [asdict(r) for r in report.results],
+    }, indent=2)
 
 
 # ---------------------------------------------------------------------------
@@ -445,6 +572,7 @@ def run_doctor(
     check_name: str | None = None,
     fix: bool = False,
     ci: bool = False,
+    output_format: str = "table",
 ) -> DoctorReport:
     """Run doctor checks and return report."""
     root = find_project_root()
@@ -459,6 +587,10 @@ def run_doctor(
             raise typer.Exit(1)
         result = ALL_CHECKS[check_name](root)
         report.results.append(result)
+    elif output_format == "json":
+        for _name, check_fn in ALL_CHECKS.items():
+            result = check_fn(root)
+            report.results.append(result)
     else:
         with timed("Running health checks..."):
             for _name, check_fn in ALL_CHECKS.items():
@@ -466,7 +598,9 @@ def run_doctor(
                 report.results.append(result)
 
     # Display results
-    if not ci:
+    if output_format == "json":
+        print(render_doctor_json(report))
+    elif not ci:
         forge_console.print()
         table = make_table("dbt-forge doctor", [
             ("Status", {"width": 6, "justify": "center"}),
@@ -489,13 +623,25 @@ def run_doctor(
 
     # Auto-fix
     if fix:
-        forge_console.print("[bold cyan]Auto-fixing schema coverage...[/bold cyan]")
-        fixed = fix_schema_coverage(root)
-        if fixed:
-            print_ok(f"Generated {fixed} schema stub(s).")
-        else:
-            forge_console.print("  Nothing to fix.")
-        forge_console.print()
+        announce = output_format != "json"
+
+        if announce:
+            forge_console.print("[bold cyan]Auto-fixing schema coverage...[/bold cyan]")
+        fixed = fix_schema_coverage(root, announce=announce)
+        if announce:
+            if fixed:
+                print_ok(f"Generated {fixed} schema stub(s).")
+            else:
+                forge_console.print("  Nothing to fix.")
+
+            forge_console.print("[bold cyan]Auto-fixing contract enforcement...[/bold cyan]")
+        fixed_contracts = fix_contract_enforcement(root, announce=announce)
+        if announce:
+            if fixed_contracts:
+                print_ok(f"Enforced contracts on {fixed_contracts} model(s).")
+            else:
+                forge_console.print("  Nothing to fix.")
+            forge_console.print()
 
     # CI exit code
     if ci and not report.passed:

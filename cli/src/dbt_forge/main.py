@@ -2,9 +2,7 @@
 
 import importlib.util
 
-import click
 import typer
-import typer.core
 from rich.console import Console
 
 from dbt_forge.cli.add import add_app
@@ -29,96 +27,35 @@ Like create-t3-app, but for dbt. Generates a complete project structure
 with staging/marts layers, CI pipelines, pre-commit hooks, and more.
 """
 
+EPILOG = """\
+[bold cyan]Getting started:[/bold cyan]
 
-class HelpGroup(typer.core.TyperGroup):
-    """Custom group that appends usage examples after the default help."""
+  [green]$[/green] dbt-forge init my-project          Interactive
+  [green]$[/green] dbt-forge init my-project [bold]-d[/bold]       Defaults
+  [green]$[/green] dbt-forge doctor                     Health checks
+  [green]$[/green] dbt-forge add source salesforce      Add component
 
-    def format_help(self, ctx: click.Context, formatter: click.HelpFormatter) -> None:
-        super().format_help(ctx, formatter)
-        console = Console()
-        console.print()
-        console.print("[bold cyan]Getting started:[/bold cyan]")
-        console.print()
-        console.print("  [green]$[/green] dbt-forge init my-project          Interactive")
-        console.print("  [green]$[/green] dbt-forge init my-project [bold]-d[/bold]       Defaults")
-        console.print("  [green]$[/green] dbt-forge init my-project [bold]--dry-run[/bold] Preview")
-        console.print()
-        console.print("[bold cyan]Add components:[/bold cyan]")
-        console.print()
-        console.print("  [green]$[/green] dbt-forge add source salesforce     Source")
-        console.print("  [green]$[/green] dbt-forge add mart finance           Mart")
-        console.print("  [green]$[/green] dbt-forge add snapshot orders        Snapshot")
-        console.print("  [green]$[/green] dbt-forge add seed country_codes     Seed")
-        console.print("  [green]$[/green] dbt-forge add macro cents_to_dollars Macro")
-        console.print("  [green]$[/green] dbt-forge add exposure weekly_report Exposure")
-        console.print("  [green]$[/green] dbt-forge add pre-commit             Pre-commit")
-        console.print("  [green]$[/green] dbt-forge add ci                     CI pipeline")
-        console.print("  [green]$[/green] dbt-forge add model users            Model")
-        console.print("  [green]$[/green] dbt-forge add test orders            Test")
-        console.print("  [green]$[/green] dbt-forge add package dbt-utils      Package")
-        console.print()
-        console.print("[bold cyan]Project health:[/bold cyan]")
-        console.print()
-        console.print("  [green]$[/green] dbt-forge doctor                     Health checks")
-        console.print("  [green]$[/green] dbt-forge doctor [bold]--fix[/bold]             Auto-fix")
-        console.print("  [green]$[/green] dbt-forge doctor [bold]--ci[/bold]               CI mode")
-        console.print("  [green]$[/green] dbt-forge status                     Stats dashboard")
-        console.print()
-        console.print("[bold cyan]Migration:[/bold cyan]")
-        console.print()
-        console.print("  [green]$[/green] dbt-forge migrate ./sql/          Convert SQL to dbt")
-        console.print("  [green]$[/green] dbt-forge migrate ./sql/ [bold]--dry-run[/bold] Preview")
-        console.print()
-        console.print("[bold cyan]Multi-project (Mesh):[/bold cyan]")
-        console.print()
-        console.print(
-            "  [green]$[/green] dbt-forge init my-mesh [bold]--mesh[/bold]     Mesh setup"
-        )
-        console.print("  [green]$[/green] dbt-forge add project analytics  Add sub-project")
-        console.print()
-        console.print("[bold cyan]Documentation:[/bold cyan]")
-        console.print()
-        console.print("  [green]$[/green] dbt-forge docs generate                AI docs")
-        console.print(
-            "  [green]$[/green] dbt-forge docs generate [bold]-m[/bold] stg_orders  Single model"
-        )
-        console.print(
-            "  [green]$[/green] dbt-forge docs generate [bold]--provider[/bold] ollama  Local LLM"
-        )
-        console.print()
-        console.print("[bold cyan]Analysis:[/bold cyan]")
-        console.print()
-        console.print("  [green]$[/green] dbt-forge impact stg_orders    Impact analysis")
-        console.print("  [green]$[/green] dbt-forge impact [bold]--diff[/bold]       Git changes")
-        console.print("  [green]$[/green] dbt-forge lint                 Lint project")
-        console.print("  [green]$[/green] dbt-forge lint [bold]--ci[/bold]           CI mode")
-        console.print("  [green]$[/green] dbt-forge cost [bold]--days 7[/bold]        Query costs")
-        console.print()
-        console.print("[bold cyan]Contracts & Changelog:[/bold cyan]")
-        console.print()
-        console.print("  [green]$[/green] dbt-forge contracts generate orders  Data contracts")
-        console.print("  [green]$[/green] dbt-forge changelog generate          Model changes")
-        console.print()
-        console.print("[bold cyan]Maintenance:[/bold cyan]")
-        console.print()
-        console.print("  [green]$[/green] dbt-forge update                     Re-apply templates")
-        console.print("  [green]$[/green] dbt-forge update [bold]--dry-run[/bold]   Preview diffs")
-        console.print("  [green]$[/green] dbt-forge preset validate preset.yml Validate preset")
-        console.print()
-        console.print("[dim]Docs: https://dbt-forge.marou.one[/dim]")
-        console.print()
+[dim]Docs: https://dbt-forge.marou.one[/dim]
+"""
 
+# -- Rich help panels -------------------------------------------------------
+_SCAFFOLD = "Scaffold"
+_ANALYZE = "Analyze"
+_GOVERN = "Govern"
+_AI = "AI"
+_MIGRATE = "Migrate"
+_UTILITY = "Utility"
 
 app = typer.Typer(
     name="dbt-forge",
     help=HELP_TEXT,
+    epilog=EPILOG,
     add_completion=False,
     no_args_is_help=True,
     rich_markup_mode="rich",
-    cls=HelpGroup,
 )
 
-app.add_typer(add_app, name="add")
+app.add_typer(add_app, name="add", rich_help_panel=_SCAFFOLD)
 
 console = Console()
 
@@ -175,7 +112,7 @@ def main(
     set_verbose(verbose)
 
 
-@app.command()
+@app.command(rich_help_panel=_SCAFFOLD)
 def init(
     project_name: str = typer.Argument(
         None,
@@ -254,7 +191,7 @@ def init(
     )
 
 
-@app.command()
+@app.command(rich_help_panel=_ANALYZE)
 def doctor(
     check: str = typer.Option(
         None,
@@ -272,6 +209,11 @@ def doctor(
         "--ci",
         help="Non-interactive mode. Exit code 1 on failures.",
     ),
+    format: str = typer.Option(
+        "table",
+        "--format",
+        help="Output format: table or json.",
+    ),
 ) -> None:
     """Run health checks on an existing dbt project.
 
@@ -279,16 +221,16 @@ def doctor(
     and other best practices. Use --fix to auto-generate missing schema
     stubs, or --ci for CI pipeline integration.
     """
-    run_doctor(check_name=check, fix=fix, ci=ci)
+    run_doctor(check_name=check, fix=fix, ci=ci, output_format=format)
 
 
-@app.command()
+@app.command(rich_help_panel=_ANALYZE)
 def status() -> None:
     """Show a dashboard of project stats (models, tests, docs, packages)."""
     run_status()
 
 
-@app.command()
+@app.command(rich_help_panel=_MIGRATE)
 def update(
     dry_run: bool = typer.Option(
         False,
@@ -300,7 +242,7 @@ def update(
     run_update(dry_run=dry_run)
 
 
-@app.command()
+@app.command(rich_help_panel=_MIGRATE)
 def migrate(
     sql_dir: str = typer.Argument(
         ...,
@@ -322,28 +264,30 @@ def migrate(
     run_migrate(sql_dir=sql_dir, output_dir=output_dir, dry_run=dry_run)
 
 
-@app.command()
+@app.command(rich_help_panel=_ANALYZE)
 def impact(
     model: str = typer.Argument(None, help="Model to analyze downstream impact for."),
     diff: bool = typer.Option(False, "--diff", help="Detect changed models from git diff."),
     base: str = typer.Option("main", "--base", help="Base git ref for diff comparison."),
     pr: bool = typer.Option(False, "--pr", help="Output markdown for PR descriptions."),
+    format: str = typer.Option("table", "--format", help="Output format: table or json."),
 ) -> None:
     """Analyze downstream impact of model changes."""
-    run_impact(model=model, diff=diff, base=base, pr=pr)
+    run_impact(model=model, diff=diff, base=base, pr=pr, output_format=format)
 
 
-@app.command()
+@app.command(rich_help_panel=_ANALYZE)
 def lint(
     rule: str = typer.Option(None, "--rule", "-r", help="Run a specific rule only."),
     ci: bool = typer.Option(False, "--ci", help="Exit 1 on warnings."),
     config: str = typer.Option(None, "--config", help="Path to lint config YAML."),
+    format: str = typer.Option("table", "--format", help="Output format: table or json."),
 ) -> None:
     """Lint dbt project structure for architectural issues."""
-    run_lint(rule=rule, ci=ci, config_path=config)
+    run_lint(rule=rule, ci=ci, config_path=config, output_format=format)
 
 
-@app.command()
+@app.command(rich_help_panel=_UTILITY)
 def adapters() -> None:
     """Show which optional warehouse adapter packages are installed."""
     from dbt_forge.introspect.connectors import ADAPTER_DEPS, ADAPTER_MAP
@@ -369,17 +313,18 @@ def adapters() -> None:
     console.print()
 
 
-@app.command()
+@app.command(rich_help_panel=_ANALYZE)
 def cost(
     days: int = typer.Option(30, "--days", help="Number of days to analyze."),
     top: int = typer.Option(10, "--top", help="Number of top models to show."),
     report: bool = typer.Option(False, "--report", help="Output markdown report."),
     target: str = typer.Option("dev", "--target", help="dbt target/profile to use."),
+    format: str = typer.Option("table", "--format", help="Output format: table or json."),
 ) -> None:
     """Estimate query costs from warehouse usage data."""
     from dbt_forge.cli.cost_cmd import run_cost
 
-    run_cost(days=days, top=top, report=report, target=target)
+    run_cost(days=days, top=top, report=report, target=target, output_format=format)
 
 
 changelog_app = typer.Typer(
@@ -387,28 +332,28 @@ changelog_app = typer.Typer(
     help="Track and communicate model changes.",
     no_args_is_help=True,
 )
-app.add_typer(changelog_app, name="changelog")
+app.add_typer(changelog_app, name="changelog", rich_help_panel=_GOVERN)
 
 contracts_app = typer.Typer(
     name="contracts",
     help="Generate and manage dbt data contracts.",
     no_args_is_help=True,
 )
-app.add_typer(contracts_app, name="contracts")
+app.add_typer(contracts_app, name="contracts", rich_help_panel=_GOVERN)
 
 preset_app = typer.Typer(
     name="preset",
     help="Manage dbt-forge presets.",
     no_args_is_help=True,
 )
-app.add_typer(preset_app, name="preset")
+app.add_typer(preset_app, name="preset", rich_help_panel=_UTILITY)
 
 docs_app = typer.Typer(
     name="docs",
     help="AI-assisted documentation generation.",
     no_args_is_help=True,
 )
-app.add_typer(docs_app, name="docs")
+app.add_typer(docs_app, name="docs", rich_help_panel=_AI)
 
 
 @docs_app.command("generate")
@@ -498,7 +443,7 @@ def preset_validate(
         raise typer.Exit(1)
     else:
         label = preset_config.name or path
-        console.print(f"[green]✔[/green]  Preset [bold]{label}[/bold] is valid.")
+        console.print(f"[green]\u2714[/green]  Preset [bold]{label}[/bold] is valid.")
         if preset_config.description:
             console.print(f"  {preset_config.description}")
         console.print(f"  Defaults: {', '.join(preset_config.defaults.keys())}")

@@ -10,7 +10,7 @@ that reduce warehouse spend.
 ## Command
 
 ```bash
-dbt-forge cost [--days N] [--top N] [--report] [--target TARGET]
+dbt-forge cost [--days N] [--top N] [--report] [--target TARGET] [--format FORMAT]
 ```
 
 ## What it does
@@ -55,6 +55,15 @@ dbt profile target to use for the warehouse connection. Defaults to `dev`.
 
 ```bash
 dbt-forge cost --target prod
+```
+
+### `--format`
+
+Output format: `table` (default) or `json`. JSON output includes total cost,
+per-model stats, and materialization suggestions.
+
+```bash
+dbt-forge cost --format json
 ```
 
 ## Supported warehouses

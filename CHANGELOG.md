@@ -8,7 +8,14 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ### Added
 
-- Nothing yet.
+- **Command grouping in help** — `dbt-forge --help` now organizes 20+ commands into scannable panels: Scaffold, Analyze, Govern, AI, Migrate, and Utility. Removed the old `HelpGroup` class in favor of Typer's `rich_help_panel`.
+- **JSON output for analysis commands** — Added `--format json` to `doctor`, `lint`, `impact`, and `cost` commands. Enables CI/CD integrations and dashboards with machine-readable output.
+- **Smart doctor remediation suggestions** — Every failed `doctor` check now includes a specific `dbt-forge` command or actionable fix hint (e.g., "Run `dbt-forge add test <model>`").
+- **Contract enforcement doctor check** — New 11th doctor check: validates that all mart-layer models have `contract: { enforced: true }`. Supports `--fix` to auto-inject contract config into YAML.
+- **Init summary / review screen** — Interactive `init` now shows a Rich table summarizing all 16 configuration choices before writing files, with a "Proceed with generation?" confirmation prompt. Skipped in `--defaults` and `--dry-run` modes.
+- Shared UI theme module (`ui/theme.py`) — extracted common Rich styling (tables, panels, spinners, icons, summary rendering) into a reusable module. All CLI commands now use consistent formatting via `make_table()`, `print_error()`, `print_warning()`, `print_summary()`, `timed()`, and `forge_console`.
+- Adapter dependency mapping — `adapters` command now shows the correct pip extra for each warehouse adapter (e.g., `pip install dbt-forge[snowflake]`).
+- Expanded test coverage for UI theme utilities, JSON output modes, and doctor auto-fix flows.
 
 ## [0.4.1] - 2026-03-09
 

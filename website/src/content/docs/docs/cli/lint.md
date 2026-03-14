@@ -10,7 +10,7 @@ they become production headaches.
 ## Command
 
 ```bash
-dbt-forge lint [--rule NAME] [--ci] [--config PATH]
+dbt-forge lint [--rule NAME] [--ci] [--config PATH] [--format FORMAT]
 ```
 
 ## What it does
@@ -41,6 +41,15 @@ Exit with code 1 if any rule produces warnings. Use this in CI pipelines.
 
 ```bash
 dbt-forge lint --ci
+```
+
+### `--format`
+
+Output format: `table` (default) or `json`. JSON output includes pass/fail counts
+and full results for each rule, suitable for CI/CD integrations and dashboards.
+
+```bash
+dbt-forge lint --format json
 ```
 
 ### `--config`

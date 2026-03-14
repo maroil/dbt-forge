@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import questionary
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -11,9 +12,52 @@ from rich.tree import Tree
 
 from dbt_forge.generator.project import generate_project
 from dbt_forge.prompts.questions import ProjectConfig, gather_config
-from dbt_forge.ui.theme import print_ok
+from dbt_forge.ui.theme import forge_style, make_table, print_ok
 
 console = Console()
+
+
+def _show_review_screen(config: ProjectConfig) -> bool:
+    """Display a summary of all config choices and ask for confirmation.
+
+    Returns True if the user wants to proceed, False to abort.
+    """
+    table = make_table("Project Configuration Review", [
+        ("Setting", {"min_width": 25}),
+        ("Value", {"min_width": 30}),
+    ])
+
+    def _bool_str(v: bool) -> str:
+        return "[green]yes[/green]" if v else "[dim]no[/dim]"
+
+    table.add_row("Project name", f"[bold]{config.project_name}[/bold]")
+    table.add_row("Adapter", config.adapter)
+    table.add_row("Marts", ", ".join(config.marts) if config.marts else "[dim]none[/dim]")
+    table.add_row("Packages", ", ".join(config.packages) if config.packages else "[dim]none[/dim]")
+    ci = ", ".join(config.ci_providers) if config.ci_providers else "[dim]none[/dim]"
+    table.add_row("CI providers", ci)
+    table.add_row("Example models", _bool_str(config.add_examples))
+    table.add_row("SQLFluff config", _bool_str(config.add_sqlfluff))
+    table.add_row("Unit tests", _bool_str(config.add_unit_tests))
+    table.add_row("MetricFlow", _bool_str(config.add_metricflow))
+    table.add_row("Snapshot", _bool_str(config.add_snapshot))
+    table.add_row("Seed", _bool_str(config.add_seed))
+    table.add_row("Exposure", _bool_str(config.add_exposure))
+    table.add_row("Macro", _bool_str(config.add_macro))
+    table.add_row("Pre-commit hooks", _bool_str(config.add_pre_commit))
+    table.add_row("Environment config", _bool_str(config.add_env_config))
+    table.add_row("Team owner", config.team_owner if config.team_owner else "[dim]none[/dim]")
+
+    console.print()
+    console.print(table)
+    console.print()
+
+    proceed = questionary.confirm(
+        "Proceed with generation?",
+        default=True,
+        style=forge_style(),
+    ).ask()
+    return proceed is True
 
 
 def init_command(
@@ -35,6 +79,12 @@ def init_command(
     if dry_run:
         _run_dry(config, output_dir)
         return
+
+    # Show review screen for interactive mode
+    if not use_defaults:
+        if not _show_review_screen(config):
+            console.print("[dim]Aborted.[/dim]")
+            return
 
     written: list[Path] = []
 

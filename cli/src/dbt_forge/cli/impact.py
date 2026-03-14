@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
+from contextlib import nullcontext
 from pathlib import Path
 
 from rich.console import Console
@@ -123,11 +125,25 @@ def _render_pr_markdown(graph: RefGraph, changed: list[str], blast: dict) -> str
     return "\n".join(lines)
 
 
+def render_impact_json(changed: list[str], blast: dict) -> str:
+    """Render impact analysis as JSON string."""
+    return json.dumps({
+        "changed_models": changed,
+        "total_impacted": blast["total_impacted"],
+        "direct": blast["direct"],
+        "transitive": blast["transitive"],
+        "untested_count": blast["untested_count"],
+        "untested_models": blast["untested_models"],
+        "blast_pct": blast["blast_pct"],
+    }, indent=2)
+
+
 def run_impact(
     model: str | None = None,
     diff: bool = False,
     base: str = "main",
     pr: bool = False,
+    output_format: str = "table",
 ) -> None:
     """Run impact analysis."""
     root = find_project_root()
@@ -136,13 +152,29 @@ def run_impact(
     changed: list[str] = []
 
     if diff:
-        with timed("Detecting changed models from git..."):
+        timer = (
+            timed("Detecting changed models from git...")
+            if output_format != "json"
+            else nullcontext()
+        )
+        with timer:
             changed = _get_changed_models_from_git(root, base)
         if not changed:
-            print_warning("No changed models found in git diff.")
+            if output_format == "json":
+                print(render_impact_json([], {
+                    "total_impacted": 0,
+                    "direct": 0,
+                    "transitive": 0,
+                    "untested_count": 0,
+                    "untested_models": [],
+                    "blast_pct": 0,
+                }))
+            else:
+                print_warning("No changed models found in git diff.")
             return
-        console.print(f"[bold]Changed models:[/bold] {', '.join(changed)}")
-        console.print()
+        if output_format != "json":
+            console.print(f"[bold]Changed models:[/bold] {', '.join(changed)}")
+            console.print()
     elif model:
         if model not in graph.nodes:
             print_error(f"Model '{model}' not found in project.")
@@ -154,6 +186,10 @@ def run_impact(
 
     tested = parse_yml_tests(root)
     blast = _compute_blast_radius(graph, changed, tested)
+
+    if output_format == "json":
+        print(render_impact_json(changed, blast))
+        return
 
     if pr:
         md = _render_pr_markdown(graph, changed, blast)
